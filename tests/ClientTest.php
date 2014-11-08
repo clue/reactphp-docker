@@ -20,104 +20,118 @@ class ClientTest extends TestCase
 
     public function testPing()
     {
-        $this->expectRequestFlow('get', '/_ping', $this->createResponse('OK'), 'expectPlain');
+        $body = 'OK';
+        $this->expectRequestFlow('get', '/_ping', $this->createResponse($body), 'expectPlain');
 
-        $this->client->ping();
+        $this->expectPromiseResolveWith($body, $this->client->ping());
     }
 
     public function testContainerInspect()
     {
-        $this->expectRequestFlow('get', '/containers/123/json', $this->createResponse('{}'), 'expectJson');
+        $json = array();
+        $this->expectRequestFlow('get', '/containers/123/json', $this->createResponseJson($json), 'expectJson');
 
-        $this->client->containerInspect(123);
+        $this->expectPromiseResolveWith($json, $this->client->containerInspect(123));
     }
 
     public function testContainerTop()
     {
-        $this->expectRequestFlow('get', '/containers/123/top', $this->createResponse('{}'), 'expectJson');
+        $json = array();
+        $this->expectRequestFlow('get', '/containers/123/top', $this->createResponseJson($json), 'expectJson');
 
-        $this->client->containerTop(123);
+        $this->expectPromiseResolveWith($json, $this->client->containerTop(123));
     }
 
     public function testContainerWait()
     {
-        $this->expectRequestFlow('post', '/containers/123/wait', $this->createResponse('{}'), 'expectJson');
+        $json = array();
+        $this->expectRequestFlow('post', '/containers/123/wait', $this->createResponseJson($json), 'expectJson');
 
-        $this->client->containerWait(123);
+        $this->expectPromiseResolveWith($json, $this->client->containerWait(123));
     }
 
     public function testContainerKill()
     {
         $this->expectRequestFlow('post', '/containers/123/kill?signal=', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerKill(123);
+        $this->expectPromiseResolveWith('', $this->client->containerKill(123));
     }
 
     public function testContainerKillSignalName()
     {
         $this->expectRequestFlow('post', '/containers/123/kill?signal=SIGKILL', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerKill(123, 'SIGKILL');
+        $this->expectPromiseResolveWith('', $this->client->containerKill(123, 'SIGKILL'));
     }
 
     public function testContainerKillSignalNumber()
     {
         $this->expectRequestFlow('post', '/containers/123/kill?signal=9', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerKill(123, 9);
+        $this->expectPromiseResolveWith('', $this->client->containerKill(123, 9));
     }
 
     public function testContainerStop()
     {
         $this->expectRequestFlow('post', '/containers/123/stop?t=10', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerStop(123, 10);
+        $this->expectPromiseResolveWith('', $this->client->containerStop(123, 10));
     }
 
     public function testContainerRestart()
     {
         $this->expectRequestFlow('post', '/containers/123/restart?t=10', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerRestart(123, 10);
+        $this->expectPromiseResolveWith('', $this->client->containerRestart(123, 10));
     }
 
     public function testContainerPause()
     {
         $this->expectRequestFlow('post', '/containers/123/pause', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerPause(123);
+        $this->expectPromiseResolveWith('', $this->client->containerPause(123));
     }
 
     public function testContainerUnpause()
     {
         $this->expectRequestFlow('post', '/containers/123/unpause', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerUnpause(123);
+        $this->expectPromiseResolveWith('', $this->client->containerUnpause(123));
     }
 
     public function testContainerDelete()
     {
         $this->expectRequestFlow('delete', '/containers/123?v=0&force=0', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerDelete(123, false, false);
+        $this->expectPromiseResolveWith('', $this->client->containerDelete(123, false, false));
     }
 
     public function testContainerResize()
     {
         $this->expectRequestFlow('get', '/containers/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
 
-        $this->client->containerResize(123, 800, 600);
+        $this->expectPromiseResolveWith('', $this->client->containerResize(123, 800, 600));
     }
 
     private function expectRequestFlow($method, $url, Response $response, $parser)
     {
+        $return = (string)$response->getBody();
+        if ($parser === 'expectJson') {
+            $return = json_decode($return, true);
+        }
+
         $this->browser->expects($this->once())->method($method)->with($this->equalTo($url))->will($this->returnPromise($response));
-        $this->parser->expects($this->once())->method($parser)->with($this->equalTo($response));
+        $this->parser->expects($this->once())->method($parser)->with($this->equalTo($response))->will($this->returnValue($return));
     }
 
     private function createResponse($body = '')
     {
         return new Response('HTTP/1.0', 200, 'OK', null, new Body($body));
+    }
+
+    private function createResponseJson($json)
+    {
+        return $this->createResponse(json_encode($json));
     }
 
     private function returnPromise($for)
