@@ -1,0 +1,22 @@
+{
+    "name": "clue/docker-react",
+    "description": "Simple async/streaming Docker client",
+    "keywords": ["Docker", "container", "ReactPHP", "async"],
+    "homepage": "https://github.com/clue/php-docker-react",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christian Lück",
+            "email": "christian@lueck.tv"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "Clue\\React\\Docker\\": "src/" }
+    },
+    "require": {
+        "php": ">=5.3",
+        "react/event-loop": "~0.3.0",
+        "clue/buzz-react": "~0.1.0",
+        "react/promise": "~1.0"
+    }
+}
