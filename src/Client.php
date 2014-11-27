@@ -61,7 +61,7 @@ class Client
      */
     public function containerStop($container, $t)
     {
-        return $this->browser->post('/containers/' . $container . '/stop')->then(array($this, 'expectEmpty'));
+        return $this->browser->post('/containers/' . $container . '/stop?t=' . $t)->then(array($this, 'expectEmpty'));
     }
 
     /**
@@ -72,7 +72,7 @@ class Client
      */
     public function containerRestart($container, $t)
     {
-        return $this->browser->post('/containers/' . $container . '/restart')->then(array($this, 'expectEmpty'));
+        return $this->browser->post('/containers/' . $container . '/restart?t=' . $t)->then(array($this, 'expectEmpty'));
     }
 
     public function containerKill($container, $signal = null)
@@ -99,12 +99,12 @@ class Client
      */
     public function containerDelete($container, $v = false, $force = false)
     {
-        return $this->browser->delete('/containers/' . $container)->then(array($this, 'expectEmpty'));
+        return $this->browser->delete('/containers/' . $container . '?v=' . (int)$v . '&force=' . (int)$force)->then(array($this, 'expectEmpty'));
     }
 
     public function containerResize($container, $w, $h)
     {
-        return $this->browser->get('/container/' . $container . '/resize?w=' . $w . '&h=' . $h)->then(array($this, 'expectEmpty'));
+        return $this->browser->get('/containers/' . $container . '/resize?w=' . $w . '&h=' . $h)->then(array($this, 'expectEmpty'));
     }
 
     public function expectPlain(Response $response)
