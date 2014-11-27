@@ -24,7 +24,13 @@ class Factory
 
         $connector = new UnixConnector($this->loop, $url);
 
-        $http = new HttpClient($this->loop, $connector, $connector);
+        $ref = new \ReflectionClass('React\HttpClient\Client');
+        if ($ref->getConstructor()->getNumberOfRequiredParameters() == 2) {
+            // react/http-client:0.4 removed the $loop parameter
+            $http = new HttpClient($connector, $connector);
+        } else {
+            $http = new HttpClient($this->loop, $connector, $connector);
+        }
 
         $sender = new Sender($http);
 
