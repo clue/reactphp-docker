@@ -6,6 +6,7 @@ use React\EventLoop\LoopInterface;
 use Clue\React\Buzz\Browser;
 use Clue\React\Buzz\Io\Sender;
 use React\HttpClient\Client as HttpClient;
+use Clue\React\Docker\Io\UnixConnector;
 
 class Factory
 {

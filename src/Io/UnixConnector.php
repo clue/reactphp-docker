@@ -1,6 +1,6 @@
 <?php
 
-namespace Clue\React\Docker;
+namespace Clue\React\Docker\Io;
 
 use React\SocketClient\ConnectorInterface;
 use React\Stream\Stream;
