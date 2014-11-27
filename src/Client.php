@@ -4,6 +4,7 @@ namespace Clue\React\Docker;
 
 use Clue\React\Buzz\Browser;
 use Clue\React\Buzz\Message\Response;
+use Clue\React\Docker\Io\ResponseParser;
 
 /**
  *
@@ -12,45 +13,51 @@ use Clue\React\Buzz\Message\Response;
 class Client
 {
     private $browser;
+    private $parser;
 
-    public function __construct(Browser $browser)
+    public function __construct(Browser $browser, ResponseParser $parser = null)
     {
+        if ($parser === null) {
+            $parser = new ResponseParser();
+        }
+
         $this->browser = $browser;
+        $this->parser = $parser;
     }
 
     public function ping()
     {
-        return $this->browser->get('/_ping')->then(array($this, 'expectPlain'));
+        return $this->browser->get('/_ping')->then(array($this->parser, 'expectPlain'));
     }
 
     public function info()
     {
-        return $this->browser->get('/info')->then(array($this, 'expectJson'));
+        return $this->browser->get('/info')->then(array($this->parser, 'expectJson'));
     }
 
     public function version()
     {
-        return $this->browser->get('/version')->then(array($this, 'expectJson'));
+        return $this->browser->get('/version')->then(array($this->parser, 'expectJson'));
     }
 
     public function containerList($all = false, $size = false)
     {
-        return $this->browser->get('/containers/json?all=' . $all . '&size=' . $size)->then(array($this, 'expectJson'));
+        return $this->browser->get('/containers/json?all=' . $all . '&size=' . $size)->then(array($this->parser, 'expectJson'));
     }
 
     public function containerInspect($container)
     {
-        return $this->browser->get('/containers/' . $container . '/json')->then(array($this, 'expectJson'));
+        return $this->browser->get('/containers/' . $container . '/json')->then(array($this->parser, 'expectJson'));
     }
 
     public function containerTop($container)
     {
-        return $this->browser->get('/containers/' . $container . '/top')->then(array($this, 'expectJson'));
+        return $this->browser->get('/containers/' . $container . '/top')->then(array($this->parser, 'expectJson'));
     }
 
     public function containerWait($container)
     {
-        return $this->browser->post('/containers/' . $container . '/wait')->then(array($this, 'expectJson'));
+        return $this->browser->post('/containers/' . $container . '/wait')->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -61,7 +68,7 @@ class Client
      */
     public function containerStop($container, $t)
     {
-        return $this->browser->post('/containers/' . $container . '/stop?t=' . $t)->then(array($this, 'expectEmpty'));
+        return $this->browser->post('/containers/' . $container . '/stop?t=' . $t)->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -72,22 +79,22 @@ class Client
      */
     public function containerRestart($container, $t)
     {
-        return $this->browser->post('/containers/' . $container . '/restart?t=' . $t)->then(array($this, 'expectEmpty'));
+        return $this->browser->post('/containers/' . $container . '/restart?t=' . $t)->then(array($this->parser, 'expectEmpty'));
     }
 
     public function containerKill($container, $signal = null)
     {
-        return $this->browser->post('/containers/' . $container . '/kill?signal=' . $signal)->then(array($this, 'expectEmpty'));
+        return $this->browser->post('/containers/' . $container . '/kill?signal=' . $signal)->then(array($this->parser, 'expectEmpty'));
     }
 
     public function containerPause($container)
     {
-        return $this->browser->post('/containers/' . $container . '/pause')->then(array($this, 'expectEmpty'));
+        return $this->browser->post('/containers/' . $container . '/pause')->then(array($this->parser, 'expectEmpty'));
     }
 
     public function containerUnpause($container)
     {
-        return $this->browser->post('/containers/' . $container . '/unpause')->then(array($this, 'expectEmpty'));
+        return $this->browser->post('/containers/' . $container . '/unpause')->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -99,33 +106,11 @@ class Client
      */
     public function containerDelete($container, $v = false, $force = false)
     {
-        return $this->browser->delete('/containers/' . $container . '?v=' . (int)$v . '&force=' . (int)$force)->then(array($this, 'expectEmpty'));
+        return $this->browser->delete('/containers/' . $container . '?v=' . (int)$v . '&force=' . (int)$force)->then(array($this->parser, 'expectEmpty'));
     }
 
     public function containerResize($container, $w, $h)
     {
-        return $this->browser->get('/containers/' . $container . '/resize?w=' . $w . '&h=' . $h)->then(array($this, 'expectEmpty'));
-    }
-
-    public function expectPlain(Response $response)
-    {
-        // text/plain
-
-        return (string)$response->getBody();
-    }
-
-    public function expectJson(Response $response)
-    {
-        // application/json
-
-        return json_decode((string)$response->getBody(), true);
-    }
-
-    public function expectEmpty(Response $response)
-    {
-        // 204 No Content
-        // no content-type
-
-        return $this->expectPlain($response);
+        return $this->browser->get('/containers/' . $container . '/resize?w=' . $w . '&h=' . $h)->then(array($this->parser, 'expectEmpty'));
     }
 }
