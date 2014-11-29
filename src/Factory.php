@@ -25,6 +25,8 @@ class Factory
 
         $connector = new UnixConnector($this->loop, $url);
 
+        // create HttpClient for React 0.4/0.3 (code coverage will be achieved by testing both versions)
+        // @codeCoverageIgnoreStart
         $ref = new \ReflectionClass('React\HttpClient\Client');
         if ($ref->getConstructor()->getNumberOfRequiredParameters() == 2) {
             // react/http-client:0.4 removed the $loop parameter
@@ -32,6 +34,7 @@ class Factory
         } else {
             $http = new HttpClient($this->loop, $connector, $connector);
         }
+        // @codeCoverageIgnoreEnd
 
         $sender = new Sender($http);
 
