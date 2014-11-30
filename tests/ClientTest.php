@@ -15,7 +15,7 @@ class ClientTest extends TestCase
     {
         $this->browser = $this->getMockBuilder('Clue\React\Buzz\Browser')->disableOriginalConstructor()->getMock();
         $this->parser = $this->getMock('Clue\React\Docker\Io\ResponseParser');
-        $this->client = new Client($this->browser, $this->parser);
+        $this->client = new Client($this->browser, '', $this->parser);
     }
 
     public function testPing()

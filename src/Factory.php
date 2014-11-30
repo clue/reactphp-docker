@@ -23,10 +23,18 @@ class Factory
             $url = 'unix:///var/run/docker.sock';
         }
 
-        $sender = Sender::createFromLoopUnix($this->loop, $url);
+        $sender = null;
+
+        if (substr($url, 0, 7) === 'unix://') {
+            // send everything through a local unix domain socket
+            $sender = Sender::createFromLoopUnix($this->loop, $url);
+
+            // pretend all HTTP URLs to be on localhost
+            $url = 'http://localhost';
+        }
 
         $browser = new Browser($this->loop, $sender);
 
-        return new Client($browser);
+        return new Client($browser, $url);
     }
 }
