@@ -23,20 +23,7 @@ class Factory
             $url = 'unix:///var/run/docker.sock';
         }
 
-        $connector = new UnixConnector($this->loop, $url);
-
-        // create HttpClient for React 0.4/0.3 (code coverage will be achieved by testing both versions)
-        // @codeCoverageIgnoreStart
-        $ref = new \ReflectionClass('React\HttpClient\Client');
-        if ($ref->getConstructor()->getNumberOfRequiredParameters() == 2) {
-            // react/http-client:0.4 removed the $loop parameter
-            $http = new HttpClient($connector, $connector);
-        } else {
-            $http = new HttpClient($this->loop, $connector, $connector);
-        }
-        // @codeCoverageIgnoreEnd
-
-        $sender = new Sender($http);
+        $sender = Sender::createFromLoopUnix($this->loop, $url);
 
         $browser = new Browser($this->loop, $sender);
 
