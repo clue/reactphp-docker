@@ -44,22 +44,22 @@ class Client
 
     public function containerList($all = false, $size = false)
     {
-        return $this->browser->get($this->url('/containers/json?all=' . $all . '&size=' . $size))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get($this->url('/containers/json?all=%u&size=%u', $all, $size))->then(array($this->parser, 'expectJson'));
     }
 
     public function containerInspect($container)
     {
-        return $this->browser->get($this->url('/containers/' . $container . '/json'))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get($this->url('/containers/%s/json', $container))->then(array($this->parser, 'expectJson'));
     }
 
     public function containerTop($container)
     {
-        return $this->browser->get($this->url('/containers/' . $container . '/top'))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get($this->url('/containers/%s/top', $container))->then(array($this->parser, 'expectJson'));
     }
 
     public function containerWait($container)
     {
-        return $this->browser->post($this->url('/containers/' . $container . '/wait'))->then(array($this->parser, 'expectJson'));
+        return $this->browser->post($this->url('/containers/%s/wait', $container))->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -70,7 +70,7 @@ class Client
      */
     public function containerStop($container, $t)
     {
-        return $this->browser->post($this->url('/containers/' . $container . '/stop?t=' . $t))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post($this->url('/containers/%s/stop?t=%u', $container, $t))->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -81,22 +81,22 @@ class Client
      */
     public function containerRestart($container, $t)
     {
-        return $this->browser->post($this->url('/containers/' . $container . '/restart?t=' . $t))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post($this->url('/containers/%s/restart?t=%u', $container, $t))->then(array($this->parser, 'expectEmpty'));
     }
 
     public function containerKill($container, $signal = null)
     {
-        return $this->browser->post($this->url('/containers/' . $container . '/kill?signal=' . $signal))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post($this->url('/containers/%s/kill?signal=%s', $container, $signal))->then(array($this->parser, 'expectEmpty'));
     }
 
     public function containerPause($container)
     {
-        return $this->browser->post($this->url('/containers/' . $container . '/pause'))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post($this->url('/containers/%s/pause', $container))->then(array($this->parser, 'expectEmpty'));
     }
 
     public function containerUnpause($container)
     {
-        return $this->browser->post($this->url('/containers/' . $container . '/unpause'))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post($this->url('/containers/%s/unpause', $container))->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -108,16 +108,19 @@ class Client
      */
     public function containerDelete($container, $v = false, $force = false)
     {
-        return $this->browser->delete($this->url('/containers/' . $container . '?v=' . (int)$v . '&force=' . (int)$force))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->delete($this->url('/containers/%s?v=%u&force=%u', $container, $v, $force))->then(array($this->parser, 'expectEmpty'));
     }
 
     public function containerResize($container, $w, $h)
     {
-        return $this->browser->get($this->url('/containers/' . $container . '/resize?w=' . $w . '&h=' . $h))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->get($this->url('/containers/%s/resize?w=%u&h=%u', $container, $w, $h))->then(array($this->parser, 'expectEmpty'));
     }
 
     private function url($url)
     {
-        return $this->url . $url;
+        $args = func_get_args();
+        array_shift($args);
+
+        return $this->url . vsprintf($url, $args);
     }
 }
