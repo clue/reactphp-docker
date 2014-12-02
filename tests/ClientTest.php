@@ -113,6 +113,31 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith('', $this->client->containerResize(123, 800, 600));
     }
 
+    public function testExecCreate()
+    {
+        $json = array();
+        $config = array();
+        $this->expectRequestFlow('post', '/containers/123/exec', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->execCreate(123, $config));
+    }
+
+    public function testExecStart()
+    {
+        $json = array();
+        $config = array();
+        $this->expectRequestFlow('post', '/exec/123/start', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->execStart(123, $config));
+    }
+
+    public function testExecResize()
+    {
+        $this->expectRequestFlow('get', '/exec/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->execResize(123, 800, 600));
+    }
+
     private function expectRequestFlow($method, $url, Response $response, $parser)
     {
         $return = (string)$response->getBody();

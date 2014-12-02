@@ -215,11 +215,72 @@ class Client
         return $this->browser->delete($this->url('/containers/%s?v=%u&force=%u', $container, $v, $force))->then(array($this->parser, 'expectEmpty'));
     }
 
+    /**
+     * Sets up an exec instance in a running container id
+     *
+     * @param string $container container ID
+     * @param array  $config    `array('Cmd' => 'date')` (see link)
+     * @return Promise Promise<array> with exec ID in the form of `array("Id" => $execId)`
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-create
+     */
+    public function execCreate($container, $config)
+    {
+        return $this->postJson($this->url('/containers/%s/exec', $container), $config)->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Starts a previously set up exec instance id.
+     *
+     * If detach is true, this API returns after starting the exec command.
+     * Otherwise, this API sets up an interactive session with the exec command.
+     *
+     * @param string $exec   exec ID
+     * @param array  $config (see link)
+     * @return Promise Promise<array> stream of message objects
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
+     */
+    public function execStart($exec, $config)
+    {
+        return $this->postJson($this->url('/exec/%s/start', $exec), $config)->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Resizes the tty session used by the exec command id.
+     *
+     * This API is valid only if tty was specified as part of creating and starting the exec command.
+     *
+     * @param string $exec exec ID
+     * @param int    $w    TTY width
+     * @param int    $h    TTY height
+     * @return Promise Promise<null>
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-resize
+     */
+    public function execResize($exec, $w, $h)
+    {
+        return $this->browser->get($this->url('/exec/%s/resize?w=%u&h=%u', $exec, $w, $h))->then(array($this->parser, 'expectEmpty'));
+    }
+
     private function url($url)
     {
         $args = func_get_args();
         array_shift($args);
 
         return $this->url . vsprintf($url, $args);
+    }
+
+    private function postJson($url, $data)
+    {
+        $body = $this->json($data);
+        $headers = array('Content-Type' => 'application/json', 'Content-Length' => strlen($body));
+
+        return $this->browser->post($url, $headers, $body);
+    }
+
+    private function json($data)
+    {
+        if ($data === array()) {
+            return '{}';
+        }
+        return json_encode($data);
     }
 }
