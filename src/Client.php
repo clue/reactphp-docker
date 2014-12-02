@@ -89,6 +89,19 @@ class Client
     }
 
     /**
+     * Create a container
+     *
+     * @param array       $config e.g. `array('Image' => 'busybox', 'Cmd' => 'date')` (see link)
+     * @param string|null $name   (optional) name to assign to this container
+     * @return Promise Promise<array> container properties `array('Id' => $containerId', 'Warnings' => array())`
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-a-container
+     */
+    public function containerCreate($config, $name = null)
+    {
+        return $this->postJson($this->url('/containers/create?name=%s', $name), $config)->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
      * Return low-level information on the container id
      *
      * @param string $container container ID
@@ -124,6 +137,19 @@ class Client
     public function containerResize($container, $w, $h)
     {
         return $this->browser->get($this->url('/containers/%s/resize?w=%u&h=%u', $container, $w, $h))->then(array($this->parser, 'expectEmpty'));
+    }
+
+    /**
+     * Start the container id
+     *
+     * @param string $container container ID
+     * @param array  $config    (optional) start config (see link)
+     * @return Promise Promise<null>
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#start-a-container
+     */
+    public function containerStart($container, $config = array())
+    {
+        return $this->postJson($this->url('/containers/%s/start', $container), $config)->then(array($this->parser, 'expectEmpty'));
     }
 
     /**

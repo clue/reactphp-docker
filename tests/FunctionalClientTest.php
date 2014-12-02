@@ -32,6 +32,39 @@ class FunctionalClientTest extends TestCase
         $this->loop->run();
     }
 
+    public function testCreateStartAndRemoveContainer()
+    {
+        $config = array(
+            'Image' => 'busybox',
+            'Cmd' => array('echo', 'test')
+        );
+
+        $promise = $this->client->containerCreate($config);
+        $container = $this->waitFor($promise, $this->loop);
+
+        $this->assertNotNull($container['Id']);
+        $this->assertNull($container['Warnings']);
+
+        $promise = $this->client->containerStart($container['Id']);
+        $ret = $this->waitFor($promise, $this->loop);
+
+        $this->assertEquals('', $ret);
+
+        $promise = $this->client->containerRemove($container['Id'], false, true);
+        $ret = $this->waitFor($promise, $this->loop);
+
+        $this->assertEquals('', $ret);
+    }
+
+    /**
+     * @expectedException RuntimeException
+     */
+    public function testContainerRemoveInvalid()
+    {
+        $promise = $this->client->containerRemove('invalid123');
+        $this->waitFor($promise, $this->loop);
+    }
+
     public function testInfo()
     {
         $this->expectPromiseResolve($this->client->info());

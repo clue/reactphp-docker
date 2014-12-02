@@ -26,6 +26,24 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($body, $this->client->ping());
     }
 
+    public function testContainerCreate()
+    {
+        $json = array();
+        $config = array();
+        $this->expectRequestFlow('post', '/containers/create?name=', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->containerCreate($config));
+    }
+
+    public function testContainerCreateName()
+    {
+        $json = array();
+        $config = array();
+        $this->expectRequestFlow('post', '/containers/create?name=demo', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->containerCreate($config, 'demo'));
+    }
+
     public function testContainerInspect()
     {
         $json = array();
@@ -69,6 +87,14 @@ class ClientTest extends TestCase
         $this->expectRequestFlow('post', '/containers/123/kill?signal=9', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerKill(123, 9));
+    }
+
+    public function testContainerStart()
+    {
+        $config = array();
+        $this->expectRequestFlow('post', '/containers/123/start', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->containerStart(123, $config));
     }
 
     public function testContainerStop()
