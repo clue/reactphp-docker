@@ -60,6 +60,22 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->containerTop(123));
     }
 
+    public function testContainerChanges()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/containers/123/changes', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->containerChanges(123));
+    }
+
+    public function testContainerExport()
+    {
+        $data = 'tar stream';
+        $this->expectRequestFlow('get', '/containers/123/export', $this->createResponse($data), 'expectPlain');
+
+        $this->expectPromiseResolveWith($data, $this->client->containerExport(123));
+    }
+
     public function testContainerWait()
     {
         $json = array();
@@ -137,6 +153,15 @@ class ClientTest extends TestCase
         $this->expectRequestFlow('get', '/containers/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerResize(123, 800, 600));
+    }
+
+    public function testContainerCopy()
+    {
+        $data = 'tar stream';
+        $config = array('Resource' => 'file.txt');
+        $this->expectRequestFlow('post', '/containers/123/copy', $this->createResponse($data), 'expectPlain');
+
+        $this->expectPromiseResolveWith($data, $this->client->containerCopy('123', $config));
     }
 
     public function testExecCreate()

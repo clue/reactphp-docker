@@ -126,6 +126,30 @@ class Client
     }
 
     /**
+     * Inspect changes on container id's filesystem
+     *
+     * @param string $container container ID
+     * @return Promise Promise<array>
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#inspect-changes-on-a-containers-filesystem
+     */
+    public function containerChanges($container)
+    {
+        return $this->browser->get($this->url('/containers/%s/changes', $container))->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Export the contents of container id
+     *
+     * @param string $container container ID
+     * @return Promise Promise<string> tar stream
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
+     */
+    public function containerExport($container)
+    {
+        return $this->browser->get($this->url('/containers/%s/export', $container))->then(array($this->parser, 'expectPlain'));
+    }
+
+    /**
      * Resize the TTY of container id
      *
      * @param string $container container ID
@@ -239,6 +263,18 @@ class Client
     public function containerRemove($container, $v = false, $force = false)
     {
         return $this->browser->delete($this->url('/containers/%s?v=%u&force=%u', $container, $v, $force))->then(array($this->parser, 'expectEmpty'));
+    }
+
+    /**
+     * Copy files or folders of container id
+     *
+     * @param string $container container ID
+     * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
+     * @return Promise Promise<string> tar stream
+     */
+    public function containerCopy($container, $config)
+    {
+        return $this->postJson($this->url('/containers/%s/copy', $container), $config)->then(array($this->parser, 'expectPlain'));
     }
 
     /**
