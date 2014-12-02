@@ -99,11 +99,11 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith('', $this->client->containerUnpause(123));
     }
 
-    public function testContainerDelete()
+    public function testContainerRemove()
     {
         $this->expectRequestFlow('delete', '/containers/123?v=0&force=0', $this->createResponse(), 'expectEmpty');
 
-        $this->expectPromiseResolveWith('', $this->client->containerDelete(123, false, false));
+        $this->expectPromiseResolveWith('', $this->client->containerRemove(123, false, false));
     }
 
     public function testContainerResize()

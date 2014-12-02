@@ -210,7 +210,7 @@ class Client
      * @return Promise Promise<null>
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#remove-a-container
      */
-    public function containerDelete($container, $v = false, $force = false)
+    public function containerRemove($container, $v = false, $force = false)
     {
         return $this->browser->delete($this->url('/containers/%s?v=%u&force=%u', $container, $v, $force))->then(array($this->parser, 'expectEmpty'));
     }
