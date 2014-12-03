@@ -52,12 +52,12 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->containerInspect(123));
     }
 
-    public function testContainerTop()
+    public function testContainerTopArgs()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/containers/123/top', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', '/containers/123/top?ps_args=aux', $this->createResponseJson($json), 'expectJson');
 
-        $this->expectPromiseResolveWith($json, $this->client->containerTop(123));
+        $this->expectPromiseResolveWith($json, $this->client->containerTop(123, 'aux'));
     }
 
     public function testContainerChanges()

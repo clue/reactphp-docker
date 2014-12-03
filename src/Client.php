@@ -116,13 +116,14 @@ class Client
     /**
      * List processes running inside the container id
      *
-     * @param string $container container ID
+     * @param string      $container container ID
+     * @param string|null $ps_args   (optional) ps arguments to use (e.g. aux)
      * @return Promise Promise<array>
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#list-processes-running-inside-a-container
      */
-    public function containerTop($container)
+    public function containerTop($container, $ps_args = null)
     {
-        return $this->browser->get($this->url('/containers/%s/top', $container))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get($this->url('/containers/%s/top?ps_args=%s', $container, $ps_args))->then(array($this->parser, 'expectJson'));
     }
 
     /**
