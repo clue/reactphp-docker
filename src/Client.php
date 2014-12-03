@@ -279,6 +279,120 @@ class Client
     }
 
     /**
+     * List images
+     *
+     * @param boolean $all
+     * @return Promise Promise<array> list of image objects
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#list-images
+     * @todo support $filters param
+     */
+    public function imageList($all = false)
+    {
+        return $this->browser->get($this->url('/images/json?all=%u', $all))->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Create an image, either by pulling it from the registry or by importing it
+     *
+     * @param string|null $fromImage    name of the image to pull
+     * @param string|null $fromSrc      source to import, - means stdin
+     * @param string|null $repo         repository
+     * @param string|null $tag          (optional) (obsolete) tag, use $repo and $fromImage in the "name:tag" instead
+     * @param string|null $registry     the registry to pull from
+     * @param array|null  $registryAuth AuthConfig object (to send as X-Registry-Auth header)
+     * @return Promise Promise<array> stream of message objects
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
+     */
+    public function imageCreate($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
+    {
+        return $this->browser->post(
+            $this->url('/images/create?fromImage=%s&fromSrc=%s&repo=%s&tag=%s&registry=%s', $fromImage, $fromSrc, $repo, $tag, $registry),
+            $this->authHeaders($registryAuth)
+        )->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Return low-level information on the image name
+     *
+     * @param string $image image ID
+     * @return Promise Promise<array> image properties
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#inspect-an-image
+     */
+    public function imageInspect($image)
+    {
+        return $this->browser->get($this->url('/images/%s/json', $image))->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Return the history of the image name
+     *
+     * @param string $image image ID
+     * @return Promise Promise<array> list of image history objects
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#get-the-history-of-an-image
+     */
+    public function imageHistory($image)
+    {
+        return $this->browser->get($this->url('/images/%s/history', $image))->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Push the image name on the registry
+     *
+     * @param string      $image        image ID
+     * @param string|null $tag          (optional) the tag to associate with the image on the registry
+     * @param string|null $registry     (optional) the registry to push to (e.g. `registry.acme.com:5000`)
+     * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
+     * @return Promise Promise<array> list of image push messages
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
+     */
+    public function imagePush($image, $tag = null, $registry = null, $registryAuth = null)
+    {
+        $path = '/images' . ($registry === null ? '' : ('/' . $registry)) . '/%s/push?tag=%s';
+        return $this->browser->post($this->url($path, $image, $tag), $this->authHeaders($registryAuth))->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Tag the image name into a repository
+     *
+     * @param string      $image  image ID
+     * @param string      $repo   The repository to tag in
+     * @param string|null $tag    The new tag name
+     * @param boolean     $force  1/True/true or 0/False/false, default false
+     * @return Promise Promise<null>
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#tag-an-image-into-a-repository
+     */
+    public function imageTag($image, $repo, $tag = null, $force = false)
+    {
+        return $this->browser->post($this->url('/images/%s/tag?repo=%s&tag=%s&force=%u', $image, $repo, $tag, $force))->then(array($this->parser, 'expectEmpty'));
+    }
+
+    /**
+     * Remove the image name from the filesystem
+     *
+     * @param string  $image   image ID
+     * @param boolean $force   1/True/true or 0/False/false, default false
+     * @param boolean $noprune 1/True/true or 0/False/false, default false
+     * @return Promise Promise<null>
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#remove-an-image
+     */
+    public function imageRemove($image, $force = false, $noprune = false)
+    {
+        return $this->browser->delete($this->url('/images/%s?force=%u&noprune=%u', $image, $force, $noprune))->then(array($this->parser, 'expectEmpty'));
+    }
+
+    /**
+     * Search for an image on Docker Hub.
+     *
+     * @param string $term term to search
+     * @return Promise Promise<array> list of image search result objects
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#search-images
+     */
+    public function imageSearch($term)
+    {
+        return $this->browser->get($this->url('/images/search?term=%s', $term))->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
      * Sets up an exec instance in a running container id
      *
      * @param string $container container ID
@@ -345,5 +459,15 @@ class Client
             return '{}';
         }
         return json_encode($data);
+    }
+
+    private function authHeaders($registryAuth)
+    {
+        $headers = array();
+        if ($registryAuth !== null) {
+            $headers['X-Registry-Auth'] = base64_encode($this->json($registryAuth));
+        }
+
+        return $headers;
     }
 }

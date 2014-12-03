@@ -52,6 +52,14 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->containerInspect(123));
     }
 
+    public function testContainerTop()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/containers/123/top?ps_args=', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->containerTop(123));
+    }
+
     public function testContainerTopArgs()
     {
         $json = array();
@@ -162,6 +170,78 @@ class ClientTest extends TestCase
         $this->expectRequestFlow('post', '/containers/123/copy', $this->createResponse($data), 'expectPlain');
 
         $this->expectPromiseResolveWith($data, $this->client->containerCopy('123', $config));
+    }
+
+    public function testImageList()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/images/json?all=0', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imageList());
+    }
+
+    public function testImageCreate()
+    {
+        $json = array();
+        $this->expectRequestFlow('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imageCreate('busybox'));
+    }
+
+    public function testImageInspect()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/images/123/json', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imageInspect('123'));
+    }
+
+    public function testImageHistory()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/images/123/history', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imageHistory('123'));
+    }
+
+    public function testImagePush()
+    {
+        $json = array();
+        $this->expectRequestFlow('post', '/images/123/push?tag=', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imagePush('123'));
+    }
+
+    public function testImagePushCustomRegistry()
+    {
+        // TODO: verify headers
+        $auth = array();
+        $json = array();
+        $this->expectRequestFlow('post', '/images/demo.acme.com:5000/123/push?tag=test', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imagePush('123', 'test', 'demo.acme.com:5000', $auth));
+    }
+
+    public function testImageTag()
+    {
+        $this->expectRequestFlow('post', '/images/123/tag?repo=test&tag=&force=0', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->imageTag('123', 'test'));
+    }
+
+    public function testImageRemove()
+    {
+        $this->expectRequestFlow('delete', '/images/123?force=0&noprune=0', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->imageRemove('123', 'test'));
+    }
+
+    public function testImageSearch()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/images/search?term=clue', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imageSearch('clue'));
     }
 
     public function testExecCreate()

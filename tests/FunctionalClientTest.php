@@ -65,6 +65,25 @@ class FunctionalClientTest extends TestCase
         $this->waitFor($promise, $this->loop);
     }
 
+    public function testImageSearch()
+    {
+        $promise = $this->client->imageSearch('clue');
+        $ret = $this->waitFor($promise, $this->loop);
+
+        $this->assertGreaterThan(10, count($ret));
+    }
+
+    public function testImageTag()
+    {
+        // create new tag "bb:now" on "busybox:latest"
+        $promise = $this->client->imageTag('busybox', 'bb', 'now');
+        $ret = $this->waitFor($promise, $this->loop);
+
+        // delete tag "bb:now" again
+        $promise = $this->client->imageRemove('bb:now');
+        $ret = $this->waitFor($promise, $this->loop);
+    }
+
     public function testInfo()
     {
         $this->expectPromiseResolve($this->client->info());
