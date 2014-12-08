@@ -20,7 +20,7 @@ execute arbitrary commands within isolated containers, stop running containers a
 * **Good test coverage** -
   Comes with an automated tests suite and is regularly tested in the *real world*
 
-> Note: This project is in early alpha stage! Feel free to report any issues you encounter.
+> Note: This project is in beta stage! Feel free to report any issues you encounter.
 
 ## Quickstart example
 
@@ -114,7 +114,7 @@ The recommended way to install this library is [through composer](http://getcomp
 ```JSON
 {
     "require": {
-        "clue/docker-react": "dev-master"
+        "clue/docker-react": "~0.1.0"
     }
 }
 ```
