@@ -4,7 +4,7 @@ Simple async/streaming access to the [Docker](https://www.docker.com/) API, buil
 
 [Docker](https://www.docker.com/) is a popular open source platform
 to run and share applications within isolated, lightweight containers.
-The [Docker Remote API](https://wiki.asterisk.org/wiki/display/AST/The+Asterisk+Manager+TCP+IP+API)
+The [Docker Remote API](https://docs.docker.com/reference/api/docker_remote_api_v1.15/)
 allows you to control and monitor your containers and images.
 Among others, it can be used to list existing images, download new images,
 execute arbitrary commands within isolated containers, stop running containers and much more.
