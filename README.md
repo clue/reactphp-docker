@@ -46,10 +46,10 @@ See also the [examples](examples).
 ### Factory
 
 The `Factory` is responsible for creating your `Client` instance.
-It also registers everything with the main `EventLoop`.
+It also registers everything with the main [`EventLoop`](https://github.com/reactphp/event-loop#usage).
 
 ```php
-$loop = \React\EventLoop\Factory::create();
+$loop = React\EventLoop\Factory::create();
 $factory = new Factory($loop);
 ```
 
