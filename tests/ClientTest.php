@@ -9,13 +9,15 @@ class ClientTest extends TestCase
 {
     private $browser;
     private $parser;
+    private $streamingParser;
     private $client;
 
     public function setUp()
     {
         $this->browser = $this->getMockBuilder('Clue\React\Buzz\Browser')->disableOriginalConstructor()->getMock();
         $this->parser = $this->getMock('Clue\React\Docker\Io\ResponseParser');
-        $this->client = new Client($this->browser, '', $this->parser);
+        $this->streamingParser = $this->getMock('Clue\React\Docker\Io\StreamingParser');
+        $this->client = new Client($this->browser, '', $this->parser, $this->streamingParser);
     }
 
     public function testPing()
@@ -183,6 +185,7 @@ class ClientTest extends TestCase
     public function testImageCreate()
     {
         $json = array();
+        $this->streamingParser->expects($this->once())->method('parseResponse')->will($this->returnArgument(0));
         $this->expectRequestFlow('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->imageCreate('busybox'));

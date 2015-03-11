@@ -6,6 +6,7 @@ use Clue\React\Buzz\Browser;
 use Clue\React\Buzz\Message\Response;
 use Clue\React\Docker\Io\ResponseParser;
 use React\Promise\PromiseInterface as Promise;
+use Clue\React\Docker\Io\StreamingParser;
 
 /**
  * Docker Remote API client
@@ -20,6 +21,7 @@ class Client
     private $browser;
     private $url;
     private $parser;
+    private $streamingParser;
 
     /**
      * Instantiate new Client
@@ -31,15 +33,20 @@ class Client
      * @param ResponseParser|null $parser
      * @see Factory::createClient()
      */
-    public function __construct(Browser $browser, $url, ResponseParser $parser = null)
+    public function __construct(Browser $browser, $url, ResponseParser $parser = null, StreamingParser $streamingParser = null)
     {
         if ($parser === null) {
             $parser = new ResponseParser();
         }
 
+        if ($streamingParser === null) {
+            $streamingParser = new StreamingParser();
+        }
+
         $this->browser = $browser;
         $this->url = $url;
         $this->parser = $parser;
+        $this->streamingParser = $streamingParser;
     }
 
     /**
@@ -305,10 +312,10 @@ class Client
      */
     public function imageCreate($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
-        return $this->browser->post(
+        return $this->streamingParser->parseResponse($this->browser->post(
             $this->url('/images/create?fromImage=%s&fromSrc=%s&repo=%s&tag=%s&registry=%s', $fromImage, $fromSrc, $repo, $tag, $registry),
             $this->authHeaders($registryAuth)
-        )->then(array($this->parser, 'expectJson'));
+        ))->then(array($this->parser, 'expectJson'));
     }
 
     /**
