@@ -16,7 +16,7 @@
     "require": {
         "php": ">=5.3",
         "react/event-loop": "~0.3.0|~0.4.0",
-        "clue/buzz-react": "~0.2.0",
+        "clue/buzz-react": "~0.3.0",
         "react/promise": "~1.0|~2.0",
         "clue/json-stream": "~0.1.0"
     }
