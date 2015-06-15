@@ -152,10 +152,27 @@ class Client
      * @param string $container container ID
      * @return Promise Promise<string> tar stream
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
+     * @see self::containerExportStream()
      */
     public function containerExport($container)
     {
         return $this->browser->get($this->url('/containers/%s/export', $container))->then(array($this->parser, 'expectPlain'));
+    }
+
+    /**
+     * Export the contents of container id
+     *
+     * The resulting stream is a well-behaving readable stream that will emit
+     * the normal stream events.
+     *
+     * @param string $container container ID
+     * @return ReadableStreamInterface tar stream
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
+     * @see self::containerExport()
+     */
+    public function containerExportStream($container)
+    {
+        return $this->streamingParser->parsePlainStream($this->browser->get($this->url('/containers/%s/export', $container)));
     }
 
     /**
@@ -280,10 +297,29 @@ class Client
      * @param string $container container ID
      * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
      * @return Promise Promise<string> tar stream
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
+     * @see self::containerCopyStream()
      */
     public function containerCopy($container, $config)
     {
         return $this->postJson($this->url('/containers/%s/copy', $container), $config)->then(array($this->parser, 'expectPlain'));
+    }
+
+    /**
+     * Copy files or folders of container id
+     *
+     * The resulting stream is a well-behaving readable stream that will emit
+     * the normal stream events.
+     *
+     * @param string $container container ID
+     * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
+     * @return ReadableStreamInterface tar stream
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
+     * @see self::containerCopy()
+     */
+    public function containerCopyStream($container, $config)
+    {
+        return $this->streamingParser->parsePlainStream($this->postJson($this->url('/containers/%s/copy', $container), $config));
     }
 
     /**

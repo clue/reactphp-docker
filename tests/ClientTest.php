@@ -86,6 +86,16 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($data, $this->client->containerExport(123));
     }
 
+    public function testContainerExportStream()
+    {
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('get', '/containers/123/export', $this->createResponse(''));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+
+        $this->assertSame($stream, $this->client->containerExportStream(123));
+    }
+
     public function testContainerWait()
     {
         $json = array();
@@ -168,10 +178,21 @@ class ClientTest extends TestCase
     public function testContainerCopy()
     {
         $data = 'tar stream';
-        $config = array('Resource' => 'file.txt');
         $this->expectRequestFlow('post', '/containers/123/copy', $this->createResponse($data), 'expectPlain');
 
+        $config = array('Resource' => 'file.txt');
         $this->expectPromiseResolveWith($data, $this->client->containerCopy('123', $config));
+    }
+
+    public function testContainerCopyStream()
+    {
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/containers/123/copy', $this->createResponse(''));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+
+        $config = array('Resource' => 'file.txt');
+        $this->assertSame($stream, $this->client->containerCopyStream('123', $config));
     }
 
     public function testImageList()
