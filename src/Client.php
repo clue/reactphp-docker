@@ -7,6 +7,7 @@ use Clue\React\Buzz\Message\Response;
 use Clue\React\Docker\Io\ResponseParser;
 use React\Promise\PromiseInterface as Promise;
 use Clue\React\Docker\Io\StreamingParser;
+use React\Stream\ReadableStreamInterface;
 
 /**
  * Docker Remote API client
@@ -301,6 +302,9 @@ class Client
     /**
      * Create an image, either by pulling it from the registry or by importing it
      *
+     * Will resolve with an array of all progress events. These can also be
+     * accessed via the Promise progress handler.
+     *
      * @param string|null $fromImage    name of the image to pull
      * @param string|null $fromSrc      source to import, - means stdin
      * @param string|null $repo         repository
@@ -309,13 +313,42 @@ class Client
      * @param array|null  $registryAuth AuthConfig object (to send as X-Registry-Auth header)
      * @return Promise Promise<array> stream of message objects
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
+     * @see self::imageCreateStream()
      */
     public function imageCreate($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
-        return $this->streamingParser->parseResponse($this->browser->post(
+        $stream = $this->imageCreateStream($fromImage, $fromSrc, $repo, $tag, $registry, $registryAuth);
+
+        return $this->streamingParser->deferredStream($stream, 'progress');
+    }
+
+    /**
+     * Create an image, either by pulling it from the registry or by importing it
+     *
+     * The resulting stream will emit the following events:
+     * - progress: for *each* element in the update stream
+     * - error:    once if an error occurs, will close() stream then
+     * - close:    once the stream ends (either finished or after "error")
+     *
+     * Please note that the resulting stream does not emit any "data" events, so
+     * you will not be able to pipe() its events into another `WritableStream`.
+     *
+     * @param string|null $fromImage    name of the image to pull
+     * @param string|null $fromSrc      source to import, - means stdin
+     * @param string|null $repo         repository
+     * @param string|null $tag          (optional) (obsolete) tag, use $repo and $fromImage in the "name:tag" instead
+     * @param string|null $registry     the registry to pull from
+     * @param array|null  $registryAuth AuthConfig object (to send as X-Registry-Auth header)
+     * @return ReadableStreamInterface
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
+     * @see self::imageCreate()
+     */
+    public function imageCreateStream($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
+    {
+        return $this->streamingParser->parseJsonStream($this->browser->post(
             $this->url('/images/create?fromImage=%s&fromSrc=%s&repo=%s&tag=%s&registry=%s', $fromImage, $fromSrc, $repo, $tag, $registry),
             $this->authHeaders($registryAuth)
-        ))->then(array($this->parser, 'expectJson'));
+        ));
     }
 
     /**

@@ -185,10 +185,23 @@ class ClientTest extends TestCase
     public function testImageCreate()
     {
         $json = array();
-        $this->streamingParser->expects($this->once())->method('parseResponse')->will($this->returnArgument(0));
-        $this->expectRequestFlow('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJson($json), 'expectJson');
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJsonStream($json));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
         $this->expectPromiseResolveWith($json, $this->client->imageCreate('busybox'));
+    }
+
+    public function testImageCreateStream()
+    {
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJsonStream(array()));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+
+        $this->assertSame($stream, $this->client->imageCreateStream('busybox'));
     }
 
     public function testImageInspect()
@@ -283,6 +296,11 @@ class ClientTest extends TestCase
         $this->parser->expects($this->once())->method($parser)->with($this->equalTo($response))->will($this->returnValue($return));
     }
 
+    private function expectRequest($method, $url, Response $response)
+    {
+        $this->browser->expects($this->once())->method($method)->with($this->equalTo($url))->will($this->returnPromise($response));
+    }
+
     private function createResponse($body = '')
     {
         return new Response('HTTP/1.0', 200, 'OK', null, new Body($body));
@@ -291,6 +309,11 @@ class ClientTest extends TestCase
     private function createResponseJson($json)
     {
         return $this->createResponse(json_encode($json));
+    }
+
+    private function createResponseJsonStream($json)
+    {
+        return $this->createResponse(implode('', array_map('json_encode', $json)));
     }
 
     private function returnPromise($for)

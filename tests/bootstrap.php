@@ -2,6 +2,7 @@
 
 use React\EventLoop\LoopInterface;
 use React\Promise\PromiseInterface;
+use React\Promise\Deferred;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -104,6 +105,22 @@ class TestCase extends PHPUnit_Framework_TestCase
         }
 
         return $resolved;
+    }
+
+    protected function createPromiseResolved($value = null)
+    {
+        $deferred = new Deferred();
+        $deferred->resolve($value);
+
+        return $deferred->promise();
+    }
+
+    protected function createPromiseRejected($value = null)
+    {
+        $deferred = new Deferred();
+        $deferred->reject($value);
+
+        return $deferred->promise();
     }
 }
 
