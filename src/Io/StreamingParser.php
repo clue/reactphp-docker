@@ -14,9 +14,44 @@ class StreamingParser
 {
     public function parseJsonStream(PromiseInterface $promise)
     {
-        // TODO: assert expect tcp stream
+        // application/json
 
+        $in = $this->parsePlainStream($promise);
+        $out = new ReadableStream();
+
+        // invalid/closing input stream => return closed output stream
+        if (!$in->isReadable()) {
+            $out->close();
+
+            return $out;
+        }
+
+        // forward each data chunk to the streaming JSON parser
         $parser = new StreamingJsonParser();
+        $in->on('data', function ($data) use ($parser, $out) {
+            $objects = $parser->push($data);
+
+            foreach ($objects as $object) {
+                $out->emit('progress', array($object, $out));
+            }
+        });
+
+        // forward error and make sure stream closes
+        $in->on('error', function ($error) use ($out) {
+            $out->emit('error', array($error, $out));
+            $out->close();
+        });
+
+        // closing either stream closes the other one
+        $in->on('close', array($out, 'close'));
+        $out->on('close', array($in, 'close'));
+
+        return $out;
+    }
+
+    public function parsePlainStream(PromiseInterface $promise)
+    {
+        // text/plain
 
         $out = new ReadableStream();
 
@@ -35,7 +70,7 @@ class StreamingParser
                 $out->emit('error', array($error, $out));
                 $out->close();
             },
-            function ($progress) use ($parser, $out) {
+            function ($progress) use ($out) {
                 if (is_array($progress) && isset($progress['responseStream'])) {
                     $stream = $progress['responseStream'];
                     /* @var $stream React\Stream\Stream */
@@ -43,13 +78,9 @@ class StreamingParser
                     // hack to do not buffer stream contents in body
                     $stream->removeAllListeners('data');
 
-                    // got a streaming HTTP reponse => forward each data chunk to the streaming JSON parser
-                    $stream->on('data', function ($data) use ($parser, $out) {
-                        $objects = $parser->push($data);
-
-                        foreach ($objects as $object) {
-                            $out->emit('progress', array($object, $out));
-                        }
+                    // got a streaming HTTP response => forward each data chunk to the resulting output stream
+                    $stream->on('data', function ($data) use ($out) {
+                        $out->emit('data', array($data, $out));
                     });
                 }
             }
