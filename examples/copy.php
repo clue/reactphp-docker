@@ -9,6 +9,7 @@ use React\EventLoop\Factory as LoopFactory;
 use Clue\React\Docker\Factory;
 use Clue\React\Tar\Decoder;
 use React\Stream\ReadableStreamInterface;
+use Clue\CaretNotation\Encoder;
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 $file = isset($argv[2]) ? $argv[2] : '/etc/passwd';
@@ -23,11 +24,14 @@ $stream = $client->containerCopyStream($container, array('Resource' => $file));
 
 $tar = new Decoder();
 
-$tar->on('entry', function ($header, ReadableStreamInterface $file) {
+// use caret notation for any control characters expect \t, \r and \n
+$caret = new Encoder("\t\r\n");
+
+$tar->on('entry', function ($header, ReadableStreamInterface $file) use ($caret) {
     // write each entry to the console output
-    echo '########## ' . $header['filename'] . ' ##########' . PHP_EOL;
-    $file->on('data', function ($chunk) {
-        echo $chunk;
+    echo '########## ' . $caret->encode($header['filename']) . ' ##########' . PHP_EOL;
+    $file->on('data', function ($chunk) use ($caret) {
+        echo $caret->encode($chunk);
     });
 });
 

@@ -21,6 +21,7 @@
         "clue/json-stream": "~0.1.0"
     },
     "require-dev": {
-        "clue/tar-react": "~0.1.0"
+        "clue/tar-react": "~0.1.0",
+        "clue/caret-notation": "~0.2.0"
     }
 }
