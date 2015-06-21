@@ -70,7 +70,7 @@ class FunctionalClientTest extends TestCase
         $promise = $this->client->imageSearch('clue');
         $ret = $this->waitFor($promise, $this->loop);
 
-        $this->assertGreaterThan(10, count($ret));
+        $this->assertGreaterThan(9, count($ret));
     }
 
     public function testImageTag()

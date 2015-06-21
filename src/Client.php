@@ -341,6 +341,10 @@ class Client
      * Will resolve with an array of all progress events. These can also be
      * accessed via the Promise progress handler.
      *
+     * Pulling a private image from a remote registry will likely require authorization, so make
+     * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
+     * more details.
+     *
      * @param string|null $fromImage    name of the image to pull
      * @param string|null $fromSrc      source to import, - means stdin
      * @param string|null $repo         repository
@@ -349,7 +353,7 @@ class Client
      * @param array|null  $registryAuth AuthConfig object (to send as X-Registry-Auth header)
      * @return Promise Promise<array> stream of message objects
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
-     * @see self::imageCreateStream()
+     * @uses self::imageCreateStream()
      */
     public function imageCreate($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
@@ -369,6 +373,10 @@ class Client
      * Please note that the resulting stream does not emit any "data" events, so
      * you will not be able to pipe() its events into another `WritableStream`.
      *
+     * Pulling a private image from a remote registry will likely require authorization, so make
+     * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
+     * more details.
+     *
      * @param string|null $fromImage    name of the image to pull
      * @param string|null $fromSrc      source to import, - means stdin
      * @param string|null $repo         repository
@@ -378,6 +386,7 @@ class Client
      * @return ReadableStreamInterface
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
      * @see self::imageCreate()
+     * @uses self::authHeaders()
      */
     public function imageCreateStream($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
@@ -417,11 +426,16 @@ class Client
      * Will resolve with an array of all progress events. These can also be
      * accessed via the Promise progress handler.
      *
+     * Pushing to a remote registry will likely require authorization, so make
+     * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
+     * more details.
+     *
      * @param string      $image        image ID
      * @param string|null $tag          (optional) the tag to associate with the image on the registry
      * @param string|null $registry     (optional) the registry to push to (e.g. `registry.acme.com:5000`)
      * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
      * @return Promise Promise<array> list of image push messages
+     * @uses self::imagePushStream()
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
      */
     public function imagePush($image, $tag = null, $registry = null, $registryAuth = null)
@@ -442,11 +456,16 @@ class Client
      * Please note that the resulting stream does not emit any "data" events, so
      * you will not be able to pipe() its events into another `WritableStream`.
      *
+     * Pushing to a remote registry will likely require authorization, so make
+     * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
+     * more details.
+     *
      * @param string      $image        image ID
      * @param string|null $tag          (optional) the tag to associate with the image on the registry
      * @param string|null $registry     (optional) the registry to push to (e.g. `registry.acme.com:5000`)
      * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
      * @return ReadableStreamInterface stream of image push messages
+     * @uses authHeaders()
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
      */
     public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
@@ -568,6 +587,29 @@ class Client
         return json_encode($data);
     }
 
+    /**
+     * Helper function to send an AuthConfig object via the X-Registry-Auth header
+     *
+     * If your API call returns a "500 Internal Server Error" response with the
+     * message "EOF", it probably means that the endpoint requires authorization
+     * and you did not supply this header.
+     *
+     * Description from Docker's docs (see links):
+     *
+     * AuthConfig, set as the X-Registry-Auth header, is currently a Base64
+     * encoded (JSON) string with the following structure:
+     * ```
+     * {"username": "string", "password": "string", "email": "string", "serveraddress" : "string", "auth": ""}
+     * ```
+     *
+     * Notice that auth is to be left empty, serveraddress is a domain/ip without
+     * protocol, and that double quotes (instead of single ones) are required.
+     *
+     * @param array $registryAuth
+     * @return array
+     * @link https://docs.docker.com/reference/api/docker_remote_api/ for details about the AuthConfig object
+     * @link https://github.com/docker/docker/issues/9315 for error description
+     */
     private function authHeaders($registryAuth)
     {
         $headers = array();
