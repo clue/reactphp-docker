@@ -149,9 +149,21 @@ class Client
     /**
      * Export the contents of container id
      *
+     * This resolves with a string in the TAR file format containing all files
+     * in the container.
+     *
+     * Keep in mind that this means the whole string has to be kept in memory.
+     * For bigger containers it's usually a better idea to use a streaming
+     * approach, see containerExportStream() for more details.
+     *
+     * Accessing individual files in the TAR file format string is out of scope
+     * for this library. Several libraries are available, one that is known to
+     * work is clue/tar-react (see links).
+     *
      * @param string $container container ID
      * @return Promise Promise<string> tar stream
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
+     * @link https://github.com/clue/php-tar-react library clue/tar-react
      * @see self::containerExportStream()
      */
     public function containerExport($container)
@@ -162,12 +174,23 @@ class Client
     /**
      * Export the contents of container id
      *
+     * This returns a stream in the TAR file format containing all files
+     * in the container.
+     *
+     * This works for containers of arbitrary sizes as only small chunks have to
+     * be kept in memory.
+     *
+     * Accessing individual files in the TAR file format stream is out of scope
+     * for this library. Several libraries are available, one that is known to
+     * work is clue/tar-react (see links).
+     *
      * The resulting stream is a well-behaving readable stream that will emit
      * the normal stream events.
      *
      * @param string $container container ID
      * @return ReadableStreamInterface tar stream
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
+     * @link https://github.com/clue/php-tar-react library clue/tar-react
      * @see self::containerExport()
      */
     public function containerExportStream($container)
@@ -294,10 +317,22 @@ class Client
     /**
      * Copy files or folders of container id
      *
+     * This resolves with a string in the TAR file format containing all files
+     * specified in the $config array.
+     *
+     * Keep in mind that this means the whole string has to be kept in memory.
+     * For bigger containers it's usually a better idea to use a streaming approach,
+     * see containerCopyStream() for more details.
+     *
+     * Accessing individual files in the TAR file format string is out of scope
+     * for this library. Several libraries are available, one that is known to
+     * work is clue/tar-react (see links).
+     *
      * @param string $container container ID
      * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
      * @return Promise Promise<string> tar stream
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
+     * @link https://github.com/clue/php-tar-react library clue/tar-react
      * @see self::containerCopyStream()
      */
     public function containerCopy($container, $config)
@@ -308,6 +343,16 @@ class Client
     /**
      * Copy files or folders of container id
      *
+     * This returns a stream in the TAR file format containing all files
+     * specified in the $config array.
+     *
+     * This works for (any number of) files of arbitrary sizes as only small chunks have to
+     * be kept in memory.
+     *
+     * Accessing individual files in the TAR file format stream is out of scope
+     * for this library. Several libraries are available, one that is known to
+     * work is clue/tar-react (see links).
+     *
      * The resulting stream is a well-behaving readable stream that will emit
      * the normal stream events.
      *
@@ -315,6 +360,7 @@ class Client
      * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
      * @return ReadableStreamInterface tar stream
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
+     * @link https://github.com/clue/php-tar-react library clue/tar-react
      * @see self::containerCopy()
      */
     public function containerCopyStream($container, $config)
@@ -338,8 +384,11 @@ class Client
     /**
      * Create an image, either by pulling it from the registry or by importing it
      *
-     * Will resolve with an array of all progress events. These can also be
-     * accessed via the Promise progress handler.
+     * This is a JSON streaming API endpoint that resolves with an array of all
+     * individual progress events.
+     *
+     * These progress events can also be accessed individually via the Promise
+     * progress handler.
      *
      * Pulling a private image from a remote registry will likely require authorization, so make
      * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
@@ -364,6 +413,8 @@ class Client
 
     /**
      * Create an image, either by pulling it from the registry or by importing it
+     *
+     * This is a JSON streaming API endpoint that returns a stream instance.
      *
      * The resulting stream will emit the following events:
      * - progress: for *each* element in the update stream
@@ -423,8 +474,11 @@ class Client
     /**
      * Push the image name on the registry
      *
-     * Will resolve with an array of all progress events. These can also be
-     * accessed via the Promise progress handler.
+     * This is a JSON streaming API endpoint that resolves with an array of all
+     * individual progress events.
+     *
+     * These progress events can also be accessed individually via the Promise
+     * progress handler.
      *
      * Pushing to a remote registry will likely require authorization, so make
      * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
@@ -448,6 +502,8 @@ class Client
     /**
      * Push the image name on the registry
      *
+     * This is a JSON streaming API endpoint that returns a stream instance.
+     *
      * The resulting stream will emit the following events:
      * - progress: for *each* element in the update stream
      * - error:    once if an error occurs, will close() stream then
@@ -465,7 +521,7 @@ class Client
      * @param string|null $registry     (optional) the registry to push to (e.g. `registry.acme.com:5000`)
      * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
      * @return ReadableStreamInterface stream of image push messages
-     * @uses authHeaders()
+     * @uses self::authHeaders()
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
      */
     public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
