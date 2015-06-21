@@ -244,9 +244,23 @@ class ClientTest extends TestCase
     public function testImagePush()
     {
         $json = array();
-        $this->expectRequestFlow('post', '/images/123/push?tag=', $this->createResponseJson($json), 'expectJson');
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/123/push?tag=', $this->createResponseJsonStream($json));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
         $this->expectPromiseResolveWith($json, $this->client->imagePush('123'));
+    }
+
+    public function testImagePushStream()
+    {
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/123/push?tag=', $this->createResponseJsonStream(array()));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+
+        $this->assertSame($stream, $this->client->imagePushStream('123'));
     }
 
     public function testImagePushCustomRegistry()
@@ -254,7 +268,11 @@ class ClientTest extends TestCase
         // TODO: verify headers
         $auth = array();
         $json = array();
-        $this->expectRequestFlow('post', '/images/demo.acme.com:5000/123/push?tag=test', $this->createResponseJson($json), 'expectJson');
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/demo.acme.com:5000/123/push?tag=test', $this->createResponseJsonStream($json));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
         $this->expectPromiseResolveWith($json, $this->client->imagePush('123', 'test', 'demo.acme.com:5000', $auth));
     }

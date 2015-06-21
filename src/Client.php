@@ -414,6 +414,9 @@ class Client
     /**
      * Push the image name on the registry
      *
+     * Will resolve with an array of all progress events. These can also be
+     * accessed via the Promise progress handler.
+     *
      * @param string      $image        image ID
      * @param string|null $tag          (optional) the tag to associate with the image on the registry
      * @param string|null $registry     (optional) the registry to push to (e.g. `registry.acme.com:5000`)
@@ -423,8 +426,36 @@ class Client
      */
     public function imagePush($image, $tag = null, $registry = null, $registryAuth = null)
     {
+        $stream = $this->imagePushStream($image, $tag, $registry, $registryAuth);
+
+        return $this->streamingParser->deferredStream($stream, 'progress');
+    }
+
+    /**
+     * Push the image name on the registry
+     *
+     * The resulting stream will emit the following events:
+     * - progress: for *each* element in the update stream
+     * - error:    once if an error occurs, will close() stream then
+     * - close:    once the stream ends (either finished or after "error")
+     *
+     * Please note that the resulting stream does not emit any "data" events, so
+     * you will not be able to pipe() its events into another `WritableStream`.
+     *
+     * @param string      $image        image ID
+     * @param string|null $tag          (optional) the tag to associate with the image on the registry
+     * @param string|null $registry     (optional) the registry to push to (e.g. `registry.acme.com:5000`)
+     * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
+     * @return ReadableStreamInterface stream of image push messages
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
+     */
+    public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
+    {
         $path = '/images' . ($registry === null ? '' : ('/' . $registry)) . '/%s/push?tag=%s';
-        return $this->browser->post($this->url($path, $image, $tag), $this->authHeaders($registryAuth))->then(array($this->parser, 'expectJson'));
+
+        return $this->streamingParser->parseJsonStream(
+            $this->browser->post($this->url($path, $image, $tag), $this->authHeaders($registryAuth))
+        );
     }
 
     /**
