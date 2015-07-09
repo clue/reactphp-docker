@@ -1,4 +1,6 @@
 <?php
+// this example shows how the imageCreateStream() call can be used to pull a given image.
+// demonstrates the JSON streaming API, individual progress events will be printed as they happen.
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -13,14 +15,14 @@ $loop = LoopFactory::create();
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$client->imageCreate($image)->then(
-    function ($response) {
-        echo 'response: ' . json_encode($response) . PHP_EOL;
-    },
-    'var_dump',
-    function ($info) {
-        echo 'update: ' . json_encode($info) . PHP_EOL;
-    }
-);
+$stream = $client->imageCreateStream($image);
+
+$stream->on('progress', function ($progress) {
+    echo 'progress: '. json_encode($progress) . PHP_EOL;
+});
+
+$stream->on('close', function () {
+    echo 'stream closed' . PHP_EOL;
+});
 
 $loop->run();

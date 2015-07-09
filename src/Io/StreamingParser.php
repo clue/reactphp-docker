@@ -99,11 +99,10 @@ class StreamingParser
         });
 
         if ($stream->isReadable()) {
-            // buffer all data events and emit as progress
+            // buffer all data events for deferred resolving
             $buffered = array();
-            $stream->on($progressEventName, function ($data) use ($deferred, &$buffered) {
+            $stream->on($progressEventName, function ($data) use (&$buffered) {
                 $buffered []= $data;
-                $deferred->progress($data);
             });
 
             // error event rejects

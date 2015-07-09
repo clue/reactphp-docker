@@ -20,10 +20,7 @@ $client->imagePush($image, null, null, $auth)->then(
     function ($response) {
         echo 'response: ' . json_encode($response) . PHP_EOL;
     },
-    'var_dump',
-    function ($info) {
-        echo 'update: ' . json_encode($info) . PHP_EOL;
-    }
+    'var_dump'
 );
 
 $loop->run();

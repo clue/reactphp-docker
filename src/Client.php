@@ -387,8 +387,8 @@ class Client
      * This is a JSON streaming API endpoint that resolves with an array of all
      * individual progress events.
      *
-     * These progress events can also be accessed individually via the Promise
-     * progress handler.
+     * If you want to access the individual progress events as they happen, you
+     * should consider using `imageCreateStream()` instead.
      *
      * Pulling a private image from a remote registry will likely require authorization, so make
      * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
@@ -477,8 +477,8 @@ class Client
      * This is a JSON streaming API endpoint that resolves with an array of all
      * individual progress events.
      *
-     * These progress events can also be accessed individually via the Promise
-     * progress handler.
+     * If you need to access the individual progress events as they happen, you
+     * should consider using `imagePushStream()` instead.
      *
      * Pushing to a remote registry will likely require authorization, so make
      * sure to pass the $registryAuth parameter, see `self::authHeaders()` for

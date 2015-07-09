@@ -153,10 +153,7 @@ What this means is that these endpoints actually emit any number of progress
 events (individual JSON objects).
 
 The user-facing API hides this fact by resolving with an array of all individual
-progress events once the stream ends.
-
-These progress events can also be accessed individually via the Promise
-progress handler like this:
+progress events once the stream ends:
 
 ```php
 $client->imageCreate('clue/streamripper')->then(
@@ -165,9 +162,6 @@ $client->imageCreate('clue/streamripper')->then(
     },
     function ($error) {
         // an error occurred (possibly after receiving *some* elements)
-    },
-    function ($element) {
-        // will be invoked for *each* complete $element in the JSON stream
     }
 );
 ```
@@ -177,8 +171,9 @@ this API has to keep all event objects in memory until the Promise resolves.
 This is easy to get started and usually works reasonably well for the above
 API endpoints.
 
-If you're dealing with lots of concurrent requests (100+),
-it could be a better idea to use a streaming approach,
+If you're dealing with lots of concurrent requests (100+) or 
+if you want to access the individual progress events as they happen, you
+should consider using a streaming approach instead,
 where only individual progress event objects have to be kept in memory.
 The following API endpoints complement the default Promise-based API and return
 a [`Stream`](https://github.com/reactphp/stream) instance instead:
