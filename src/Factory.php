@@ -40,6 +40,6 @@ class Factory
             $url = 'http://localhost/';
         }
 
-        return new Client($browser, $url);
+        return new Client($browser->withBase($url));
     }
 }

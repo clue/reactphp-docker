@@ -29,11 +29,10 @@ class Client
      * SHOULD NOT be called manually, see Factory::createClient() instead
      *
      * @param Browser             $browser
-     * @param string              $url
      * @param ResponseParser|null $parser
      * @see Factory::createClient()
      */
-    public function __construct(Browser $browser, $url, ResponseParser $parser = null, StreamingParser $streamingParser = null)
+    public function __construct(Browser $browser, ResponseParser $parser = null, StreamingParser $streamingParser = null)
     {
         if ($parser === null) {
             $parser = new ResponseParser();
@@ -43,7 +42,7 @@ class Client
             $streamingParser = new StreamingParser();
         }
 
-        $this->browser = $browser->withBase($url);
+        $this->browser = $browser;
         $this->parser = $parser;
         $this->streamingParser = $streamingParser;
     }

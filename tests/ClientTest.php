@@ -21,10 +21,11 @@ class ClientTest extends TestCase
         $this->loop = $this->getMock('React\EventLoop\LoopInterface');
         $this->sender = $this->getMockBuilder('Clue\React\Buzz\Io\Sender')->disableOriginalConstructor()->getMock();
         $this->browser = new Browser($this->loop, $this->sender);
+        $this->browser = $this->browser->withBase('http://x/');
 
         $this->parser = $this->getMock('Clue\React\Docker\Io\ResponseParser');
         $this->streamingParser = $this->getMock('Clue\React\Docker\Io\StreamingParser');
-        $this->client = new Client($this->browser, 'http://x/', $this->parser, $this->streamingParser);
+        $this->client = new Client($this->browser, $this->parser, $this->streamingParser);
     }
 
     public function testPing()
