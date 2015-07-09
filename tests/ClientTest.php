@@ -4,20 +4,27 @@ use Clue\React\Buzz\Message\Response;
 use Clue\React\Buzz\Message\Body;
 use Clue\React\Docker\Client;
 use React\Promise\Deferred;
+use Clue\React\Buzz\Browser;
 
 class ClientTest extends TestCase
 {
+    private $loop;
+    private $sender;
     private $browser;
+
     private $parser;
     private $streamingParser;
     private $client;
 
     public function setUp()
     {
-        $this->browser = $this->getMockBuilder('Clue\React\Buzz\Browser')->disableOriginalConstructor()->getMock();
+        $this->loop = $this->getMock('React\EventLoop\LoopInterface');
+        $this->sender = $this->getMockBuilder('Clue\React\Buzz\Io\Sender')->disableOriginalConstructor()->getMock();
+        $this->browser = new Browser($this->loop, $this->sender);
+
         $this->parser = $this->getMock('Clue\React\Docker\Io\ResponseParser');
         $this->streamingParser = $this->getMock('Clue\React\Docker\Io\StreamingParser');
-        $this->client = new Client($this->browser, '', $this->parser, $this->streamingParser);
+        $this->client = new Client($this->browser, 'http://x/', $this->parser, $this->streamingParser);
     }
 
     public function testPing()
@@ -331,13 +338,19 @@ class ClientTest extends TestCase
             $return = json_decode($return, true);
         }
 
-        $this->browser->expects($this->once())->method($method)->with($this->equalTo($url))->will($this->returnPromise($response));
+        $this->expectRequest($method, $url, $response);
         $this->parser->expects($this->once())->method($parser)->with($this->equalTo($response))->will($this->returnValue($return));
     }
 
     private function expectRequest($method, $url, Response $response)
     {
-        $this->browser->expects($this->once())->method($method)->with($this->equalTo($url))->will($this->returnPromise($response));
+        $that = $this;
+        $this->sender->expects($this->once())->method('send')->with($this->callback(function ($request) use ($that, $method, $url) {
+            $that->assertEquals(strtoupper($method), $request->getMethod());
+            $that->assertEquals('http://x' . $url, (string)$request->getUri());
+
+            return true;
+        }))->will($this->returnPromise($response));
     }
 
     private function createResponse($body = '')
