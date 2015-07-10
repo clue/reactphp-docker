@@ -174,6 +174,12 @@ $client->imageCreate('clue/streamripper')->then(
     },
     function ($error) {
         // an error occurred (possibly after receiving *some* elements)
+        
+        if ($error instanceof Io\JsonProgressException) {
+            // a progress message (usually the last) contains an error message
+        } else {
+            // any other error, like invalid request etc.
+        }
     }
 );
 ```
@@ -199,6 +205,8 @@ The resulting stream will emit the following events:
 
 * `progress`: for *each* element in the update stream
 * `error`:    once if an error occurs, will close() stream then
+  * Will emit an [`Io\JsonProgressException`](#jsonprogressexception) if an individual progress message contains an error message
+  * Any other `Exception` in case of an transport error, like invalid request etc.
 * `close`:    once the stream ends (either finished or after "error")
 
 Please note that the resulting stream does not emit any "data" events, so
@@ -217,6 +225,13 @@ $stream->on('close', function () {
 ```
 
 See also the [pull example](examples/pull.php) and the [push example](examples/push.php).
+
+### JsonProgressException
+
+The `Io\JsonProgressException` will be thrown by [JSON streaming](#json-streaming)
+endpoints if an individual progress message contains an error message.
+
+The `getData()` method can be used to obtain the progress message.
 
 ## Install
 

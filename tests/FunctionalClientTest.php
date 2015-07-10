@@ -84,6 +84,21 @@ class FunctionalClientTest extends TestCase
         $ret = $this->waitFor($promise, $this->loop);
     }
 
+    public function testImageCreateStreamMissingWillEmitJsonError()
+    {
+        $stream = $this->client->imageCreateStream('clue/does-not-exist');
+
+        // one "progress" event, but no "data" events
+        $stream->on('progress', $this->expectCallableOnce());
+        $stream->on('data', $this->expectCallableNever());
+
+        // will emit "error" with JsonProgressException and close
+        $stream->on('error', $this->expectCallableOnceParameter('Clue\React\Docker\Io\JsonProgressException'));
+        $stream->on('close', $this->expectCallableOnce());
+
+        $this->loop->run();
+    }
+
     public function testInfo()
     {
         $this->expectPromiseResolve($this->client->info());

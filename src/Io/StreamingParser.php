@@ -32,6 +32,11 @@ class StreamingParser
             $objects = $parser->push($data);
 
             foreach ($objects as $object) {
+                if (isset($object['error'])) {
+                    $out->emit('error', array(new JsonProgressException($object), $out));
+                    $out->close();
+                    return;
+                }
                 $out->emit('progress', array($object, $out));
             }
         });
