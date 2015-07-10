@@ -151,6 +151,18 @@ $client->imagePush();
 
 What this means is that these endpoints actually emit any number of progress
 events (individual JSON objects).
+At the HTTP level, a common response message could look like this:
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"status":"loading","current":1,"total":10}
+{"status":"loading","current":2,"total":10}
+…
+{"status":"loading","current":10,"total":10}
+{"status":"done","total":10}
+```
 
 The user-facing API hides this fact by resolving with an array of all individual
 progress events once the stream ends:
