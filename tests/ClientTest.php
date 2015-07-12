@@ -9,13 +9,15 @@ class ClientTest extends TestCase
 {
     private $browser;
     private $parser;
+    private $streamingParser;
     private $client;
 
     public function setUp()
     {
         $this->browser = $this->getMockBuilder('Clue\React\Buzz\Browser')->disableOriginalConstructor()->getMock();
         $this->parser = $this->getMock('Clue\React\Docker\Io\ResponseParser');
-        $this->client = new Client($this->browser, '', $this->parser);
+        $this->streamingParser = $this->getMock('Clue\React\Docker\Io\StreamingParser');
+        $this->client = new Client($this->browser, '', $this->parser, $this->streamingParser);
     }
 
     public function testPing()
@@ -82,6 +84,16 @@ class ClientTest extends TestCase
         $this->expectRequestFlow('get', '/containers/123/export', $this->createResponse($data), 'expectPlain');
 
         $this->expectPromiseResolveWith($data, $this->client->containerExport(123));
+    }
+
+    public function testContainerExportStream()
+    {
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('get', '/containers/123/export', $this->createResponse(''));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+
+        $this->assertSame($stream, $this->client->containerExportStream(123));
     }
 
     public function testContainerWait()
@@ -166,10 +178,21 @@ class ClientTest extends TestCase
     public function testContainerCopy()
     {
         $data = 'tar stream';
-        $config = array('Resource' => 'file.txt');
         $this->expectRequestFlow('post', '/containers/123/copy', $this->createResponse($data), 'expectPlain');
 
+        $config = array('Resource' => 'file.txt');
         $this->expectPromiseResolveWith($data, $this->client->containerCopy('123', $config));
+    }
+
+    public function testContainerCopyStream()
+    {
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/containers/123/copy', $this->createResponse(''));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+
+        $config = array('Resource' => 'file.txt');
+        $this->assertSame($stream, $this->client->containerCopyStream('123', $config));
     }
 
     public function testImageList()
@@ -183,9 +206,23 @@ class ClientTest extends TestCase
     public function testImageCreate()
     {
         $json = array();
-        $this->expectRequestFlow('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJson($json), 'expectJson');
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJsonStream($json));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
         $this->expectPromiseResolveWith($json, $this->client->imageCreate('busybox'));
+    }
+
+    public function testImageCreateStream()
+    {
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJsonStream(array()));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+
+        $this->assertSame($stream, $this->client->imageCreateStream('busybox'));
     }
 
     public function testImageInspect()
@@ -207,9 +244,23 @@ class ClientTest extends TestCase
     public function testImagePush()
     {
         $json = array();
-        $this->expectRequestFlow('post', '/images/123/push?tag=', $this->createResponseJson($json), 'expectJson');
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/123/push?tag=', $this->createResponseJsonStream($json));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
         $this->expectPromiseResolveWith($json, $this->client->imagePush('123'));
+    }
+
+    public function testImagePushStream()
+    {
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/123/push?tag=', $this->createResponseJsonStream(array()));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+
+        $this->assertSame($stream, $this->client->imagePushStream('123'));
     }
 
     public function testImagePushCustomRegistry()
@@ -217,7 +268,11 @@ class ClientTest extends TestCase
         // TODO: verify headers
         $auth = array();
         $json = array();
-        $this->expectRequestFlow('post', '/images/demo.acme.com:5000/123/push?tag=test', $this->createResponseJson($json), 'expectJson');
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('post', '/images/demo.acme.com:5000/123/push?tag=test', $this->createResponseJsonStream($json));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
         $this->expectPromiseResolveWith($json, $this->client->imagePush('123', 'test', 'demo.acme.com:5000', $auth));
     }
@@ -280,6 +335,11 @@ class ClientTest extends TestCase
         $this->parser->expects($this->once())->method($parser)->with($this->equalTo($response))->will($this->returnValue($return));
     }
 
+    private function expectRequest($method, $url, Response $response)
+    {
+        $this->browser->expects($this->once())->method($method)->with($this->equalTo($url))->will($this->returnPromise($response));
+    }
+
     private function createResponse($body = '')
     {
         return new Response('HTTP/1.0', 200, 'OK', null, new Body($body));
@@ -288,6 +348,11 @@ class ClientTest extends TestCase
     private function createResponseJson($json)
     {
         return $this->createResponse(json_encode($json));
+    }
+
+    private function createResponseJsonStream($json)
+    {
+        return $this->createResponse(implode('', array_map('json_encode', $json)));
     }
 
     private function returnPromise($for)

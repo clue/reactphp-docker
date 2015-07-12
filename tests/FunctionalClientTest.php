@@ -70,7 +70,7 @@ class FunctionalClientTest extends TestCase
         $promise = $this->client->imageSearch('clue');
         $ret = $this->waitFor($promise, $this->loop);
 
-        $this->assertGreaterThan(10, count($ret));
+        $this->assertGreaterThan(9, count($ret));
     }
 
     public function testImageTag()
@@ -82,6 +82,21 @@ class FunctionalClientTest extends TestCase
         // delete tag "bb:now" again
         $promise = $this->client->imageRemove('bb:now');
         $ret = $this->waitFor($promise, $this->loop);
+    }
+
+    public function testImageCreateStreamMissingWillEmitJsonError()
+    {
+        $stream = $this->client->imageCreateStream('clue/does-not-exist');
+
+        // one "progress" event, but no "data" events
+        $stream->on('progress', $this->expectCallableOnce());
+        $stream->on('data', $this->expectCallableNever());
+
+        // will emit "error" with JsonProgressException and close
+        $stream->on('error', $this->expectCallableOnceParameter('Clue\React\Docker\Io\JsonProgressException'));
+        $stream->on('close', $this->expectCallableOnce());
+
+        $this->loop->run();
     }
 
     public function testInfo()

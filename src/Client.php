@@ -6,6 +6,8 @@ use Clue\React\Buzz\Browser;
 use Clue\React\Buzz\Message\Response;
 use Clue\React\Docker\Io\ResponseParser;
 use React\Promise\PromiseInterface as Promise;
+use Clue\React\Docker\Io\StreamingParser;
+use React\Stream\ReadableStreamInterface;
 
 /**
  * Docker Remote API client
@@ -20,6 +22,7 @@ class Client
     private $browser;
     private $url;
     private $parser;
+    private $streamingParser;
 
     /**
      * Instantiate new Client
@@ -31,15 +34,20 @@ class Client
      * @param ResponseParser|null $parser
      * @see Factory::createClient()
      */
-    public function __construct(Browser $browser, $url, ResponseParser $parser = null)
+    public function __construct(Browser $browser, $url, ResponseParser $parser = null, StreamingParser $streamingParser = null)
     {
         if ($parser === null) {
             $parser = new ResponseParser();
         }
 
+        if ($streamingParser === null) {
+            $streamingParser = new StreamingParser();
+        }
+
         $this->browser = $browser;
         $this->url = $url;
         $this->parser = $parser;
+        $this->streamingParser = $streamingParser;
     }
 
     /**
@@ -141,13 +149,53 @@ class Client
     /**
      * Export the contents of container id
      *
+     * This resolves with a string in the TAR file format containing all files
+     * in the container.
+     *
+     * Keep in mind that this means the whole string has to be kept in memory.
+     * For bigger containers it's usually a better idea to use a streaming
+     * approach, see containerExportStream() for more details.
+     *
+     * Accessing individual files in the TAR file format string is out of scope
+     * for this library. Several libraries are available, one that is known to
+     * work is clue/tar-react (see links).
+     *
      * @param string $container container ID
      * @return Promise Promise<string> tar stream
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
+     * @link https://github.com/clue/php-tar-react library clue/tar-react
+     * @see self::containerExportStream()
      */
     public function containerExport($container)
     {
         return $this->browser->get($this->url('/containers/%s/export', $container))->then(array($this->parser, 'expectPlain'));
+    }
+
+    /**
+     * Export the contents of container id
+     *
+     * This returns a stream in the TAR file format containing all files
+     * in the container.
+     *
+     * This works for containers of arbitrary sizes as only small chunks have to
+     * be kept in memory.
+     *
+     * Accessing individual files in the TAR file format stream is out of scope
+     * for this library. Several libraries are available, one that is known to
+     * work is clue/tar-react (see links).
+     *
+     * The resulting stream is a well-behaving readable stream that will emit
+     * the normal stream events.
+     *
+     * @param string $container container ID
+     * @return ReadableStreamInterface tar stream
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
+     * @link https://github.com/clue/php-tar-react library clue/tar-react
+     * @see self::containerExport()
+     */
+    public function containerExportStream($container)
+    {
+        return $this->streamingParser->parsePlainStream($this->browser->get($this->url('/containers/%s/export', $container)));
     }
 
     /**
@@ -269,13 +317,55 @@ class Client
     /**
      * Copy files or folders of container id
      *
+     * This resolves with a string in the TAR file format containing all files
+     * specified in the $config array.
+     *
+     * Keep in mind that this means the whole string has to be kept in memory.
+     * For bigger containers it's usually a better idea to use a streaming approach,
+     * see containerCopyStream() for more details.
+     *
+     * Accessing individual files in the TAR file format string is out of scope
+     * for this library. Several libraries are available, one that is known to
+     * work is clue/tar-react (see links).
+     *
      * @param string $container container ID
      * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
      * @return Promise Promise<string> tar stream
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
+     * @link https://github.com/clue/php-tar-react library clue/tar-react
+     * @see self::containerCopyStream()
      */
     public function containerCopy($container, $config)
     {
         return $this->postJson($this->url('/containers/%s/copy', $container), $config)->then(array($this->parser, 'expectPlain'));
+    }
+
+    /**
+     * Copy files or folders of container id
+     *
+     * This returns a stream in the TAR file format containing all files
+     * specified in the $config array.
+     *
+     * This works for (any number of) files of arbitrary sizes as only small chunks have to
+     * be kept in memory.
+     *
+     * Accessing individual files in the TAR file format stream is out of scope
+     * for this library. Several libraries are available, one that is known to
+     * work is clue/tar-react (see links).
+     *
+     * The resulting stream is a well-behaving readable stream that will emit
+     * the normal stream events.
+     *
+     * @param string $container container ID
+     * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
+     * @return ReadableStreamInterface tar stream
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
+     * @link https://github.com/clue/php-tar-react library clue/tar-react
+     * @see self::containerCopy()
+     */
+    public function containerCopyStream($container, $config)
+    {
+        return $this->streamingParser->parsePlainStream($this->postJson($this->url('/containers/%s/copy', $container), $config));
     }
 
     /**
@@ -294,6 +384,16 @@ class Client
     /**
      * Create an image, either by pulling it from the registry or by importing it
      *
+     * This is a JSON streaming API endpoint that resolves with an array of all
+     * individual progress events.
+     *
+     * If you want to access the individual progress events as they happen, you
+     * should consider using `imageCreateStream()` instead.
+     *
+     * Pulling a private image from a remote registry will likely require authorization, so make
+     * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
+     * more details.
+     *
      * @param string|null $fromImage    name of the image to pull
      * @param string|null $fromSrc      source to import, - means stdin
      * @param string|null $repo         repository
@@ -302,13 +402,49 @@ class Client
      * @param array|null  $registryAuth AuthConfig object (to send as X-Registry-Auth header)
      * @return Promise Promise<array> stream of message objects
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
+     * @uses self::imageCreateStream()
      */
     public function imageCreate($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
-        return $this->browser->post(
+        $stream = $this->imageCreateStream($fromImage, $fromSrc, $repo, $tag, $registry, $registryAuth);
+
+        return $this->streamingParser->deferredStream($stream, 'progress');
+    }
+
+    /**
+     * Create an image, either by pulling it from the registry or by importing it
+     *
+     * This is a JSON streaming API endpoint that returns a stream instance.
+     *
+     * The resulting stream will emit the following events:
+     * - progress: for *each* element in the update stream
+     * - error:    once if an error occurs, will close() stream then
+     * - close:    once the stream ends (either finished or after "error")
+     *
+     * Please note that the resulting stream does not emit any "data" events, so
+     * you will not be able to pipe() its events into another `WritableStream`.
+     *
+     * Pulling a private image from a remote registry will likely require authorization, so make
+     * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
+     * more details.
+     *
+     * @param string|null $fromImage    name of the image to pull
+     * @param string|null $fromSrc      source to import, - means stdin
+     * @param string|null $repo         repository
+     * @param string|null $tag          (optional) (obsolete) tag, use $repo and $fromImage in the "name:tag" instead
+     * @param string|null $registry     the registry to pull from
+     * @param array|null  $registryAuth AuthConfig object (to send as X-Registry-Auth header)
+     * @return ReadableStreamInterface
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
+     * @see self::imageCreate()
+     * @uses self::authHeaders()
+     */
+    public function imageCreateStream($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
+    {
+        return $this->streamingParser->parseJsonStream($this->browser->post(
             $this->url('/images/create?fromImage=%s&fromSrc=%s&repo=%s&tag=%s&registry=%s', $fromImage, $fromSrc, $repo, $tag, $registry),
             $this->authHeaders($registryAuth)
-        )->then(array($this->parser, 'expectJson'));
+        ));
     }
 
     /**
@@ -338,17 +474,63 @@ class Client
     /**
      * Push the image name on the registry
      *
+     * This is a JSON streaming API endpoint that resolves with an array of all
+     * individual progress events.
+     *
+     * If you need to access the individual progress events as they happen, you
+     * should consider using `imagePushStream()` instead.
+     *
+     * Pushing to a remote registry will likely require authorization, so make
+     * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
+     * more details.
+     *
      * @param string      $image        image ID
      * @param string|null $tag          (optional) the tag to associate with the image on the registry
      * @param string|null $registry     (optional) the registry to push to (e.g. `registry.acme.com:5000`)
      * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
      * @return Promise Promise<array> list of image push messages
+     * @uses self::imagePushStream()
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
      */
     public function imagePush($image, $tag = null, $registry = null, $registryAuth = null)
     {
+        $stream = $this->imagePushStream($image, $tag, $registry, $registryAuth);
+
+        return $this->streamingParser->deferredStream($stream, 'progress');
+    }
+
+    /**
+     * Push the image name on the registry
+     *
+     * This is a JSON streaming API endpoint that returns a stream instance.
+     *
+     * The resulting stream will emit the following events:
+     * - progress: for *each* element in the update stream
+     * - error:    once if an error occurs, will close() stream then
+     * - close:    once the stream ends (either finished or after "error")
+     *
+     * Please note that the resulting stream does not emit any "data" events, so
+     * you will not be able to pipe() its events into another `WritableStream`.
+     *
+     * Pushing to a remote registry will likely require authorization, so make
+     * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
+     * more details.
+     *
+     * @param string      $image        image ID
+     * @param string|null $tag          (optional) the tag to associate with the image on the registry
+     * @param string|null $registry     (optional) the registry to push to (e.g. `registry.acme.com:5000`)
+     * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
+     * @return ReadableStreamInterface stream of image push messages
+     * @uses self::authHeaders()
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
+     */
+    public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
+    {
         $path = '/images' . ($registry === null ? '' : ('/' . $registry)) . '/%s/push?tag=%s';
-        return $this->browser->post($this->url($path, $image, $tag), $this->authHeaders($registryAuth))->then(array($this->parser, 'expectJson'));
+
+        return $this->streamingParser->parseJsonStream(
+            $this->browser->post($this->url($path, $image, $tag), $this->authHeaders($registryAuth))
+        );
     }
 
     /**
@@ -461,6 +643,29 @@ class Client
         return json_encode($data);
     }
 
+    /**
+     * Helper function to send an AuthConfig object via the X-Registry-Auth header
+     *
+     * If your API call returns a "500 Internal Server Error" response with the
+     * message "EOF", it probably means that the endpoint requires authorization
+     * and you did not supply this header.
+     *
+     * Description from Docker's docs (see links):
+     *
+     * AuthConfig, set as the X-Registry-Auth header, is currently a Base64
+     * encoded (JSON) string with the following structure:
+     * ```
+     * {"username": "string", "password": "string", "email": "string", "serveraddress" : "string", "auth": ""}
+     * ```
+     *
+     * Notice that auth is to be left empty, serveraddress is a domain/ip without
+     * protocol, and that double quotes (instead of single ones) are required.
+     *
+     * @param array $registryAuth
+     * @return array
+     * @link https://docs.docker.com/reference/api/docker_remote_api/ for details about the AuthConfig object
+     * @link https://github.com/docker/docker/issues/9315 for error description
+     */
     private function authHeaders($registryAuth)
     {
         $headers = array();
