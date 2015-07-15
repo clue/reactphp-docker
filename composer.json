@@ -22,6 +22,7 @@
     },
     "require-dev": {
         "clue/tar-react": "~0.1.0",
-        "clue/caret-notation": "~0.2.0"
+        "clue/caret-notation": "~0.2.0",
+        "clue/block-react": "~0.3.0"
     }
 }
