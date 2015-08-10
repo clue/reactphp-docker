@@ -342,7 +342,7 @@ class ClientTest extends TestCase
 
     private function createResponse($body = '')
     {
-        return new Response('HTTP/1.0', 200, 'OK', null, new Body($body));
+        return new Response('HTTP/1.0', 200, 'OK', array(), new Body($body));
     }
 
     private function createResponseJson($json)

@@ -11,10 +11,16 @@ use Clue\React\Docker\Io\UnixConnector;
 class Factory
 {
     private $loop;
+    private $browser;
 
-    public function __construct(LoopInterface $loop)
+    public function __construct(LoopInterface $loop, Browser $browser = null)
     {
+        if ($browser === null) {
+            $browser = new Browser($loop);
+        }
+
         $this->loop = $loop;
+        $this->browser = $browser;
     }
 
     public function createClient($url = null)
@@ -23,17 +29,16 @@ class Factory
             $url = 'unix:///var/run/docker.sock';
         }
 
-        $sender = null;
+        $browser = $this->browser;
 
         if (substr($url, 0, 7) === 'unix://') {
             // send everything through a local unix domain socket
             $sender = Sender::createFromLoopUnix($this->loop, $url);
+            $browser = $browser->withSender($sender);
 
             // pretend all HTTP URLs to be on localhost
             $url = 'http://localhost';
         }
-
-        $browser = new Browser($this->loop, $sender);
 
         return new Client($browser, $url);
     }

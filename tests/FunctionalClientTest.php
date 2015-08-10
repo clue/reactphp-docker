@@ -3,6 +3,7 @@
 use Clue\React\Docker\Client;
 use React\EventLoop\Factory as LoopFactory;
 use Clue\React\Docker\Factory;
+use Clue\React\Block;
 
 class FunctionalClientTest extends TestCase
 {
@@ -19,7 +20,7 @@ class FunctionalClientTest extends TestCase
         $promise = $this->client->ping();
 
         try {
-            $this->waitFor($promise, $this->loop);
+            Block\await($promise, $this->loop);
         } catch (Exception $e) {
             $this->markTestSkipped('Unable to connect to docker ' . $e->getMessage());
         }
@@ -40,18 +41,18 @@ class FunctionalClientTest extends TestCase
         );
 
         $promise = $this->client->containerCreate($config);
-        $container = $this->waitFor($promise, $this->loop);
+        $container = Block\await($promise, $this->loop);
 
         $this->assertNotNull($container['Id']);
         $this->assertNull($container['Warnings']);
 
         $promise = $this->client->containerStart($container['Id']);
-        $ret = $this->waitFor($promise, $this->loop);
+        $ret = Block\await($promise, $this->loop);
 
         $this->assertEquals('', $ret);
 
         $promise = $this->client->containerRemove($container['Id'], false, true);
-        $ret = $this->waitFor($promise, $this->loop);
+        $ret = Block\await($promise, $this->loop);
 
         $this->assertEquals('', $ret);
     }
@@ -62,13 +63,13 @@ class FunctionalClientTest extends TestCase
     public function testContainerRemoveInvalid()
     {
         $promise = $this->client->containerRemove('invalid123');
-        $this->waitFor($promise, $this->loop);
+        Block\await($promise, $this->loop);
     }
 
     public function testImageSearch()
     {
         $promise = $this->client->imageSearch('clue');
-        $ret = $this->waitFor($promise, $this->loop);
+        $ret = Block\await($promise, $this->loop);
 
         $this->assertGreaterThan(9, count($ret));
     }
@@ -77,11 +78,11 @@ class FunctionalClientTest extends TestCase
     {
         // create new tag "bb:now" on "busybox:latest"
         $promise = $this->client->imageTag('busybox', 'bb', 'now');
-        $ret = $this->waitFor($promise, $this->loop);
+        $ret = Block\await($promise, $this->loop);
 
         // delete tag "bb:now" again
         $promise = $this->client->imageRemove('bb:now');
-        $ret = $this->waitFor($promise, $this->loop);
+        $ret = Block\await($promise, $this->loop);
     }
 
     public function testImageCreateStreamMissingWillEmitJsonError()

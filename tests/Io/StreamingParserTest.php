@@ -4,6 +4,7 @@ use Clue\React\Docker\Io\StreamingParser;
 use React\Promise\Deferred;
 use React\Stream\ReadableStream;
 use React\Promise\CancellablePromiseInterface;
+use React\Promise;
 
 class StreamingParserTest extends TestCase
 {
@@ -16,7 +17,7 @@ class StreamingParserTest extends TestCase
 
     public function testJsonPassingRejectedPromiseResolvesWithClosedStream()
     {
-        $stream = $this->parser->parseJsonStream($this->createPromiseRejected());
+        $stream = $this->parser->parseJsonStream(Promise\reject());
 
         $this->assertInstanceOf('React\Stream\ReadableStreamInterface', $stream);
         $this->assertFalse($stream->isReadable());
@@ -58,7 +59,7 @@ class StreamingParserTest extends TestCase
 
     public function testPlainPassingRejectedPromiseResolvesWithClosedStream()
     {
-        $stream = $this->parser->parsePlainStream($this->createPromiseRejected());
+        $stream = $this->parser->parsePlainStream(Promise\reject());
 
         $this->assertInstanceOf('React\Stream\ReadableStreamInterface', $stream);
         $this->assertFalse($stream->isReadable());

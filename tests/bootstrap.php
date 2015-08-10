@@ -84,44 +84,6 @@ class TestCase extends PHPUnit_Framework_TestCase
 
         return $promise;
     }
-
-    protected function waitFor(PromiseInterface $promise, LoopInterface $loop)
-    {
-        $resolved = null;
-        $exception = null;
-
-        $promise->then(function ($c) use (&$resolved) {
-            $resolved = $c;
-        }, function($error) use (&$exception) {
-            $exception = $error;
-        });
-
-        while ($resolved === null && $exception === null) {
-            $loop->tick();
-        }
-
-        if ($exception !== null) {
-            throw $exception;
-        }
-
-        return $resolved;
-    }
-
-    protected function createPromiseResolved($value = null)
-    {
-        $deferred = new Deferred();
-        $deferred->resolve($value);
-
-        return $deferred->promise();
-    }
-
-    protected function createPromiseRejected($value = null)
-    {
-        $deferred = new Deferred();
-        $deferred->reject($value);
-
-        return $deferred->promise();
-    }
 }
 
 class CallableStub
