@@ -39,7 +39,7 @@ class ClientTest extends TestCase
     {
         $json = array();
         $config = array();
-        $this->expectRequestFlow('post', '/containers/create?name=', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', '/containers/create', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerCreate($config));
     }
@@ -64,7 +64,7 @@ class ClientTest extends TestCase
     public function testContainerTop()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/containers/123/top?ps_args=', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', '/containers/123/top', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerTop(123));
     }
@@ -113,7 +113,7 @@ class ClientTest extends TestCase
 
     public function testContainerKill()
     {
-        $this->expectRequestFlow('post', '/containers/123/kill?signal=', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', '/containers/123/kill', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerKill(123));
     }
@@ -170,9 +170,16 @@ class ClientTest extends TestCase
 
     public function testContainerRemove()
     {
-        $this->expectRequestFlow('delete', '/containers/123?v=0&force=0', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('delete', '/containers/123', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerRemove(123, false, false));
+    }
+
+    public function testContainerRemoveVolumeForce()
+    {
+        $this->expectRequestFlow('delete', '/containers/123?v=1&force=1', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->containerRemove(123, true, true));
     }
 
     public function testContainerResize()
@@ -205,9 +212,17 @@ class ClientTest extends TestCase
     public function testImageList()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/images/json?all=0', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', '/images/json', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->imageList());
+    }
+
+    public function testImageListAll()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/images/json?all=1', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imageList(true));
     }
 
     public function testImageCreate()
@@ -215,7 +230,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMock('React\Stream\ReadableStreamInterface');
 
-        $this->expectRequest('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJsonStream($json));
+        $this->expectRequest('post', '/images/create?fromImage=busybox', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
@@ -226,7 +241,7 @@ class ClientTest extends TestCase
     {
         $stream = $this->getMock('React\Stream\ReadableStreamInterface');
 
-        $this->expectRequest('post', '/images/create?fromImage=busybox&fromSrc=&repo=&tag=&registry=', $this->createResponseJsonStream(array()));
+        $this->expectRequest('post', '/images/create?fromImage=busybox', $this->createResponseJsonStream(array()));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
 
         $this->assertSame($stream, $this->client->imageCreateStream('busybox'));
@@ -253,7 +268,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMock('React\Stream\ReadableStreamInterface');
 
-        $this->expectRequest('post', '/images/123/push?tag=', $this->createResponseJsonStream($json));
+        $this->expectRequest('post', '/images/123/push', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
@@ -264,7 +279,7 @@ class ClientTest extends TestCase
     {
         $stream = $this->getMock('React\Stream\ReadableStreamInterface');
 
-        $this->expectRequest('post', '/images/123/push?tag=', $this->createResponseJsonStream(array()));
+        $this->expectRequest('post', '/images/123/push', $this->createResponseJsonStream(array()));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
 
         $this->assertSame($stream, $this->client->imagePushStream('123'));
@@ -286,16 +301,30 @@ class ClientTest extends TestCase
 
     public function testImageTag()
     {
-        $this->expectRequestFlow('post', '/images/123/tag?repo=test&tag=&force=0', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', '/images/123/tag?repo=test', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->imageTag('123', 'test'));
     }
 
+    public function testImageTagNameForce()
+    {
+        $this->expectRequestFlow('post', '/images/123/tag?repo=test&tag=tag&force=1', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->imageTag('123', 'test', 'tag', true));
+    }
+
     public function testImageRemove()
     {
-        $this->expectRequestFlow('delete', '/images/123?force=0&noprune=0', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('delete', '/images/123', $this->createResponse(), 'expectEmpty');
 
-        $this->expectPromiseResolveWith('', $this->client->imageRemove('123', 'test'));
+        $this->expectPromiseResolveWith('', $this->client->imageRemove('123'));
+    }
+
+    public function testImageRemoveForceNoprune()
+    {
+        $this->expectRequestFlow('delete', '/images/123?force=1&noprune=1', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->imageRemove('123', true, true));
     }
 
     public function testImageSearch()
