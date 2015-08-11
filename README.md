@@ -20,7 +20,21 @@ execute arbitrary commands within isolated containers, stop running containers a
 * **Good test coverage** -
   Comes with an automated tests suite and is regularly tested in the *real world*
 
-> Note: This project is in beta stage! Feel free to report any issues you encounter.
+**Table of contents**
+
+* [Quickstart example](#quickstart-example)
+* [Usage](#usage)
+  * [Factory](#factory)
+    * [createClient()](#createclient)
+  * [Client](#client)
+    * [Commands](#commands)
+    * [Promises](#promises)
+    * [Blocking](#blocking)
+    * [TAR streaming](#tar-streaming)
+    * [JSON streaming](#json-streaming)
+  * [JsonProgressException](#jsonprogressexception)
+* [Install](#install)
+* [License](#license)
 
 ## Quickstart example
 
@@ -52,6 +66,8 @@ It also registers everything with the main [`EventLoop`](https://github.com/reac
 $loop = React\EventLoop\Factory::create();
 $factory = new Factory($loop);
 ```
+
+#### createClient()
 
 The `createClient($url = null)` method can be used to create a new `Client`.
 It helps with constructing a `Browser` object for the given remote URL.
