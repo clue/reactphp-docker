@@ -98,6 +98,10 @@ Listing all available commands is out of scope here, please refer to the
 [Remote API documentation](https://docs.docker.com/reference/api/docker_remote_api_v1.15/)
 or the [class outline](src/Client.php).
 
+Each of these commands supports async operation and either *resolves* with its *results*
+or *rejects* with an `Exception`.
+Please see the following section about [promises](#promises) for more details.
+
 #### Promises
 
 Sending requests is async (non-blocking), so you can actually send multiple requests in parallel.
@@ -114,6 +118,47 @@ $client->version()->then(
     }
 });
 ```
+
+If this looks strange to you, you can also use the more traditional [blocking API](#blocking).
+
+#### Blocking
+
+As stated above, this library provides you a powerful, async API by default.
+
+If, however, you want to integrate this into your traditional, blocking environment,
+you should look into also using [clue/block-react](https://github.com/clue/php-block-react).
+
+The resulting blocking code could look something like this:
+
+```php
+use Clue\React\Block;
+
+$loop = React\EventLoop\Factory::create();
+$factory = new Factory($loop);
+$client = $factory->createClient();
+
+$promise = $client->imageInspect('busybox');
+
+try {
+    $results = Block\await($promise, $loop);
+    // resporesults successfully received
+} catch (Exception $e) {
+    // an error occured while performing the request
+}
+```
+
+Similarly, you can also process multiple commands concurrently and await an array of results:
+
+```php
+$promises = array(
+    $client->imageInspect('busybox'),
+    $client->imageInspect('ubuntu'),
+);
+
+$inspections = Block\awaitAll($promises, $loop);
+```
+
+Please refer to [clue/block-react](https://github.com/clue/php-block-react#readme) for more details.
 
 #### TAR streaming
 
