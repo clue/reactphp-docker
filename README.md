@@ -32,8 +32,8 @@ $loop = React\EventLoop\Factory::create();
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$client->version()->then(function ($version) {
-    var_dump($version);
+$client->imageSearch('clue')->then(function ($images) {
+    var_dump($images);
 });
 
 $loop->run();
@@ -90,9 +90,13 @@ $client->imageCreate($fromImage, $fromSrc, $repo, $tag, $registry, $registryAuth
 
 $client->info();
 $client->version();
+
+// many, many more…
 ```
 
-Listing all available commands is out of scope here, please refer to the [Remote API documentation](https://docs.docker.com/reference/api/docker_remote_api_v1.15/) or the class outline.
+Listing all available commands is out of scope here, please refer to the
+[Remote API documentation](https://docs.docker.com/reference/api/docker_remote_api_v1.15/)
+or the [class outline](src/Client.php).
 
 #### Promises
 
