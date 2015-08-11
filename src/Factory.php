@@ -37,9 +37,9 @@ class Factory
             $browser = $browser->withSender($sender);
 
             // pretend all HTTP URLs to be on localhost
-            $url = 'http://localhost';
+            $url = 'http://localhost/';
         }
 
-        return new Client($browser, $url);
+        return new Client($browser->withBase($url));
     }
 }

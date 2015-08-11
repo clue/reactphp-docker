@@ -24,6 +24,7 @@ class FactoryTest extends TestCase
     public function testCreateClientUsesCustomUnixSender()
     {
         $this->browser->expects($this->once())->method('withSender')->will($this->returnValue($this->browser));
+        $this->browser->expects($this->once())->method('withBase')->will($this->returnValue($this->browser));
 
         $client = $this->factory->createClient();
 
@@ -33,6 +34,7 @@ class FactoryTest extends TestCase
     public function testCreateClientWithHttp()
     {
         $this->browser->expects($this->never())->method('withSender');
+        $this->browser->expects($this->once())->method('withBase')->with($this->equalTo('http://localhost:1234/'))->will($this->returnValue($this->browser));
 
         $this->factory->createClient('http://localhost:1234/');
     }

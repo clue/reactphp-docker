@@ -12,15 +12,21 @@ use React\Stream\ReadableStreamInterface;
 /**
  * Docker Remote API client
  *
- * Primarily tested against current v1.15 API, but should also work against
- * other versions.
+ * The Remote API can be used to control your local Docker daemon.
+ *
+ * This Client implementation provides a very thin wrapper around this
+ * Remote API and exposes its exact data models.
+ * The Client uses HTTP requests via a local UNIX socket path or remotely via a
+ * TLS-backed TCP/IP connection.
+ *
+ * Primarily tested against v1.15 API, but should also work against
+ * other versions (in particular newer ones).
  *
  * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/
  */
 class Client
 {
     private $browser;
-    private $url;
     private $parser;
     private $streamingParser;
 
@@ -29,12 +35,12 @@ class Client
      *
      * SHOULD NOT be called manually, see Factory::createClient() instead
      *
-     * @param Browser             $browser
-     * @param string              $url
-     * @param ResponseParser|null $parser
+     * @param Browser              $browser         Browser instance to use, requires correct Sender and base URI
+     * @param ResponseParser|null  $parser          (optional) ResponseParser instance to use
+     * @param StreamingParser|null $streamingParser (optional) StreamingParser instance to use
      * @see Factory::createClient()
      */
-    public function __construct(Browser $browser, $url, ResponseParser $parser = null, StreamingParser $streamingParser = null)
+    public function __construct(Browser $browser, ResponseParser $parser = null, StreamingParser $streamingParser = null)
     {
         if ($parser === null) {
             $parser = new ResponseParser();
@@ -45,7 +51,6 @@ class Client
         }
 
         $this->browser = $browser;
-        $this->url = $url;
         $this->parser = $parser;
         $this->streamingParser = $streamingParser;
     }
@@ -58,7 +63,7 @@ class Client
      */
     public function ping()
     {
-        return $this->browser->get($this->url('/_ping'))->then(array($this->parser, 'expectPlain'));
+        return $this->browser->get($this->browser->resolve('/_ping'))->then(array($this->parser, 'expectPlain'));
     }
 
     /**
@@ -69,7 +74,7 @@ class Client
      */
     public function info()
     {
-        return $this->browser->get($this->url('/info'))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get($this->browser->resolve('/info'))->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -80,7 +85,7 @@ class Client
      */
     public function version()
     {
-        return $this->browser->get($this->url('/version'))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get($this->browser->resolve('/version'))->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -93,7 +98,15 @@ class Client
      */
     public function containerList($all = false, $size = false)
     {
-        return $this->browser->get($this->url('/containers/json?all=%u&size=%u', $all, $size))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/containers/json{?all,size}',
+                array(
+                    'all' => $this->boolArg($all),
+                    'size' => $this->boolArg($size)
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -106,7 +119,15 @@ class Client
      */
     public function containerCreate($config, $name = null)
     {
-        return $this->postJson($this->url('/containers/create?name=%s', $name), $config)->then(array($this->parser, 'expectJson'));
+        return $this->postJson(
+            $this->browser->resolve(
+                '/containers/create{?name}',
+                array(
+                    'name' => $name
+                )
+            ),
+            $config
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -118,7 +139,14 @@ class Client
      */
     public function containerInspect($container)
     {
-        return $this->browser->get($this->url('/containers/%s/json', $container))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/containers/{container}/json',
+                array(
+                    'container' => $container
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -131,7 +159,15 @@ class Client
      */
     public function containerTop($container, $ps_args = null)
     {
-        return $this->browser->get($this->url('/containers/%s/top?ps_args=%s', $container, $ps_args))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/containers/{container}/top{?ps_args}',
+                array(
+                    'container' => $container,
+                    'ps_args' => $ps_args
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -143,7 +179,14 @@ class Client
      */
     public function containerChanges($container)
     {
-        return $this->browser->get($this->url('/containers/%s/changes', $container))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/containers/{container}/changes',
+                array(
+                    'container' => $container
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -168,7 +211,14 @@ class Client
      */
     public function containerExport($container)
     {
-        return $this->browser->get($this->url('/containers/%s/export', $container))->then(array($this->parser, 'expectPlain'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/containers/{container}/export',
+                array(
+                    'container' => $container
+                )
+            )
+        )->then(array($this->parser, 'expectPlain'));
     }
 
     /**
@@ -195,7 +245,16 @@ class Client
      */
     public function containerExportStream($container)
     {
-        return $this->streamingParser->parsePlainStream($this->browser->get($this->url('/containers/%s/export', $container)));
+        return $this->streamingParser->parsePlainStream(
+            $this->browser->get(
+                $this->browser->resolve(
+                    '/containers/{container}/export',
+                    array(
+                        'container' => $container
+                    )
+                )
+            )
+        );
     }
 
     /**
@@ -209,7 +268,16 @@ class Client
      */
     public function containerResize($container, $w, $h)
     {
-        return $this->browser->get($this->url('/containers/%s/resize?w=%u&h=%u', $container, $w, $h))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/containers/{container}/resize{?w,h}',
+                array(
+                    'container' => $container,
+                    'w' => $w,
+                    'h' => $h,
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -222,7 +290,15 @@ class Client
      */
     public function containerStart($container, $config = array())
     {
-        return $this->postJson($this->url('/containers/%s/start', $container), $config)->then(array($this->parser, 'expectEmpty'));
+        return $this->postJson(
+            $this->browser->resolve(
+                '/containers/{container}/start',
+                array(
+                    'container' => $container
+                )
+            ),
+            $config
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -235,7 +311,15 @@ class Client
      */
     public function containerStop($container, $t)
     {
-        return $this->browser->post($this->url('/containers/%s/stop?t=%u', $container, $t))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post(
+            $this->browser->resolve(
+                '/containers/{container}/stop{?t}',
+                array(
+                    'container' => $container,
+                    't' => $t
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -248,7 +332,15 @@ class Client
      */
     public function containerRestart($container, $t)
     {
-        return $this->browser->post($this->url('/containers/%s/restart?t=%u', $container, $t))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post(
+            $this->browser->resolve(
+                '/containers/{container}/restart{?t}',
+                array(
+                    'container' => $container,
+                    't' => $t
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -261,7 +353,15 @@ class Client
      */
     public function containerKill($container, $signal = null)
     {
-        return $this->browser->post($this->url('/containers/%s/kill?signal=%s', $container, $signal))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post(
+            $this->browser->resolve(
+                '/containers/{container}/kill{?signal}',
+                array(
+                    'container' => $container,
+                    'signal' => $signal
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -273,7 +373,14 @@ class Client
      */
     public function containerPause($container)
     {
-        return $this->browser->post($this->url('/containers/%s/pause', $container))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post(
+            $this->browser->resolve(
+                '/containers/{container}/pause',
+                array(
+                    'container' => $container
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -285,7 +392,14 @@ class Client
      */
     public function containerUnpause($container)
     {
-        return $this->browser->post($this->url('/containers/%s/unpause', $container))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post(
+            $this->browser->resolve(
+                '/containers/{container}/unpause',
+                array(
+                    'container' => $container
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -297,7 +411,14 @@ class Client
      */
     public function containerWait($container)
     {
-        return $this->browser->post($this->url('/containers/%s/wait', $container))->then(array($this->parser, 'expectJson'));
+        return $this->browser->post(
+            $this->browser->resolve(
+                '/containers/{container}/wait',
+                array(
+                    'container' => $container
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -311,7 +432,16 @@ class Client
      */
     public function containerRemove($container, $v = false, $force = false)
     {
-        return $this->browser->delete($this->url('/containers/%s?v=%u&force=%u', $container, $v, $force))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->delete(
+            $this->browser->resolve(
+                '/containers/{container}{?v,force}',
+                array(
+                    'container' => $container,
+                    'v' => $this->boolArg($v),
+                    'force' => $this->boolArg($force)
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -337,7 +467,15 @@ class Client
      */
     public function containerCopy($container, $config)
     {
-        return $this->postJson($this->url('/containers/%s/copy', $container), $config)->then(array($this->parser, 'expectPlain'));
+        return $this->postJson(
+            $this->browser->resolve(
+                '/containers/{container}/copy',
+                array(
+                    'container' => $container
+                )
+            ),
+            $config
+        )->then(array($this->parser, 'expectPlain'));
     }
 
     /**
@@ -365,7 +503,17 @@ class Client
      */
     public function containerCopyStream($container, $config)
     {
-        return $this->streamingParser->parsePlainStream($this->postJson($this->url('/containers/%s/copy', $container), $config));
+        return $this->streamingParser->parsePlainStream(
+            $this->postJson(
+                $this->browser->resolve(
+                    '/containers/{container}/copy',
+                    array(
+                        'container' => $container
+                    )
+                ),
+                $config
+            )
+        );
     }
 
     /**
@@ -378,7 +526,14 @@ class Client
      */
     public function imageList($all = false)
     {
-        return $this->browser->get($this->url('/images/json?all=%u', $all))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/images/json{?all}',
+                array(
+                    'all' => $this->boolArg($all)
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -441,10 +596,21 @@ class Client
      */
     public function imageCreateStream($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
-        return $this->streamingParser->parseJsonStream($this->browser->post(
-            $this->url('/images/create?fromImage=%s&fromSrc=%s&repo=%s&tag=%s&registry=%s', $fromImage, $fromSrc, $repo, $tag, $registry),
-            $this->authHeaders($registryAuth)
-        ));
+        return $this->streamingParser->parseJsonStream(
+            $this->browser->post(
+                $this->browser->resolve(
+                    '/images/create{?fromImage,fromSrc,repo,tag,registry}',
+                    array(
+                        'fromImage' => $fromImage,
+                        'fromSrc' => $fromSrc,
+                        'repo' => $repo,
+                        'tag' => $tag,
+                        'registry' => $registry
+                    )
+                ),
+                $this->authHeaders($registryAuth)
+            )
+        );
     }
 
     /**
@@ -456,7 +622,14 @@ class Client
      */
     public function imageInspect($image)
     {
-        return $this->browser->get($this->url('/images/%s/json', $image))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/images/{image}/json',
+                array(
+                    'image' => $image
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -468,7 +641,14 @@ class Client
      */
     public function imageHistory($image)
     {
-        return $this->browser->get($this->url('/images/%s/history', $image))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/images/{image}/history',
+                array(
+                    'image' => $image
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -526,10 +706,18 @@ class Client
      */
     public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
     {
-        $path = '/images' . ($registry === null ? '' : ('/' . $registry)) . '/%s/push?tag=%s';
-
         return $this->streamingParser->parseJsonStream(
-            $this->browser->post($this->url($path, $image, $tag), $this->authHeaders($registryAuth))
+            $this->browser->post(
+                $this->browser->resolve(
+                    '/images{+registry}/{image}/push{?tag}',
+                    array(
+                        'registry' => ($registry === null ? '' : ('/' . $registry)),
+                        'image' => $image,
+                        'tag' => $tag
+                    )
+                ),
+                $this->authHeaders($registryAuth)
+            )
         );
     }
 
@@ -545,7 +733,17 @@ class Client
      */
     public function imageTag($image, $repo, $tag = null, $force = false)
     {
-        return $this->browser->post($this->url('/images/%s/tag?repo=%s&tag=%s&force=%u', $image, $repo, $tag, $force))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->post(
+            $this->browser->resolve(
+                '/images/{image}/tag{?repo,tag,force}',
+                array(
+                    'image' => $image,
+                    'repo' => $repo,
+                    'tag' => $tag,
+                    'force' => $this->boolArg($force)
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -559,7 +757,16 @@ class Client
      */
     public function imageRemove($image, $force = false, $noprune = false)
     {
-        return $this->browser->delete($this->url('/images/%s?force=%u&noprune=%u', $image, $force, $noprune))->then(array($this->parser, 'expectEmpty'));
+        return $this->browser->delete(
+            $this->browser->resolve(
+                '/images/{image}{?force,noprune}',
+                array(
+                    'image' => $image,
+                    'force' => $this->boolArg($force),
+                    'noprune' => $this->boolArg($noprune)
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -571,7 +778,14 @@ class Client
      */
     public function imageSearch($term)
     {
-        return $this->browser->get($this->url('/images/search?term=%s', $term))->then(array($this->parser, 'expectJson'));
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/images/search{?term}',
+                array(
+                    'term' => $term
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -584,7 +798,15 @@ class Client
      */
     public function execCreate($container, $config)
     {
-        return $this->postJson($this->url('/containers/%s/exec', $container), $config)->then(array($this->parser, 'expectJson'));
+        return $this->postJson(
+            $this->browser->resolve(
+                '/containers/{container}/exec',
+                array(
+                    'container' => $container
+                )
+            ),
+            $config
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -600,7 +822,15 @@ class Client
      */
     public function execStart($exec, $config)
     {
-        return $this->postJson($this->url('/exec/%s/start', $exec), $config)->then(array($this->parser, 'expectJson'));
+        return $this->postJson(
+            $this->browser->resolve(
+                '/exec/{exec}/start',
+                array(
+                    'exec' => $exec
+                )
+            ),
+            $config
+        )->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -616,15 +846,16 @@ class Client
      */
     public function execResize($exec, $w, $h)
     {
-        return $this->browser->get($this->url('/exec/%s/resize?w=%u&h=%u', $exec, $w, $h))->then(array($this->parser, 'expectEmpty'));
-    }
-
-    private function url($url)
-    {
-        $args = func_get_args();
-        array_shift($args);
-
-        return $this->url . vsprintf($url, $args);
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/exec/{exec}/resize{?w,h}',
+                array(
+                    'exec' => $exec,
+                    'w' => $w,
+                    'h' => $h
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     private function postJson($url, $data)
@@ -674,5 +905,17 @@ class Client
         }
 
         return $headers;
+    }
+
+    /**
+     * Internal helper function used to pass boolean true values to endpoints and omit boolean false values
+     *
+     * @param boolean $value
+     * @return int|null returns the integer `1` for boolean true values and a `null` for boolean false values
+     * @see Browser::resolve()
+     */
+    private function boolArg($value)
+    {
+        return ($value ? 1 : null);
     }
 }
