@@ -12,8 +12,15 @@ use React\Stream\ReadableStreamInterface;
 /**
  * Docker Remote API client
  *
- * Primarily tested against current v1.15 API, but should also work against
- * other versions.
+ * The Remote API can be used to control your local Docker daemon.
+ *
+ * This Client implementation provides a very thin wrapper around this
+ * Remote API and exposes its exact data models.
+ * The Client uses HTTP requests via a local UNIX socket path or remotely via a
+ * TLS-backed TCP/IP connection.
+ *
+ * Primarily tested against v1.15 API, but should also work against
+ * other versions (in particular newer ones).
  *
  * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/
  */
@@ -28,8 +35,9 @@ class Client
      *
      * SHOULD NOT be called manually, see Factory::createClient() instead
      *
-     * @param Browser             $browser
-     * @param ResponseParser|null $parser
+     * @param Browser              $browser         Browser instance to use, requires correct Sender and base URI
+     * @param ResponseParser|null  $parser          (optional) ResponseParser instance to use
+     * @param StreamingParser|null $streamingParser (optional) StreamingParser instance to use
      * @see Factory::createClient()
      */
     public function __construct(Browser $browser, ResponseParser $parser = null, StreamingParser $streamingParser = null)
@@ -900,11 +908,11 @@ class Client
     }
 
     /**
-     * Internal helper function used pass boolean true values to endpoints and omit boolean false values
+     * Internal helper function used to pass boolean true values to endpoints and omit boolean false values
      *
      * @param boolean $value
-     * @return int|numer returns a `1` for boolean true values and a `null` for boolean false values
-     * @see Browser::url()
+     * @return int|null returns the integer `1` for boolean true values and a `null` for boolean false values
+     * @see Browser::resolve()
      */
     private function boolArg($value)
     {
