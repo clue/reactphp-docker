@@ -562,7 +562,7 @@ class Client
                     'stderr' => $this->boolArg($stderr),
                     'since' => $since,
                     'timestamps' => $this->boolArg($timestamps),
-                    'tail' => $tail,
+                    'tail' => $tail
                 )
             )
         )->then(array($this->parser, 'expectPlain'));
