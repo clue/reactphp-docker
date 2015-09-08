@@ -26,9 +26,9 @@ use React\Stream\ReadableStreamInterface;
  */
 class Client
 {
-    private $browser;
-    private $parser;
-    private $streamingParser;
+    protected $browser;
+    protected $parser;
+    protected $streamingParser;
 
     /**
      * Instantiate new Client
@@ -858,7 +858,7 @@ class Client
         )->then(array($this->parser, 'expectEmpty'));
     }
 
-    private function postJson($url, $data)
+    protected function postJson($url, $data)
     {
         $body = $this->json($data);
         $headers = array('Content-Type' => 'application/json', 'Content-Length' => strlen($body));
@@ -866,7 +866,7 @@ class Client
         return $this->browser->post($url, $headers, $body);
     }
 
-    private function json($data)
+    protected function json($data)
     {
         if ($data === array()) {
             return '{}';
@@ -897,7 +897,7 @@ class Client
      * @link https://docs.docker.com/reference/api/docker_remote_api/ for details about the AuthConfig object
      * @link https://github.com/docker/docker/issues/9315 for error description
      */
-    private function authHeaders($registryAuth)
+    protected function authHeaders($registryAuth)
     {
         $headers = array();
         if ($registryAuth !== null) {
@@ -914,7 +914,7 @@ class Client
      * @return int|null returns the integer `1` for boolean true values and a `null` for boolean false values
      * @see Browser::resolve()
      */
-    private function boolArg($value)
+    protected function boolArg($value)
     {
         return ($value ? 1 : null);
     }
