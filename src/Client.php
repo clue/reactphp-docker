@@ -519,8 +519,8 @@ class Client
     /**
      * Retrieve container resource usage stats
      *
-     * @param string      $container container ID
-     * @param boolean     $stream
+     * @param string      $container    container ID
+     * @param boolean     $stream       return stream
      * @return Promise Promise<array>
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.20/#get-container-stats-based-on-resource-usage
      */
@@ -541,12 +541,12 @@ class Client
      * Retrieve container logs
      *
      * @param string      $container    container ID
-     * @param boolean     $follow       Return stream
-     * @param boolean     $stdout       Show stdout log.
-     * @param boolean     $stderr       Show stderr log.
+     * @param boolean     $follow       return stream
+     * @param boolean     $stdout       show stdout log.
+     * @param boolean     $stderr       show stderr log.
      * @param integer     $since        UNIX timestamp to filter logs. Specifying a timestamp will only output log-entries since that timestamp.
-     * @param boolean     $timestamps   Include timestamps
-     * @param integer     $tail         Output specified number of lines at the end of logs
+     * @param boolean     $timestamps   include timestamps
+     * @param integer     $tail         output specified number of lines at the end of logs
      * @return Promise Promise<string>
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.20/#get-container-logs
      */
@@ -567,7 +567,7 @@ class Client
             )
         )->then(array($this->parser, 'expectPlain'));
     }
-    
+
     /**
      * List images
      *
