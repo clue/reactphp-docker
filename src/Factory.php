@@ -10,8 +10,8 @@ use Clue\React\Docker\Io\UnixConnector;
 
 class Factory
 {
-    private $loop;
-    private $browser;
+    protected $loop;
+    protected $browser;
 
     public function __construct(LoopInterface $loop, Browser $browser = null)
     {
