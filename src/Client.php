@@ -517,6 +517,58 @@ class Client
     }
 
     /**
+     * Retrieve container resource usage stats
+     *
+     * @param string      $container container ID
+     * @param boolean     $stream
+     * @return Promise Promise<array>
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.20/#get-container-stats-based-on-resource-usage
+     */
+    public function containerStats($container, $stream = false)
+    {
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/containers/{container}/stats{?stream}',
+                array(
+                    'container' => $container,
+                    'stream' => $stream ? 1 : 0
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Retrieve container logs
+     *
+     * @param string      $container    container ID
+     * @param boolean     $follow       Return stream
+     * @param boolean     $stdout       Show stdout log.
+     * @param boolean     $stderr       Show stderr log.
+     * @param integer     $since        UNIX timestamp to filter logs. Specifying a timestamp will only output log-entries since that timestamp.
+     * @param boolean     $timestamps   Include timestamps
+     * @param integer     $tail         Output specified number of lines at the end of logs
+     * @return Promise Promise<string>
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.20/#get-container-logs
+     */
+    public function containerLogs($container, $follow = false, $stdout = true, $stderr = true, $since = 0, $timestamps = false, $tail = 'all')
+    {
+        return $this->browser->get(
+            $this->browser->resolve(
+                '/containers/{container}/logs{?follow,stdout,stderr,since,timestamps,tail}',
+                array(
+                    'container' => $container,
+                    'follow' => $this->boolArg($follow),
+                    'stdout' => $this->boolArg($stdout),
+                    'stderr' => $this->boolArg($stderr),
+                    'since' => $since,
+                    'timestamps' => $this->boolArg($timestamps),
+                    'tail' => $tail,
+                )
+            )
+        )->then(array($this->parser, 'expectPlain'));
+    }
+    
+    /**
      * List images
      *
      * @param boolean $all
