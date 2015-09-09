@@ -16,8 +16,7 @@ class ResponseParser
     public function expectJson(Response $response)
     {
         // application/json
-
-        return json_decode((string)$response->getBody(), true, 512, JSON_BIGINT_AS_STRING);
+        return @json_decode((string)$response->getBody(), true, 512, JSON_BIGINT_AS_STRING);
     }
 
     public function expectEmpty(Response $response)
