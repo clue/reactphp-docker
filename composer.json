@@ -4,6 +4,7 @@
     "keywords": ["Docker", "container", "ReactPHP", "async"],
     "homepage": "https://github.com/clue/php-docker-react",
     "license": "MIT",
+    "version": "0.2.1",
     "authors": [
         {
             "name": "Christian Lück",
