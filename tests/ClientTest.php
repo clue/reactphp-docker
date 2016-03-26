@@ -293,7 +293,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMock('React\Stream\ReadableStreamInterface');
 
-        $this->expectRequest('post', '/images/demo.acme.com:5000/123/push?tag=test', $this->createResponseJsonStream($json));
+        $this->expectRequest('post', '/images/demo.acme.com%3A5000/123/push?tag=test', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
