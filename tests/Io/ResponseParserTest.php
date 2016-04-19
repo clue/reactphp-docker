@@ -1,8 +1,7 @@
 <?php
 
 use Clue\React\Docker\Io\ResponseParser;
-use Clue\React\Buzz\Message\Response;
-use Clue\React\Buzz\Message\Body;
+use RingCentral\Psr7\Response;
 
 class ResponseParserTest extends TestCase
 {
@@ -32,7 +31,7 @@ class ResponseParserTest extends TestCase
 
     private function createResponse($body = '')
     {
-        return new Response('HTTP/1.0', 200, 'OK', array(), new Body($body));
+        return new Response(200, array(), $body);
     }
 
 }

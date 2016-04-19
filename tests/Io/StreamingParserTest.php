@@ -41,7 +41,7 @@ class StreamingParserTest extends TestCase
         $this->assertFalse($stream->isReadable());
     }
 
-    public function testJsonResolvingPromiseWillEmitCloseEvent()
+    public function testJsonResolvingPromiseWithWrongValueWillEmitErrorAndCloseEvent()
     {
         $deferred = new Deferred();
 
@@ -49,10 +49,10 @@ class StreamingParserTest extends TestCase
 
         $this->assertTrue($stream->isReadable());
 
-        $stream->on('error', $this->expectCallableNever());
+        $stream->on('error', $this->expectCallableOnce());
         $stream->on('close', $this->expectCallableOnce());
 
-        $deferred->resolve('data');
+        $deferred->resolve('not a stream');
 
         $this->assertFalse($stream->isReadable());
     }

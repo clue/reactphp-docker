@@ -3,7 +3,6 @@
 namespace Clue\React\Docker;
 
 use Clue\React\Buzz\Browser;
-use Clue\React\Buzz\Message\Response;
 use Clue\React\Docker\Io\ResponseParser;
 use React\Promise\PromiseInterface as Promise;
 use Clue\React\Docker\Io\StreamingParser;
@@ -254,7 +253,7 @@ class Client
     public function containerExportStream($container)
     {
         return $this->streamingParser->parsePlainStream(
-            $this->browser->get(
+            $this->browser->withOptions(array('streaming' => true))->get(
                 $this->uri->expand(
                     '/containers/{container}/export',
                     array(
@@ -512,14 +511,17 @@ class Client
     public function containerCopyStream($container, $config)
     {
         return $this->streamingParser->parsePlainStream(
-            $this->postJson(
+            $this->browser->withOptions(array('streaming' => true))->post(
                 $this->uri->expand(
                     '/containers/{container}/copy',
                     array(
                         'container' => $container
                     )
                 ),
-                $config
+                array(
+                    'Content-Type' => 'application/json'
+                ),
+                $this->json($config)
             )
         );
     }
@@ -605,7 +607,7 @@ class Client
     public function imageCreateStream($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->post(
+            $this->browser->withOptions(array('streaming' => true))->post(
                 $this->uri->expand(
                     '/images/create{?fromImage,fromSrc,repo,tag,registry}',
                     array(
@@ -715,7 +717,7 @@ class Client
     public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->post(
+            $this->browser->withOptions(array('streaming' => true))->post(
                 $this->uri->expand(
                     '/images{/registry}/{image}/push{?tag}',
                     array(

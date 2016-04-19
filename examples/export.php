@@ -25,6 +25,7 @@ $stream->on('error', function ($e = null) {
 });
 
 $out = new Stream(fopen($target, 'w'), $loop);
+$out->pause();
 $stream->pipe($out);
 
 $loop->run();
