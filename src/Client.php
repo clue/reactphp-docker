@@ -275,7 +275,7 @@ class Client
      */
     public function containerResize($container, $w, $h)
     {
-        return $this->browser->get(
+        return $this->browser->post(
             $this->uri->expand(
                 '/containers/{container}/resize{?w,h}',
                 array(

@@ -200,7 +200,7 @@ class ClientTest extends TestCase
 
     public function testContainerResize()
     {
-        $this->expectRequestFlow('get', '/containers/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('POST', '/containers/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerResize(123, 800, 600));
     }
