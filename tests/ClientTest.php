@@ -144,12 +144,26 @@ class ClientTest extends TestCase
 
     public function testContainerStop()
     {
+        $this->expectRequestFlow('post', '/containers/123/stop', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->containerStop(123));
+    }
+
+    public function testContainerStopTimeout()
+    {
         $this->expectRequestFlow('post', '/containers/123/stop?t=10', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerStop(123, 10));
     }
 
     public function testContainerRestart()
+    {
+        $this->expectRequestFlow('post', '/containers/123/restart', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->containerRestart(123));
+    }
+
+    public function testContainerRestartTimeout()
     {
         $this->expectRequestFlow('post', '/containers/123/restart?t=10', $this->createResponse(), 'expectEmpty');
 

@@ -311,12 +311,12 @@ class Client
     /**
      * Stop the container id
      *
-     * @param string $container container ID
-     * @param int    $t         number of seconds to wait before killing the container
+     * @param string   $container container ID
+     * @param null|int $t         (optional) number of seconds to wait before killing the container
      * @return Promise Promise<null>
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#stop-a-container
      */
-    public function containerStop($container, $t)
+    public function containerStop($container, $t = null)
     {
         return $this->browser->post(
             $this->uri->expand(
@@ -332,12 +332,12 @@ class Client
     /**
      * Restart the container id
      *
-     * @param string $container container ID
-     * @param int    $t         number of seconds to wait before killing the container
+     * @param string   $container container ID
+     * @param null|int $t         (optional) number of seconds to wait before killing the container
      * @return Promise Promise<null>
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#restart-a-container
      */
-    public function containerRestart($container, $t)
+    public function containerRestart($container, $t = null)
     {
         return $this->browser->post(
             $this->uri->expand(
