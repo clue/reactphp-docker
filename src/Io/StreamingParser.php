@@ -9,6 +9,8 @@ use React\Stream\ReadableStream;
 use React\Stream\ReadableStreamInterface;
 use RuntimeException;
 use React\Promise\CancellablePromiseInterface;
+use Clue\React\Promise\Stream;
+use Psr\Http\Message\ResponseInterface;
 
 class StreamingParser
 {
@@ -58,40 +60,9 @@ class StreamingParser
     {
         // text/plain
 
-        $out = new ReadableStream();
-
-        // try to cancel promise once the stream closes
-        if ($promise instanceof CancellablePromiseInterface) {
-            $out->on('close', function() use ($promise) {
-                $promise->cancel();
-            });
-        }
-
-        $promise->then(
-            function ($response) use ($out) {
-                $out->close();
-            },
-            function ($error) use ($out) {
-                $out->emit('error', array($error, $out));
-                $out->close();
-            },
-            function ($progress) use ($out) {
-                if (is_array($progress) && isset($progress['responseStream'])) {
-                    $stream = $progress['responseStream'];
-                    /* @var $stream React\Stream\Stream */
-
-                    // hack to do not buffer stream contents in body
-                    $stream->removeAllListeners('data');
-
-                    // got a streaming HTTP response => forward each data chunk to the resulting output stream
-                    $stream->on('data', function ($data) use ($out) {
-                        $out->emit('data', array($data, $out));
-                    });
-                }
-            }
-        );
-
-        return $out;
+        return Stream\unwrapReadable($promise->then(function (ResponseInterface $response) {
+            return $response->getBody();
+        }));
     }
 
     public function deferredStream(ReadableStreamInterface $stream, $progressEventName)

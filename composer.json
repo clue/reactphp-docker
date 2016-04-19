@@ -16,9 +16,11 @@
     "require": {
         "php": ">=5.3",
         "react/event-loop": "~0.3.0|~0.4.0",
-        "clue/buzz-react": "~0.4.0",
+        "clue/buzz-react": "^0.5",
         "react/promise": "~2.0|~1.1",
-        "clue/json-stream": "~0.1.0"
+        "clue/json-stream": "~0.1.0",
+        "rize/uri-template": "^0.3",
+        "clue/promise-stream-react": "^0.1"
     },
     "require-dev": {
         "clue/tar-react": "~0.1.0",

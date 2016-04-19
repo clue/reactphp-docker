@@ -1,10 +1,11 @@
 <?php
 
-use Clue\React\Buzz\Message\Response;
-use Clue\React\Buzz\Message\Body;
 use Clue\React\Docker\Client;
 use React\Promise\Deferred;
 use Clue\React\Buzz\Browser;
+use RingCentral\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
 
 class ClientTest extends TestCase
 {
@@ -293,7 +294,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMock('React\Stream\ReadableStreamInterface');
 
-        $this->expectRequest('post', '/images/demo.acme.com:5000/123/push?tag=test', $this->createResponseJsonStream($json));
+        $this->expectRequest('post', '/images/demo.acme.com%3A5000/123/push?tag=test', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
 
@@ -361,7 +362,7 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith('', $this->client->execResize(123, 800, 600));
     }
 
-    private function expectRequestFlow($method, $url, Response $response, $parser)
+    private function expectRequestFlow($method, $url, ResponseInterface $response, $parser)
     {
         $return = (string)$response->getBody();
         if ($parser === 'expectJson') {
@@ -372,10 +373,10 @@ class ClientTest extends TestCase
         $this->parser->expects($this->once())->method($parser)->with($this->equalTo($response))->will($this->returnValue($return));
     }
 
-    private function expectRequest($method, $url, Response $response)
+    private function expectRequest($method, $url, ResponseInterface $response)
     {
         $that = $this;
-        $this->sender->expects($this->once())->method('send')->with($this->callback(function ($request) use ($that, $method, $url) {
+        $this->sender->expects($this->once())->method('send')->with($this->callback(function (RequestInterface $request) use ($that, $method, $url) {
             $that->assertEquals(strtoupper($method), $request->getMethod());
             $that->assertEquals('http://x' . $url, (string)$request->getUri());
 
@@ -385,7 +386,7 @@ class ClientTest extends TestCase
 
     private function createResponse($body = '')
     {
-        return new Response('HTTP/1.0', 200, 'OK', array(), new Body($body));
+        return new Response(200, array(), $body);
     }
 
     private function createResponseJson($json)
