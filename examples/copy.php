@@ -24,7 +24,7 @@ $stream = $client->containerCopyStream($container, array('Resource' => $file));
 
 $tar = new Decoder();
 
-// use caret notation for any control characters expect \t, \r and \n
+// use caret notation for any control characters except \t, \r and \n
 $caret = new Encoder("\t\r\n");
 
 $tar->on('entry', function ($header, ReadableStreamInterface $file) use ($caret) {
