@@ -856,7 +856,7 @@ class Client
      */
     public function execResize($exec, $w, $h)
     {
-        return $this->browser->get(
+        return $this->browser->post(
             $this->uri->expand(
                 '/exec/{exec}/resize{?w,h}',
                 array(

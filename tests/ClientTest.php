@@ -357,7 +357,7 @@ class ClientTest extends TestCase
 
     public function testExecResize()
     {
-        $this->expectRequestFlow('get', '/exec/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('POST', '/exec/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->execResize(123, 800, 600));
     }
