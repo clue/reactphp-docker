@@ -12,8 +12,21 @@ use React\Promise\CancellablePromiseInterface;
 use Clue\React\Promise\Stream;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * StreamingParser is a simple helper to work with the streaming body of HTTP response objects
+ *
+ * @internal
+ * @see ResponseParser for working with buffered bodies
+ */
 class StreamingParser
 {
+    /**
+     * Returns a readable JSON stream for the given ResponseInterface
+     *
+     * @param PromiseInterface $promise Promise<ResponseInterface>
+     * @return ReadableStreamInterface
+     * @uses self::parsePlainSream()
+     */
     public function parseJsonStream(PromiseInterface $promise)
     {
         // application/json
@@ -56,6 +69,12 @@ class StreamingParser
         return $out;
     }
 
+    /**
+     * Returns a readable plain text stream for the given ResponseInterface
+     *
+     * @param PromiseInterface $promise Promise<ResponseInterface>
+     * @return ReadableStreamInterface
+     */
     public function parsePlainStream(PromiseInterface $promise)
     {
         // text/plain
@@ -65,6 +84,13 @@ class StreamingParser
         }));
     }
 
+    /**
+     * Returns a promise which resolves with an array of all "progress" events
+     *
+     * @param ReadableStreamInterface $stream
+     * @param string                  $progressEventName the name of the event to collect
+     * @return PromiseInterface Promise<array, Exception>
+     */
     public function deferredStream(ReadableStreamInterface $stream, $progressEventName)
     {
         // cancelling the deferred will (try to) close the stream
