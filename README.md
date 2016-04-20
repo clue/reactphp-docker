@@ -67,6 +67,13 @@ $loop = React\EventLoop\Factory::create();
 $factory = new Factory($loop);
 ```
 
+If you need custom DNS, SSL/TLS or proxy settings, you can explicitly pass a
+custom [`Browser`](https://github.com/clue/php-buzz-react#browser) instance:
+
+```php
+$factory = new Factory($loop, $browser);
+```
+
 #### createClient()
 
 The `createClient($url = null)` method can be used to create a new `Client`.

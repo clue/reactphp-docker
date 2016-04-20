@@ -16,11 +16,8 @@ $loop = LoopFactory::create();
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$client->imagePush($image, null, null, $auth)->then(
-    function ($response) {
-        echo 'response: ' . json_encode($response) . PHP_EOL;
-    },
-    'var_dump'
-);
+$client->imagePush($image, null, null, $auth)->then(function ($result) {
+    echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+}, 'printf');
 
 $loop->run();

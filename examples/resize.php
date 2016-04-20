@@ -1,4 +1,6 @@
 <?php
+// this example tries to adjust the TTY size of the given container to 10x10.
+// you can check this via "docker logs".
 
 require __DIR__ . '/../vendor/autoload.php';
 
