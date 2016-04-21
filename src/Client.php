@@ -94,6 +94,89 @@ class Client
     }
 
     /**
+     * Get container events from docker
+     *
+     * This is a JSON streaming API endpoint that resolves with an array of all
+     * individual progress events.
+     *
+     * If you need to access the individual progress events as they happen, you
+     * should consider using `eventsStream()` instead.
+     *
+     * Note that this method will buffer all events until the stream closes.
+     * This means that you SHOULD pass a timestamp for `$until` so that this
+     * method only polls the given time interval and then resolves.
+     *
+     * The optional `$filters` parameter can be used to only get events for
+     * certain event types, images and/or containers etc. like this:
+     * <code>
+     * $filters = array(
+     *     'image' => array('ubuntu', 'busybox'),
+     *     'event' => array('create')
+     * );
+     * </code>
+     *
+     * @param float|null $since timestamp used for polling
+     * @param float|null $until timestamp used for polling
+     * @param array    $filters (optional) filters to apply (requires API v1.16+ / Docker v1.4+)
+     * @return PromiseInterface Promise<array> array of event objects
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#monitor-dockers-events
+     * @uses self::eventsStream()
+     * @see self::eventsStream()
+     */
+    public function events($since = null, $until = null, $filters = array())
+    {
+        return $this->streamingParser->deferredStream(
+            $this->eventsStream($since, $until, $filters),
+            'progress'
+        );
+    }
+
+    /**
+     * Get container events from docker
+     *
+     * This is a JSON streaming API endpoint that returns a stream instance.
+     *
+     * The resulting stream will emit the following events:
+     * - progress: for *each* element in the update stream
+     * - error:    once if an error occurs, will close() stream then
+     * - close:    once the stream ends (either finished or after "error")
+     *
+     * Please note that the resulting stream does not emit any "data" events, so
+     * you will not be able to pipe() its events into another `WritableStream`.
+     *
+     * The optional `$filters` parameter can be used to only get events for
+     * certain event types, images and/or containers etc. like this:
+     * <code>
+     * $filters = array(
+     *     'image' => array('ubuntu', 'busybox'),
+     *     'event' => array('create')
+     * );
+     * </code>
+     *
+     * @param float|null $since   timestamp used for polling
+     * @param float|null $until   timestamp used for polling
+     * @param array      $filters (optional) filters to apply (requires API v1.16+ / Docker v1.4+)
+     * @return ReadableStreamInterface stream of event objects
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#monitor-dockers-events
+     * @see self::events()
+     */
+    public function eventsStream($since = null, $until = null, $filters = array())
+    {
+        return $this->streamingParser->parseJsonStream(
+            $this->browser->withOptions(array('streaming' => true))->get(
+                $this->uri->expand(
+                    '/events{?since,until,filters}',
+                    array(
+                        'since' => $since,
+                        'until' => $until,
+                        'filters' => $filters ? json_encode($filters) : null
+                    )
+                )
+            )
+        );
+    }
+
+    /**
      * List containers
      *
      * @param boolean $all

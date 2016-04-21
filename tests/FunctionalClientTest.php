@@ -46,6 +46,8 @@ class FunctionalClientTest extends TestCase
         $this->assertNotNull($container['Id']);
         $this->assertNull($container['Warnings']);
 
+        $start = microtime(true);
+
         $promise = $this->client->containerStart($container['Id']);
         $ret = Block\await($promise, $this->loop);
 
@@ -55,6 +57,19 @@ class FunctionalClientTest extends TestCase
         $ret = Block\await($promise, $this->loop);
 
         $this->assertEquals('', $ret);
+
+        $end = microtime(true);
+
+        // get all events between starting and removing for this container
+        $promise = $this->client->events($start, $end, array('container' => array($container['Id'])));
+        $ret = Block\await($promise, $this->loop);
+
+        // expects "start", "kill", "die", "destroy" events
+        $this->assertEquals(4, count($ret));
+        $this->assertEquals('start', $ret[0]['status']);
+        $this->assertEquals('kill', $ret[1]['status']);
+        $this->assertEquals('die', $ret[2]['status']);
+        $this->assertEquals('destroy', $ret[3]['status']);
     }
 
     /**

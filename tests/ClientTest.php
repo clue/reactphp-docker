@@ -37,6 +37,30 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($body, $this->client->ping());
     }
 
+    public function testEvents()
+    {
+        $json = array();
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('GET', '/events', $this->createResponseJsonStream($json));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
+
+        $this->expectPromiseResolveWith($json, $this->client->events());
+    }
+
+    public function testEventsArgs()
+    {
+        $json = array();
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('GET', '/events?since=10&until=20&filters=%7B%22image%22%3A%5B%22busybox%22%2C%22ubuntu%22%5D%7D', $this->createResponseJsonStream($json));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream), $this->equalTo('progress'))->will($this->returnPromise($json));
+
+        $this->expectPromiseResolveWith($json, $this->client->events(10, 20, array('image' => array('busybox', 'ubuntu'))));
+    }
+
     public function testContainerCreate()
     {
         $json = array();
