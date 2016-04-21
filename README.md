@@ -219,6 +219,7 @@ The following API endpoints take advantage of [JSON streaming](https://en.wikipe
 ```php
 $client->imageCreate();
 $client->imagePush();
+$client->events();
 ```
 
 What this means is that these endpoints actually emit any number of progress
@@ -271,6 +272,7 @@ a [`Stream`](https://github.com/reactphp/stream) instance instead:
 ```php
 $stream = $client->imageCreateStream();
 $stream = $client->imagePushStream();
+$stream = $client->eventsStream();
 ```
 
 The resulting stream will emit the following events:
