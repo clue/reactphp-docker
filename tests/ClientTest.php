@@ -386,11 +386,11 @@ class ClientTest extends TestCase
 
     public function testExecStart()
     {
-        $json = array();
+        $data = 'hello world';
         $config = array();
-        $this->expectRequestFlow('post', '/exec/123/start', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', '/exec/123/start', $this->createResponse($data), 'expectPlain');
 
-        $this->expectPromiseResolveWith($json, $this->client->execStart(123, $config));
+        $this->expectPromiseResolveWith($data, $this->client->execStart(123, $config));
     }
 
     public function testExecResize()
