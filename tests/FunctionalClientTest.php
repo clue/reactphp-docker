@@ -4,6 +4,7 @@ use Clue\React\Docker\Client;
 use React\EventLoop\Factory as LoopFactory;
 use Clue\React\Docker\Factory;
 use Clue\React\Block;
+use Clue\React\Promise\Stream;
 
 class FunctionalClientTest extends TestCase
 {
@@ -155,6 +156,56 @@ class FunctionalClientTest extends TestCase
         $this->assertTrue(is_array($info));
         $this->assertFalse($info['Running']);
         $this->assertEquals(0, $info['ExitCode']);
+    }
+
+    /**
+     * @depends testStartRunning
+     * @param string $container
+     */
+    public function testExecStreamEmptyOutputWhileRunning($container)
+    {
+        $promise = $this->client->execCreate($container, array(
+            'Cmd' => array('true'),
+            'AttachStdout' => true,
+            'AttachStderr' => true,
+            'Tty' => true
+        ));
+        $exec = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($exec));
+        $this->assertTrue(is_string($exec['Id']));
+
+        $stream = $this->client->execStartStream($exec['Id'], array('Tty' => true));
+        $stream->on('end', $this->expectCallableOnce());
+
+        $output = Block\await(Stream\buffer($stream), $this->loop);
+
+        $this->assertEquals('', $output);
+    }
+
+    /**
+     * @depends testStartRunning
+     * @param string $container
+     */
+    public function testExecStreamEmptyOutputBecauseOfDetachWhileRunning($container)
+    {
+        $promise = $this->client->execCreate($container, array(
+            'Cmd' => array('sleep', '10'),
+            'AttachStdout' => true,
+            'AttachStderr' => true,
+            'Tty' => true
+        ));
+        $exec = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($exec));
+        $this->assertTrue(is_string($exec['Id']));
+
+        $stream = $this->client->execStartStream($exec['Id'], array('Tty' => true, 'Detach' => true));
+        $stream->on('end', $this->expectCallableOnce());
+
+        $output = Block\await(Stream\buffer($stream), $this->loop);
+
+        $this->assertEquals('', $output);
     }
 
     /**

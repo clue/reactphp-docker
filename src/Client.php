@@ -907,6 +907,9 @@ class Client
      * as set up in the `execCreate()` call.
      *
      * Keep in mind that this means the whole string has to be kept in memory.
+     * If you want to access the individual output chunks as they happen or
+     * for bigger command outputs, it's usually a better idea to use a streaming
+     * approach, see `execStartStream()` for more details.
      *
      * If detach is true, this API returns after starting the exec command.
      * Otherwise, this API sets up an interactive session with the exec command.
@@ -915,18 +918,51 @@ class Client
      * @param array  $config (see link)
      * @return PromiseInterface Promise<string> buffered exec data
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
+     * @uses self::execStartStream()
+     * @see self::execStartStream()
      */
     public function execStart($exec, $config = array())
     {
-        return $this->postJson(
-            $this->uri->expand(
-                '/exec/{exec}/start',
+        return $this->streamingParser->bufferedStream(
+            $this->execStartStream($exec, $config)
+        );
+    }
+
+    /**
+     * Starts a previously set up exec instance id.
+     *
+     * This is a streaming API endpoint that returns a readable stream instance
+     * containing the command output, i.e. STDOUT and STDERR as set up in the
+     * `execCreate()` call.
+     *
+     * This works for command output of any size as only small chunks have to
+     * be kept in memory.
+     *
+     * If detach is true, this API returns after starting the exec command.
+     * Otherwise, this API sets up an interactive session with the exec command.
+     *
+     * @param string $exec   exec ID
+     * @param array  $config (see link)
+     * @return ReadableStreamInterface stream of exec data
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
+     * @see self::execStart()
+     */
+    public function execStartStream($exec, $config = array())
+    {
+        return $this->streamingParser->parsePlainStream(
+            $this->browser->withOptions(array('streaming' => true))->post(
+                $this->uri->expand(
+                    '/exec/{exec}/start',
+                    array(
+                        'exec' => $exec
+                    )
+                ),
                 array(
-                    'exec' => $exec
-                )
-            ),
-            $config
-        )->then(array($this->parser, 'expectPlain'));
+                    'Content-Type' => 'application/json'
+                ),
+                $this->json($config)
+            )
+        );
     }
 
     /**

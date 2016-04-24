@@ -6,6 +6,7 @@ use Clue\React\Buzz\Browser;
 use RingCentral\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\RequestInterface;
+use React\Promise;
 
 class ClientTest extends TestCase
 {
@@ -388,9 +389,24 @@ class ClientTest extends TestCase
     {
         $data = 'hello world';
         $config = array();
-        $this->expectRequestFlow('post', '/exec/123/start', $this->createResponse($data), 'expectPlain');
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('POST', '/exec/123/start', $this->createResponse($data));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->equalTo($stream))->willReturn(Promise\resolve($data));
 
         $this->expectPromiseResolveWith($data, $this->client->execStart(123, $config));
+    }
+
+    public function testExecStartStream()
+    {
+        $config = array();
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('POST', '/exec/123/start', $this->createResponse());
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+
+        $this->assertSame($stream, $this->client->execStartStream(123, $config));
     }
 
     public function testExecResize()
