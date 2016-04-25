@@ -185,7 +185,7 @@ class FunctionalClientTest extends TestCase
 
         $stream = $this->client->execStartStream($exec['Id']);
         $stream->once('data', $this->expectCallableOnceWith('hello'));
-        //$stream->on('end', $this->expectCallableOnce());
+        $stream->on('end', $this->expectCallableOnce());
 
         $output = Block\await(Stream\buffer($stream), $this->loop);
 
@@ -241,8 +241,8 @@ class FunctionalClientTest extends TestCase
         $this->assertTrue(is_string($exec['Id']));
 
         $stream = $this->client->execStartStream($exec['Id'], true);
-        //$stream->on('data', $this->expectCallableOnce());
-        //$stream->on('end', $this->expectCallableOnce());
+        $stream->once('data', $this->expectCallableOnce('hello world'));
+        $stream->on('end', $this->expectCallableOnce());
 
         $output = Block\await(Stream\buffer($stream), $this->loop);
 
@@ -265,7 +265,7 @@ class FunctionalClientTest extends TestCase
         $stream->on('err', $this->expectCallableOnceWith('hello world'));
         $stream->on('data', $this->expectCallableNever());
         $stream->on('error', $this->expectCallableNever());
-        //$stream->on('end', $this->expectCallableOnce());
+        $stream->on('end', $this->expectCallableOnce());
 
         $output = Block\await(Stream\buffer($stream), $this->loop);
 
