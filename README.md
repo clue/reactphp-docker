@@ -221,6 +221,23 @@ $stream->on('close', function () {
 });
 ```
 
+Note that by default the output of both STDOUT and STDERR will be emitted
+as normal `data` events. You can optionally pass a custom event name which
+will be used to emit STDERR data so that it can be handled separately.
+Note that the normal streaming primitives likely do not know about this
+event, so special care may have to be taken.
+Also note that this option has no effect if you execute with a TTY.
+
+```php
+$stream = $client->execStartStream($exec, $tty, 'stderr');
+$stream->on('data', function ($data) {
+    echo 'STDOUT data: ' . $data;
+});
+$stream->on('stderr', function ($data) {
+    echo 'STDERR data: ' . $data;
+});
+```
+
 See also the [streaming exec example](examples/exec-stream.php) and the [exec benchmark example](examples/benchmark-exec.php).
 
 The TTY mode should be set depending on whether your command needs a TTY

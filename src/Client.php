@@ -1008,14 +1008,22 @@ class Client
      * This works for command output of any size as only small chunks have to
      * be kept in memory.
      *
-     * @param string  $exec exec ID
-     * @param boolean $tty  tty mode
+     * Note that by default the output of both STDOUT and STDERR will be emitted
+     * as normal "data" events. You can optionally pass a custom event name which
+     * will be used to emit STDERR data so that it can be handled separately.
+     * Note that the normal streaming primitives likely do not know about this
+     * event, so special care may have to be taken.
+     * Also note that this option has no effect if you execute with a TTY.
+     *
+     * @param string  $exec        exec ID
+     * @param boolean $tty         tty mode
+     * @param string  $stderrEvent custom event to emit for STDERR data (otherwise emits as "data")
      * @return ReadableStreamInterface stream of exec data
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
      * @see self::execStart()
      * @see self::execStartDetached()
      */
-    public function execStartStream($exec, $tty = false)
+    public function execStartStream($exec, $tty = false, $stderrEvent = null)
     {
         $stream = $this->streamingParser->parsePlainStream(
             $this->browser->withOptions(array('streaming' => true))->post(
@@ -1036,7 +1044,7 @@ class Client
 
         // this is a multiplexed stream unless this is started with a TTY
         if (!$tty) {
-            $stream = $this->streamingParser->demultiplexStream($stream);
+            $stream = $this->streamingParser->demultiplexStream($stream, $stderrEvent);
         }
 
         return $stream;

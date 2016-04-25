@@ -27,12 +27,25 @@ $client = $factory->createClient();
 $out = new Stream(STDOUT, $loop);
 $out->pause();
 
+$stderr = new Stream(STDERR, $loop);
+$stderr->pause();
+
 // unkown exit code by default
 $exit = 1;
 
-$client->execCreate($container, $cmd)->then(function ($info) use ($client, $out, &$exit) {
-    $stream = $client->execStartStream($info['Id']);
+$client->execCreate($container, $cmd)->then(function ($info) use ($client, $out, $stderr, &$exit) {
+    $stream = $client->execStartStream($info['Id'], false, 'stderr');
     $stream->pipe($out);
+
+    // forward custom stderr event to STDERR stream
+    $stream->on('stderr', function ($data) use ($stderr, $stream) {
+        if ($stderr->write($data) === false) {
+            $stream->pause();
+            $stderr->once('drain', function () use ($stream) {
+                $stream->resume();
+            });
+        }
+    });
 
     $stream->on('error', 'printf');
 

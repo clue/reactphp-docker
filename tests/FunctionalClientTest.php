@@ -175,6 +175,27 @@ class FunctionalClientTest extends TestCase
      * @depends testStartRunning
      * @param string $container
      */
+    public function testExecStreamOutputInMultipleChunksWhileRunning($container)
+    {
+        $promise = $this->client->execCreate($container, 'echo -n hello && sleep 0 && echo -n world');
+        $exec = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($exec));
+        $this->assertTrue(is_string($exec['Id']));
+
+        $stream = $this->client->execStartStream($exec['Id']);
+        $stream->once('data', $this->expectCallableOnceWith('hello'));
+        //$stream->on('end', $this->expectCallableOnce());
+
+        $output = Block\await(Stream\buffer($stream), $this->loop);
+
+        $this->assertEquals('helloworld', $output);
+    }
+
+    /**
+     * @depends testStartRunning
+     * @param string $container
+     */
     public function testExecUserSpecificCommandWithOutputWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, 'whoami', false, false, true, true, 'nobody');
@@ -226,6 +247,29 @@ class FunctionalClientTest extends TestCase
         $output = Block\await(Stream\buffer($stream), $this->loop);
 
         $this->assertEquals('hello world', $output);
+    }
+
+    /**
+     * @depends testStartRunning
+     * @param string $container
+     */
+    public function testExecStreamStderrCustomEventWhileRunning($container)
+    {
+        $promise = $this->client->execCreate($container, 'echo -n hello world >&2');
+        $exec = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($exec));
+        $this->assertTrue(is_string($exec['Id']));
+
+        $stream = $this->client->execStartStream($exec['Id'], false, 'err');
+        $stream->on('err', $this->expectCallableOnceWith('hello world'));
+        $stream->on('data', $this->expectCallableNever());
+        $stream->on('error', $this->expectCallableNever());
+        //$stream->on('end', $this->expectCallableOnce());
+
+        $output = Block\await(Stream\buffer($stream), $this->loop);
+
+        $this->assertEquals('', $output);
     }
 
     /**

@@ -438,6 +438,18 @@ class ClientTest extends TestCase
         $this->assertSame($stream, $this->client->execStartStream(123, $config));
     }
 
+    public function testExecStartStreamWithCustomStderrEvent()
+    {
+        $config = array();
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('POST', '/exec/123/start', $this->createResponse());
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($stream, 'stderr')->willReturn($stream);
+
+        $this->assertSame($stream, $this->client->execStartStream(123, $config, 'stderr'));
+    }
+
     public function testExecResize()
     {
         $this->expectRequestFlow('POST', '/exec/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');

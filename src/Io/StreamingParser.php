@@ -88,18 +88,27 @@ class StreamingParser
      * Returns a readable plain text stream for the given multiplexed stream using Docker's "attach multiplexing protocol"
      *
      * @param ReadableStreamInterface $input
+     * @param string $stderrEvent
      * @return ReadableStreamInterface
      */
-    public function demultiplexStream(ReadableStreamInterface $input)
+    public function demultiplexStream(ReadableStreamInterface $input, $stderrEvent = null)
     {
+        if ($stderrEvent === null) {
+            $stderrEvent = 'data';
+        }
+
         $out = new ReadableStream();
         $parser = new MultiplexStreamParser();
 
         // pass all input data chunks through the parser
-        $input->on('data', function ($chunk) use ($parser, $out) {
+        $input->on('data', function ($chunk) use ($parser, $out, $stderrEvent) {
             // once parser emits, forward to output stream
-            $parser->push($chunk, function ($stream, $data) use ($out) {
-                $out->emit('data', array($data));
+            $parser->push($chunk, function ($stream, $data) use ($out, $stderrEvent) {
+                if ($stream === 2) {
+                    $out->emit($stderrEvent, array($data));
+                } else {
+                    $out->emit('data', array($data));
+                }
             });
         });
 
