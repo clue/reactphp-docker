@@ -133,7 +133,7 @@ class FunctionalClientTest extends TestCase
      */
     public function testExecStartWhileRunning($exec)
     {
-        $promise = $this->client->execStart($exec, true);
+        $promise = $this->client->execStart($exec);
         $output = Block\await($promise, $this->loop);
 
         $this->assertEquals('hello world', $output);
@@ -165,7 +165,7 @@ class FunctionalClientTest extends TestCase
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
-        $promise = $this->client->execStart($exec['Id'], true);
+        $promise = $this->client->execStart($exec['Id']);
         $output = Block\await($promise, $this->loop);
 
         $this->assertEquals('hello world', $output);
@@ -177,13 +177,13 @@ class FunctionalClientTest extends TestCase
      */
     public function testExecUserSpecificCommandWithOutputWhileRunning($container)
     {
-        $promise = $this->client->execCreate($container, 'whoami', true, false, true, true, 'nobody');
+        $promise = $this->client->execCreate($container, 'whoami', false, false, true, true, 'nobody');
         $exec = Block\await($promise, $this->loop);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
-        $promise = $this->client->execStart($exec['Id'], true);
+        $promise = $this->client->execStart($exec['Id']);
         $output = Block\await($promise, $this->loop);
 
         $this->assertEquals('nobody', rtrim($output));
@@ -195,14 +195,35 @@ class FunctionalClientTest extends TestCase
      */
     public function testExecStringCommandWithStderrOutputWhileRunning($container)
     {
+        $promise = $this->client->execCreate($container, 'echo -n hello world >&2');
+        $exec = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($exec));
+        $this->assertTrue(is_string($exec['Id']));
+
+        $promise = $this->client->execStart($exec['Id']);
+        $output = Block\await($promise, $this->loop);
+
+        $this->assertEquals('hello world', $output);
+    }
+
+    /**
+     * @depends testStartRunning
+     * @param string $container
+     */
+    public function testExecStreamCommandWithTtyAndStderrOutputWhileRunning($container)
+    {
         $promise = $this->client->execCreate($container, 'echo -n hello world >&2', true);
         $exec = Block\await($promise, $this->loop);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
-        $promise = $this->client->execStart($exec['Id'], true);
-        $output = Block\await($promise, $this->loop);
+        $stream = $this->client->execStartStream($exec['Id'], true);
+        //$stream->on('data', $this->expectCallableOnce());
+        //$stream->on('end', $this->expectCallableOnce());
+
+        $output = Block\await(Stream\buffer($stream), $this->loop);
 
         $this->assertEquals('hello world', $output);
     }

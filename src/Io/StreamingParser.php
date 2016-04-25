@@ -85,6 +85,54 @@ class StreamingParser
     }
 
     /**
+     * Returns a readable plain text stream for the given multiplexed stream using Docker's "attach multiplexing protocol"
+     *
+     * @param ReadableStreamInterface $input
+     * @return ReadableStreamInterface
+     */
+    public function demultiplexStream(ReadableStreamInterface $input)
+    {
+        $out = new ReadableStream();
+        $parser = new MultiplexStreamParser();
+
+        // pass all input data chunks through the parser
+        $input->on('data', function ($chunk) use ($parser, $out) {
+            // once parser emits, forward to output stream
+            $parser->push($chunk, function ($stream, $data) use ($out) {
+                $out->emit('data', array($data));
+            });
+        });
+
+        // forward end event to output (unless parsing is still in progress)
+        $input->on('end', function () use ($out, $parser) {
+            if ($parser->isEmpty()) {
+                $out->emit('end', array());
+            } else {
+                $out->emit('error', array(new \RuntimeException('Stream ended within incomplete multiplexed chunk')));
+            }
+            $out->close();
+        });
+
+        // forward error event to output
+        $input->on('error', function ($error) use ($out) {
+            $out->emit('error', array($error));
+            $out->close();
+        });
+
+        // forward close event to output
+        $input->on('close', function ($error) use ($out) {
+            $out->close();
+        });
+
+        // closing output stream closes input stream
+        $out->on('close', function () use ($input) {
+            $input->close();
+        });
+
+        return $out;
+    }
+
+    /**
      * Returns a promise which resolves with the buffered stream contents of the given stream
      *
      * @param ReadableStreamInterface $stream

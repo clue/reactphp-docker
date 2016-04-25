@@ -27,8 +27,8 @@ $client = $factory->createClient();
 $out = new Stream(STDOUT, $loop);
 $out->pause();
 
-$client->execCreate($container, $cmd, true)->then(function ($info) use ($client, $out) {
-    $stream = $client->execStartStream($info['Id'], true);
+$client->execCreate($container, $cmd)->then(function ($info) use ($client, $out) {
+    $stream = $client->execStartStream($info['Id']);
     $stream->pipe($out);
 
     $stream->on('error', 'printf');

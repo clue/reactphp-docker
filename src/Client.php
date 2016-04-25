@@ -1017,7 +1017,7 @@ class Client
      */
     public function execStartStream($exec, $tty = false)
     {
-        return $this->streamingParser->parsePlainStream(
+        $stream = $this->streamingParser->parsePlainStream(
             $this->browser->withOptions(array('streaming' => true))->post(
                 $this->uri->expand(
                     '/exec/{exec}/start',
@@ -1033,6 +1033,13 @@ class Client
                 ))
             )
         );
+
+        // this is a multiplexed stream unless this is started with a TTY
+        if (!$tty) {
+            $stream = $this->streamingParser->demultiplexStream($stream);
+        }
+
+        return $stream;
     }
 
     /**

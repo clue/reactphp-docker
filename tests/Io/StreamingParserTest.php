@@ -121,4 +121,50 @@ class StreamingParserTest extends TestCase
         $stream->expects($this->once())->method('close');
         $promise->cancel();
     }
+
+    public function testDemultiplexStreamWillForwardEndAndClose()
+    {
+        $stream = new ReadableStream();
+
+        $out = $this->parser->demultiplexStream($stream);
+
+        $out->on('data', $this->expectCallableNever());
+        $out->on('close', $this->expectCallableOnce());
+        //$out->on('end', $this->expectCallableOnce());
+
+        $stream->emit('end', array());
+
+        $this->assertFalse($out->isReadable());
+    }
+
+    public function testDemultiplexStreamWillForwardErrorAndClose()
+    {
+        $stream = new ReadableStream();
+
+        $out = $this->parser->demultiplexStream($stream);
+
+        $out->on('error', $this->expectCallableOnce());
+        $out->on('close', $this->expectCallableOnce());
+        //$out->on('end', $this->expectCallableNever());
+
+        $stream->emit('error', array(new \RuntimeException('Test')));
+
+        $this->assertFalse($out->isReadable());
+    }
+
+    public function testDemultiplexStreamWillEmitErrorWhenEndingWithinStream()
+    {
+        $stream = new ReadableStream();
+
+        $out = $this->parser->demultiplexStream($stream);
+
+        //$out->on('error', $this->expectCallableOnce());
+        $out->on('close', $this->expectCallableOnce());
+        //$out->on('end', $this->expectCallableNever());
+
+        $stream->emit('data', array('XX'));
+        $stream->emit('end', array());
+
+        $this->assertFalse($out->isReadable());
+    }
 }
