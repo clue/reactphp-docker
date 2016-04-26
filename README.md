@@ -30,6 +30,7 @@ execute arbitrary commands within isolated containers, stop running containers a
     * [Commands](#commands)
     * [Promises](#promises)
     * [Blocking](#blocking)
+    * [Command streaming](#command-streaming)
     * [TAR streaming](#tar-streaming)
     * [JSON streaming](#json-streaming)
   * [JsonProgressException](#jsonprogressexception)
@@ -182,6 +183,52 @@ $inspections = Block\awaitAll($promises, $loop);
 ```
 
 Please refer to [clue/block-react](https://github.com/clue/php-block-react#readme) for more details.
+
+#### Command streaming
+
+The following API endpoint resolves with a buffered string of the command output
+(STDOUT and/or STDERR):
+
+```php
+$client->execStart($exec);
+```
+
+Keep in mind that this means the whole string has to be kept in memory.
+If you want to access the individual output chunks as they happen or
+for bigger command outputs, it's usually a better idea to use a streaming
+approach.
+
+This works for (any number of) commands of arbitrary sizes.
+The following API endpoint complements the default Promise-based API and returns
+a [`Stream`](https://github.com/reactphp/stream) instance instead:
+
+```php
+$stream = $client->execStartStream($exec);
+```
+
+The resulting stream is a well-behaving readable stream that will emit
+the normal stream events:
+
+```php
+$stream = $client->execStartStream($exec, $config);
+$stream->on('data', function ($data) {
+    // data will be emitted in multiple chunk
+    echo $data;
+});
+$stream->on('close', function () {
+    // the stream just ended, this could(?) be a good thing
+    echo 'Ended' . PHP_EOL;
+});
+```
+
+See also the [streaming exec example](examples/exec-stream.php) and the [exec benchmark example](examples/benchmark-exec.php).
+
+Running this benchmark on my personal (rather mediocre) VM setup reveals that
+the benchmark achieves a throughput of ~300 MiB/s while the (totally unfair)
+comparison script using the plain Docker client only yields ~100 MiB/s.
+Instead of me posting more details here, I encourage you to re-run the benchmark
+yourself and adjust it to better suite your problem domain.
+The key takeway here is: *PHP is faster than you probably thought*.
 
 #### TAR streaming
 
