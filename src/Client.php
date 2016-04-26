@@ -949,6 +949,27 @@ class Client
         )->then(array($this->parser, 'expectEmpty'));
     }
 
+    /**
+     * Returns low-level information about the exec command id.
+     *
+     * Requires API v1.16+ / Docker v1.4+
+     *
+     * @param string $exec exec ID
+     * @return PromiseInterface Promise<array>
+     * @link https://docs.docker.com/engine/reference/api/docker_remote_api_v1.16/#exec-inspect
+     */
+    public function execInspect($exec)
+    {
+        return $this->browser->get(
+            $this->uri->expand(
+                '/exec/{exec}/json',
+                array(
+                    'exec' => $exec
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
+    }
+
     private function postJson($url, $data)
     {
         $body = $this->json($data);

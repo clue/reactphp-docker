@@ -400,6 +400,14 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith('', $this->client->execResize(123, 800, 600));
     }
 
+    public function testExecInspect()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/exec/123/json', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->execInspect(123));
+    }
+
     private function expectRequestFlow($method, $url, ResponseInterface $response, $parser)
     {
         $return = (string)$response->getBody();
