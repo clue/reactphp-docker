@@ -72,6 +72,103 @@ class FunctionalClientTest extends TestCase
         $this->assertEquals('destroy', $ret[3]['status']);
     }
 
+    public function testStartRunning()
+    {
+        $config = array(
+            'Image' => 'busybox',
+            'Tty' => true,
+            'Cmd' => array('sleep', '10')
+        );
+
+        $promise = $this->client->containerCreate($config);
+        $container = Block\await($promise, $this->loop);
+
+        $this->assertNotNull($container['Id']);
+        $this->assertNull($container['Warnings']);
+
+        $start = microtime(true);
+
+        $promise = $this->client->containerStart($container['Id']);
+        $ret = Block\await($promise, $this->loop);
+
+        $this->assertEquals('', $ret);
+
+        return $container['Id'];
+    }
+
+    /**
+     * @depends testStartRunning
+     * @param string $container
+     * @return string
+     */
+    public function testExecCreateWhileRunning($container)
+    {
+        $promise = $this->client->execCreate($container, array(
+            'Cmd' => array('echo', '-n', 'hello', 'world'),
+            'AttachStdout' => true,
+            'AttachStderr' => true,
+            'Tty' => true
+        ));
+        $exec = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($exec));
+        $this->assertTrue(is_string($exec['Id']));
+
+        return $exec['Id'];
+    }
+
+    /**
+     * @depends testExecCreateWhileRunning
+     * @param string $exec
+     */
+    public function testExecInspectBeforeRunning($exec)
+    {
+        $promise = $this->client->execInspect($exec);
+        $info = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($info));
+        $this->assertFalse($info['Running']);
+        $this->assertEquals(null, $info['ExitCode']);
+    }
+
+    /**
+     * @depends testExecCreateWhileRunning
+     * @param string $exec
+     */
+    public function testExecStartWhileRunning($exec)
+    {
+        $promise = $this->client->execStart($exec, array('Tty' => true));
+        $output = Block\await($promise, $this->loop);
+
+        $this->assertEquals('hello world', $output);
+    }
+
+    /**
+     * @depends testExecCreateWhileRunning
+     * @param string $exec
+     */
+    public function testExecInspectAfterRunning($exec)
+    {
+        $promise = $this->client->execInspect($exec);
+        $info = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($info));
+        $this->assertFalse($info['Running']);
+        $this->assertEquals(0, $info['ExitCode']);
+    }
+
+    /**
+     * @depends testStartRunning
+     * @param string $container
+     */
+    public function testRemoveRunning($container)
+    {
+        $promise = $this->client->containerRemove($container, true, true);
+        $ret = Block\await($promise, $this->loop);
+
+        $this->assertEquals('', $ret);
+    }
+
     /**
      * @expectedException RuntimeException
      */

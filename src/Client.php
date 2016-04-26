@@ -903,15 +903,20 @@ class Client
     /**
      * Starts a previously set up exec instance id.
      *
+     * This resolves with a string of the command output, i.e. STDOUT and STDERR
+     * as set up in the `execCreate()` call.
+     *
+     * Keep in mind that this means the whole string has to be kept in memory.
+     *
      * If detach is true, this API returns after starting the exec command.
      * Otherwise, this API sets up an interactive session with the exec command.
      *
      * @param string $exec   exec ID
      * @param array  $config (see link)
-     * @return PromiseInterface Promise<array> stream of message objects
+     * @return PromiseInterface Promise<string> buffered exec data
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
      */
-    public function execStart($exec, $config)
+    public function execStart($exec, $config = array())
     {
         return $this->postJson(
             $this->uri->expand(
@@ -921,7 +926,7 @@ class Client
                 )
             ),
             $config
-        )->then(array($this->parser, 'expectJson'));
+        )->then(array($this->parser, 'expectPlain'));
     }
 
     /**

@@ -5,25 +5,32 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use React\EventLoop\Factory as LoopFactory;
 use Clue\React\Docker\Factory;
-use Clue\React\Docker\ExecHelper;
-use React\Stream\Stream;
 use Clue\React\Buzz\Message\ResponseException;
 
-$container = isset($argv[1]) ? $argv[1] : 'asd';
+$container = 'asd';
+//$cmd = array('echo', 'hello world');
+//$cmd = array('sleep', '2');
+$cmd = array('sh', '-c', 'echo -n hello && sleep 1 && echo world && sleep 1 && env');
+//$cmd = array('cat', 'invalid-path');
+
+if (isset($argv[1])) {
+    $container = $argv[1];
+    $cmd = array_slice($argv, 2);
+}
 
 $loop = LoopFactory::create();
 
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$client->execCreate($container, array('Cmd' => array('sleep', '2'), 'AttachStdout' => true))->then(function ($info) use ($client) {
+$client->execCreate($container, array('Cmd' => $cmd, 'AttachStdout' => true, 'AttachStderr' => true, 'Tty' => true))->then(function ($info) use ($client) {
     echo 'Created with info: ' . json_encode($info) . PHP_EOL;
 
     return $client->execInspect($info['Id']);
 })->then(function ($info) use ($client) {
     echo 'Inspected after creation: ' . json_encode($info, JSON_PRETTY_PRINT) . PHP_EOL;
 
-    return $client->execStart($info['ID'], array())->then(function ($out) use ($client, $info) {
+    return $client->execStart($info['ID'], array('Tty' => true))->then(function ($out) use ($client, $info) {
         echo 'Starting returned: ';
         var_dump($out);
 
