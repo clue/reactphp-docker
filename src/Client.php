@@ -911,21 +911,51 @@ class Client
      * for bigger command outputs, it's usually a better idea to use a streaming
      * approach, see `execStartStream()` for more details.
      *
-     * If detach is true, this API returns after starting the exec command.
-     * Otherwise, this API sets up an interactive session with the exec command.
-     *
-     * @param string $exec   exec ID
-     * @param array  $config (see link)
+     * @param string  $exec exec ID
+     * @param boolean $tty  tty mode
      * @return PromiseInterface Promise<string> buffered exec data
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
      * @uses self::execStartStream()
      * @see self::execStartStream()
+     * @see self::execStartDetached()
      */
-    public function execStart($exec, $config = array())
+    public function execStart($exec, $tty = false)
     {
         return $this->streamingParser->bufferedStream(
-            $this->execStartStream($exec, $config)
+            $this->execStartStream($exec, $tty)
         );
+    }
+
+    /**
+     * Starts a previously set up exec instance id.
+     *
+     * This resolves after starting the exec command, but without waiting for
+     * the command output (detached mode).
+     *
+     * @param string  $exec exec ID
+     * @param boolean $tty  tty mode
+     * @return PromiseInterface Promise<null>
+     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
+     * @see self::execStart()
+     * @see self::execStartStream()
+     */
+    public function execStartDetached($exec, $tty = false)
+    {
+        return $this->browser->post(
+            $this->uri->expand(
+                '/exec/{exec}/start',
+                array(
+                    'exec' => $exec
+                )
+            ),
+            array(
+                'Content-Type' => 'application/json'
+            ),
+            $this->json(array(
+                'Detach' => true,
+                'Tty' => !!$tty
+            ))
+        )->then(array($this->parser, 'expectEmpty'));
     }
 
     /**
@@ -938,16 +968,14 @@ class Client
      * This works for command output of any size as only small chunks have to
      * be kept in memory.
      *
-     * If detach is true, this API returns after starting the exec command.
-     * Otherwise, this API sets up an interactive session with the exec command.
-     *
-     * @param string $exec   exec ID
-     * @param array  $config (see link)
+     * @param string  $exec exec ID
+     * @param boolean $tty  tty mode
      * @return ReadableStreamInterface stream of exec data
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
      * @see self::execStart()
+     * @see self::execStartDetached()
      */
-    public function execStartStream($exec, $config = array())
+    public function execStartStream($exec, $tty = false)
     {
         return $this->streamingParser->parsePlainStream(
             $this->browser->withOptions(array('streaming' => true))->post(
@@ -960,7 +988,9 @@ class Client
                 array(
                     'Content-Type' => 'application/json'
                 ),
-                $this->json($config)
+                $this->json(array(
+                    'Tty' => !!$tty
+                ))
             )
         );
     }

@@ -138,7 +138,7 @@ class FunctionalClientTest extends TestCase
      */
     public function testExecStartWhileRunning($exec)
     {
-        $promise = $this->client->execStart($exec, array('Tty' => true));
+        $promise = $this->client->execStart($exec, true);
         $output = Block\await($promise, $this->loop);
 
         $this->assertEquals('hello world', $output);
@@ -175,7 +175,7 @@ class FunctionalClientTest extends TestCase
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
-        $stream = $this->client->execStartStream($exec['Id'], array('Tty' => true));
+        $stream = $this->client->execStartStream($exec['Id'], true);
         $stream->on('end', $this->expectCallableOnce());
 
         $output = Block\await(Stream\buffer($stream), $this->loop);
@@ -187,7 +187,7 @@ class FunctionalClientTest extends TestCase
      * @depends testStartRunning
      * @param string $container
      */
-    public function testExecStreamEmptyOutputBecauseOfDetachWhileRunning($container)
+    public function testExecDetachedWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, array(
             'Cmd' => array('sleep', '10'),
@@ -200,10 +200,8 @@ class FunctionalClientTest extends TestCase
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
-        $stream = $this->client->execStartStream($exec['Id'], array('Tty' => true, 'Detach' => true));
-        $stream->on('end', $this->expectCallableOnce());
-
-        $output = Block\await(Stream\buffer($stream), $this->loop);
+        $promise = $this->client->execStartDetached($exec['Id'], true);
+        $output = Block\await($promise, $this->loop);
 
         $this->assertEquals('', $output);
     }

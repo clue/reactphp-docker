@@ -28,7 +28,7 @@ $out = new Stream(STDOUT, $loop);
 $out->pause();
 
 $client->execCreate($container, array('Cmd' => $cmd, 'AttachStdout' => true, 'AttachStderr' => true, 'Tty' => true))->then(function ($info) use ($client, $out) {
-    $stream = $client->execStartStream($info['Id'], array('Tty' => true));
+    $stream = $client->execStartStream($info['Id'], true);
     $stream->pipe($out);
 
     $stream->on('error', 'printf');

@@ -210,7 +210,7 @@ The resulting stream is a well-behaving readable stream that will emit
 the normal stream events:
 
 ```php
-$stream = $client->execStartStream($exec, $config);
+$stream = $client->execStartStream($exec, $tty);
 $stream->on('data', function ($data) {
     // data will be emitted in multiple chunk
     echo $data;
