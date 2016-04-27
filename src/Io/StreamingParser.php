@@ -85,6 +85,17 @@ class StreamingParser
     }
 
     /**
+     * Returns a promise which resolves with the buffered stream contents of the given stream
+     *
+     * @param ReadableStreamInterface $stream
+     * @return PromiseInterface Promise<string, Exception>
+     */
+    public function bufferedStream(ReadableStreamInterface $stream)
+    {
+        return Stream\buffer($stream);
+    }
+
+    /**
      * Returns a promise which resolves with an array of all "progress" events
      *
      * @param ReadableStreamInterface $stream
