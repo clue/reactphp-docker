@@ -27,18 +27,23 @@ $client = $factory->createClient();
 $out = new Stream(STDOUT, $loop);
 $out->pause();
 
-$client->execCreate($container, $cmd)->then(function ($info) use ($client, $out) {
+// unkown exit code by default
+$exit = 1;
+
+$client->execCreate($container, $cmd)->then(function ($info) use ($client, $out, &$exit) {
     $stream = $client->execStartStream($info['Id']);
     $stream->pipe($out);
 
     $stream->on('error', 'printf');
 
-    // exit with error code of executed command once it closes
-    $stream->on('close', function () use ($client, $info) {
-        $client->execInspect($info['Id'])->then(function ($info) {
-            exit($info['ExitCode']);
+    // remember exit code of executed command once it closes
+    $stream->on('close', function () use ($client, $info, &$exit) {
+        $client->execInspect($info['Id'])->then(function ($info) use (&$exit) {
+            $exit = $info['ExitCode'];
         }, 'printf');
     });
 }, 'printf');
 
 $loop->run();
+
+exit($exit);
