@@ -104,12 +104,7 @@ class FunctionalClientTest extends TestCase
      */
     public function testExecCreateWhileRunning($container)
     {
-        $promise = $this->client->execCreate($container, array(
-            'Cmd' => array('echo', '-n', 'hello', 'world'),
-            'AttachStdout' => true,
-            'AttachStderr' => true,
-            'Tty' => true
-        ));
+        $promise = $this->client->execCreate($container, array('echo', '-n', 'hello', 'world'));
         $exec = Block\await($promise, $this->loop);
 
         $this->assertTrue(is_array($exec));
@@ -164,12 +159,7 @@ class FunctionalClientTest extends TestCase
      */
     public function testExecStreamEmptyOutputWhileRunning($container)
     {
-        $promise = $this->client->execCreate($container, array(
-            'Cmd' => array('true'),
-            'AttachStdout' => true,
-            'AttachStderr' => true,
-            'Tty' => true
-        ));
+        $promise = $this->client->execCreate($container, array('true'));
         $exec = Block\await($promise, $this->loop);
 
         $this->assertTrue(is_array($exec));
@@ -189,12 +179,7 @@ class FunctionalClientTest extends TestCase
      */
     public function testExecDetachedWhileRunning($container)
     {
-        $promise = $this->client->execCreate($container, array(
-            'Cmd' => array('sleep', '10'),
-            'AttachStdout' => true,
-            'AttachStderr' => true,
-            'Tty' => true
-        ));
+        $promise = $this->client->execCreate($container, array('sleep', '10'));
         $exec = Block\await($promise, $this->loop);
 
         $this->assertTrue(is_array($exec));

@@ -379,10 +379,9 @@ class ClientTest extends TestCase
     public function testExecCreate()
     {
         $json = array();
-        $config = array();
         $this->expectRequestFlow('post', '/containers/123/exec', $this->createResponseJson($json), 'expectJson');
 
-        $this->expectPromiseResolveWith($json, $this->client->execCreate(123, $config));
+        $this->expectPromiseResolveWith($json, $this->client->execCreate(123, array('env')));
     }
 
     public function testExecDetached()

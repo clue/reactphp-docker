@@ -882,12 +882,16 @@ class Client
     /**
      * Sets up an exec instance in a running container id
      *
-     * @param string $container container ID
-     * @param array  $config    `array('Cmd' => 'date')` (see link)
+     * @param string  $container container ID
+     * @param string  $cmd       Command to run specified as an array of strings
+     * @param boolean $tty       TTY mode
+     * @param boolean $stdin     attaches to STDIN of the exec command
+     * @param boolean $stdout    attaches to STDOUT of the exec command
+     * @param boolean $stderr    attaches to STDERR of the exec command
      * @return PromiseInterface Promise<array> with exec ID in the form of `array("Id" => $execId)`
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-create
      */
-    public function execCreate($container, $config)
+    public function execCreate($container, $cmd, $tty = false, $stdin = false, $stdout = true, $stderr = true)
     {
         return $this->postJson(
             $this->uri->expand(
@@ -896,7 +900,13 @@ class Client
                     'container' => $container
                 )
             ),
-            $config
+            array(
+                'Cmd' => $cmd,
+                'Tty' => !!$tty,
+                'AttachStdin' => !!$stdin,
+                'AttachStdout' => !!$stdout,
+                'AttachStderr' => !!$stderr,
+            )
         )->then(array($this->parser, 'expectJson'));
     }
 
