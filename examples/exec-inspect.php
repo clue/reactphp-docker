@@ -30,7 +30,7 @@ $client->execCreate($container, array('Cmd' => $cmd, 'AttachStdout' => true, 'At
 })->then(function ($info) use ($client) {
     echo 'Inspected after creation: ' . json_encode($info, JSON_PRETTY_PRINT) . PHP_EOL;
 
-    return $client->execStart($info['ID'], array('Tty' => true))->then(function ($out) use ($client, $info) {
+    return $client->execStart($info['ID'], true)->then(function ($out) use ($client, $info) {
         echo 'Starting returned: ';
         var_dump($out);
 
