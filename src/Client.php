@@ -882,6 +882,10 @@ class Client
     /**
      * Sets up an exec instance in a running container id
      *
+     * The $command should be given as an array of strings (the command plus
+     * arguments). Alternatively, you can also pass a single command line string
+     * which will then be wrapped in a shell process.
+     *
      * The TTY mode should be set depending on whether your command needs a TTY
      * or not. Note that toggling the TTY mode affects how/whether you can access
      * the STDERR stream and also has a significant impact on performance for
@@ -900,17 +904,21 @@ class Client
      *     STDOUT/STDERR are multiplexed into separate streams + relatively slow
      *     This looks strange to you? It probably is. Consider using the first option instead.
      *
-     * @param string  $container container ID
-     * @param string  $cmd       Command to run specified as an array of strings
-     * @param boolean $tty       TTY mode
-     * @param boolean $stdin     attaches to STDIN of the exec command
-     * @param boolean $stdout    attaches to STDOUT of the exec command
-     * @param boolean $stderr    attaches to STDERR of the exec command
+     * @param string       $container container ID
+     * @param string|array $cmd       Command to run specified as an array of strings or a single command string
+     * @param boolean      $tty       TTY mode
+     * @param boolean      $stdin     attaches to STDIN of the exec command
+     * @param boolean      $stdout    attaches to STDOUT of the exec command
+     * @param boolean      $stderr    attaches to STDERR of the exec command
      * @return PromiseInterface Promise<array> with exec ID in the form of `array("Id" => $execId)`
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-create
      */
     public function execCreate($container, $cmd, $tty = false, $stdin = false, $stdout = true, $stderr = true)
     {
+        if (!is_array($cmd)) {
+            $cmd = array('sh', '-c', (string)$cmd);
+        }
+
         return $this->postJson(
             $this->uri->expand(
                 '/containers/{container}/exec',
