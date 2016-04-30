@@ -23,7 +23,7 @@ $loop = LoopFactory::create();
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$client->execCreate($container, array('Cmd' => $cmd, 'AttachStdout' => true, 'AttachStderr' => true))->then(function ($info) use ($client) {
+$client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     $stream = $client->execStartStream($info['Id'], true);
 
     $start = microtime(true);

@@ -23,7 +23,7 @@ $loop = LoopFactory::create();
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$client->execCreate($container, array('Cmd' => $cmd, 'AttachStdout' => true, 'AttachStderr' => true, 'Tty' => true))->then(function ($info) use ($client) {
+$client->execCreate($container, $cmd, true)->then(function ($info) use ($client) {
     echo 'Created with info: ' . json_encode($info) . PHP_EOL;
 
     return $client->execInspect($info['Id']);

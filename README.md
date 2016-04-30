@@ -223,6 +223,12 @@ $stream->on('close', function () {
 
 See also the [streaming exec example](examples/exec-stream.php) and the [exec benchmark example](examples/benchmark-exec.php).
 
+The TTY mode should be set depending on whether your command needs a TTY
+or not. Note that toggling the TTY mode affects how/whether you can access
+the STDERR stream and also has a significant impact on performance for
+larger streams (relevant for 100 MiB and above). See also the TTY mode
+on the `execStart*()` call.
+
 Running this benchmark on my personal (rather mediocre) VM setup reveals that
 the benchmark achieves a throughput of ~300 MiB/s while the (totally unfair)
 comparison script using the plain Docker client only yields ~100 MiB/s.
