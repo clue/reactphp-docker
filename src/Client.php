@@ -882,6 +882,24 @@ class Client
     /**
      * Sets up an exec instance in a running container id
      *
+     * The TTY mode should be set depending on whether your command needs a TTY
+     * or not. Note that toggling the TTY mode affects how/whether you can access
+     * the STDERR stream and also has a significant impact on performance for
+     * larger streams (relevant for 100 MiB and above). See also the TTY mode
+     * on the `execStart*()` call:
+     * - create=false, start=false:
+     *     STDOUT/STDERR are multiplexed into separate streams + quite fast.
+     *     This is the default mode, also for `docker exec`.
+     * - create=true,  start=true:
+     *     STDOUT and STDERR are mixed into a single stream + relatively slow.
+     *     This is how `docker exec -t` works internally.
+     * - create=false, start=true
+     *     STDOUT is streamed, STDERR can not be accessed at all + fastest mode.
+     *     This looks strange to you? It probably is. See also the benchmarking example.
+     * - create=true, start=false
+     *     STDOUT/STDERR are multiplexed into separate streams + relatively slow
+     *     This looks strange to you? It probably is. Consider using the first option instead.
+     *
      * @param string  $container container ID
      * @param string  $cmd       Command to run specified as an array of strings
      * @param boolean $tty       TTY mode
