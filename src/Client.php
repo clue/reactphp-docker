@@ -904,16 +904,18 @@ class Client
      *     STDOUT/STDERR are multiplexed into separate streams + relatively slow
      *     This looks strange to you? It probably is. Consider using the first option instead.
      *
-     * @param string       $container container ID
-     * @param string|array $cmd       Command to run specified as an array of strings or a single command string
-     * @param boolean      $tty       TTY mode
-     * @param boolean      $stdin     attaches to STDIN of the exec command
-     * @param boolean      $stdout    attaches to STDOUT of the exec command
-     * @param boolean      $stderr    attaches to STDERR of the exec command
+     * @param string       $container  container ID
+     * @param string|array $cmd        Command to run specified as an array of strings or a single command string
+     * @param boolean      $tty        TTY mode
+     * @param boolean      $stdin      attaches to STDIN of the exec command
+     * @param boolean      $stdout     attaches to STDOUT of the exec command
+     * @param boolean      $stderr     attaches to STDERR of the exec command
+     * @param string|int   $user       user-specific exec, otherwise defaults to main container user (requires API v1.19+ / Docker v1.7+)
+     * @param boolean      $privileged privileged exec with all capabilities enabled (requires API v1.19+ / Docker v1.7+)
      * @return PromiseInterface Promise<array> with exec ID in the form of `array("Id" => $execId)`
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-create
      */
-    public function execCreate($container, $cmd, $tty = false, $stdin = false, $stdout = true, $stderr = true)
+    public function execCreate($container, $cmd, $tty = false, $stdin = false, $stdout = true, $stderr = true, $user = '', $privileged = false)
     {
         if (!is_array($cmd)) {
             $cmd = array('sh', '-c', (string)$cmd);
@@ -932,6 +934,8 @@ class Client
                 'AttachStdin' => !!$stdin,
                 'AttachStdout' => !!$stdout,
                 'AttachStderr' => !!$stderr,
+                'User' => $user,
+                'Privileged' => !!$privileged,
             )
         )->then(array($this->parser, 'expectJson'));
     }

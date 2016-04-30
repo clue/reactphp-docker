@@ -175,6 +175,24 @@ class FunctionalClientTest extends TestCase
      * @depends testStartRunning
      * @param string $container
      */
+    public function testExecUserSpecificCommandWithOutputWhileRunning($container)
+    {
+        $promise = $this->client->execCreate($container, 'whoami', true, false, true, true, 'nobody');
+        $exec = Block\await($promise, $this->loop);
+
+        $this->assertTrue(is_array($exec));
+        $this->assertTrue(is_string($exec['Id']));
+
+        $promise = $this->client->execStart($exec['Id'], true);
+        $output = Block\await($promise, $this->loop);
+
+        $this->assertEquals('nobody', rtrim($output));
+    }
+
+    /**
+     * @depends testStartRunning
+     * @param string $container
+     */
     public function testExecStringCommandWithStderrOutputWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, 'echo -n hello world >&2', true);
