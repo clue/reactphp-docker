@@ -85,6 +85,18 @@ class StreamingParser
     }
 
     /**
+     * Returns a readable plain text stream for the given multiplexed stream using Docker's "attach multiplexing protocol"
+     *
+     * @param ReadableStreamInterface $input
+     * @param string $stderrEvent
+     * @return ReadableStreamInterface
+     */
+    public function demultiplexStream(ReadableStreamInterface $input, $stderrEvent = null)
+    {
+        return new ReadableDemultiplexStream($input, $stderrEvent);
+    }
+
+    /**
      * Returns a promise which resolves with the buffered stream contents of the given stream
      *
      * @param ReadableStreamInterface $stream

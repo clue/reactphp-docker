@@ -408,20 +408,46 @@ class ClientTest extends TestCase
 
         $this->expectRequest('POST', '/exec/123/start', $this->createResponse($data));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($stream)->willReturn($stream);
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->equalTo($stream))->willReturn(Promise\resolve($data));
 
         $this->expectPromiseResolveWith($data, $this->client->execStart(123, $config));
     }
 
-    public function testExecStartStream()
+    public function testExecStartStreamWithoutTtyWillDemultiplex()
     {
         $config = array();
         $stream = $this->getMock('React\Stream\ReadableStreamInterface');
 
         $this->expectRequest('POST', '/exec/123/start', $this->createResponse());
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($stream)->willReturn($stream);
 
         $this->assertSame($stream, $this->client->execStartStream(123, $config));
+    }
+
+    public function testExecStartStreamWithTtyWillNotDemultiplex()
+    {
+        $config = array('Tty' => true);
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('POST', '/exec/123/start', $this->createResponse());
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->never())->method('demultiplexStream');
+
+        $this->assertSame($stream, $this->client->execStartStream(123, $config));
+    }
+
+    public function testExecStartStreamWithCustomStderrEvent()
+    {
+        $config = array();
+        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+
+        $this->expectRequest('POST', '/exec/123/start', $this->createResponse());
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
+        $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($stream, 'stderr')->willReturn($stream);
+
+        $this->assertSame($stream, $this->client->execStartStream(123, $config, 'stderr'));
     }
 
     public function testExecResize()

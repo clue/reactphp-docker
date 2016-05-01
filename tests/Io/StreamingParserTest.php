@@ -121,4 +121,13 @@ class StreamingParserTest extends TestCase
         $stream->expects($this->once())->method('close');
         $promise->cancel();
     }
+
+    public function testDemultiplexStreamWillReturnReadable()
+    {
+        $stream = new ReadableStream();
+
+        $out = $this->parser->demultiplexStream($stream);
+
+        $this->assertInstanceOf('React\Stream\ReadableStreamInterface', $out);
+    }
 }

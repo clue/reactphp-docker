@@ -23,14 +23,14 @@ $loop = LoopFactory::create();
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$client->execCreate($container, $cmd, true)->then(function ($info) use ($client) {
+$client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     echo 'Created with info: ' . json_encode($info) . PHP_EOL;
 
     return $client->execInspect($info['Id']);
 })->then(function ($info) use ($client) {
     echo 'Inspected after creation: ' . json_encode($info, JSON_PRETTY_PRINT) . PHP_EOL;
 
-    return $client->execStart($info['ID'], true)->then(function ($out) use ($client, $info) {
+    return $client->execStart($info['ID'])->then(function ($out) use ($client, $info) {
         echo 'Starting returned: ';
         var_dump($out);
 
