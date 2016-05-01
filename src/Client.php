@@ -536,7 +536,7 @@ class Client
      * Copy files or folders of container id
      *
      * This resolves with a string in the TAR file format containing all files
-     * specified in the $config array.
+     * specified in the given $path.
      *
      * Keep in mind that this means the whole string has to be kept in memory.
      * For bigger containers it's usually a better idea to use a streaming approach,
@@ -547,13 +547,13 @@ class Client
      * work is clue/tar-react (see links).
      *
      * @param string $container container ID
-     * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
+     * @param string $resource  path to file or directory to copy
      * @return PromiseInterface Promise<string> tar stream
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
      * @link https://github.com/clue/php-tar-react library clue/tar-react
      * @see self::containerCopyStream()
      */
-    public function containerCopy($container, $config)
+    public function containerCopy($container, $path)
     {
         return $this->postJson(
             $this->uri->expand(
@@ -562,7 +562,9 @@ class Client
                     'container' => $container
                 )
             ),
-            $config
+            array(
+                'Resource' => $path
+            )
         )->then(array($this->parser, 'expectPlain'));
     }
 
@@ -570,7 +572,7 @@ class Client
      * Copy files or folders of container id
      *
      * This returns a stream in the TAR file format containing all files
-     * specified in the $config array.
+     * specified in the given $path.
      *
      * This works for (any number of) files of arbitrary sizes as only small chunks have to
      * be kept in memory.
@@ -583,13 +585,13 @@ class Client
      * the normal stream events.
      *
      * @param string $container container ID
-     * @param array  $config    resources to copy `array('Resource' => 'file.txt')` (see link)
+     * @param string $path      path to file or directory to copy
      * @return ReadableStreamInterface tar stream
      * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
      * @link https://github.com/clue/php-tar-react library clue/tar-react
      * @see self::containerCopy()
      */
-    public function containerCopyStream($container, $config)
+    public function containerCopyStream($container, $path)
     {
         return $this->streamingParser->parsePlainStream(
             $this->browser->withOptions(array('streaming' => true))->post(
@@ -602,7 +604,9 @@ class Client
                 array(
                     'Content-Type' => 'application/json'
                 ),
-                $this->json($config)
+                $this->json(array(
+                    'Resource' => $path
+                ))
             )
         );
     }

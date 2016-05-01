@@ -12,15 +12,15 @@ use React\Stream\ReadableStreamInterface;
 use Clue\CaretNotation\Encoder;
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
-$file = isset($argv[2]) ? $argv[2] : '/etc/passwd';
-echo 'Container "' . $container . '" dumping "' . $file . '" (pass as arguments to this example)' . PHP_EOL;
+$path = isset($argv[2]) ? $argv[2] : '/etc/passwd';
+echo 'Container "' . $container . '" dumping "' . $path . '" (pass as arguments to this example)' . PHP_EOL;
 
 $loop = LoopFactory::create();
 
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$stream = $client->containerCopyStream($container, array('Resource' => $file));
+$stream = $client->containerCopyStream($container, $path);
 
 $tar = new Decoder();
 
