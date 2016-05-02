@@ -195,6 +195,13 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith('', $this->client->containerRestart(123, 10));
     }
 
+    public function testContainerRename()
+    {
+        $this->expectRequestFlow('POST', '/containers/123/rename?name=newname', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->containerRename(123, 'newname'));
+    }
+
     public function testContainerPause()
     {
         $this->expectRequestFlow('post', '/containers/123/pause', $this->createResponse(), 'expectEmpty');
