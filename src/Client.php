@@ -453,6 +453,29 @@ class Client
     }
 
     /**
+     * Rename the container id
+     *
+     * Requires API v1.17+ / Docker v1.5+
+     *
+     * @param string $container container ID
+     * @param string $name      new name for the container
+     * @return PromiseInterface Promise<null>
+     * @link https://docs.docker.com/engine/reference/api/docker_remote_api_v1.17/#rename-a-container
+     */
+    public function containerRename($container, $name)
+    {
+        return $this->browser->post(
+            $this->uri->expand(
+                '/containers/{container}/rename{?name}',
+                array(
+                    'container' => $container,
+                    'name' => $name
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
+    }
+
+    /**
      * Pause the container id
      *
      * @param string $container container ID
