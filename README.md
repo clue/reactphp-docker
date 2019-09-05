@@ -390,6 +390,10 @@ The recommended way to install this library is [through composer](http://getcomp
 }
 ```
 
+This project aims to run on any platform and thus does not require any PHP
+extensions and supports running on legacy PHP 5.3 through current PHP 7+.
+It's *highly recommended to use PHP 7+* for this project.
+
 ## Tests
 
 To run the test suite, you first need to clone this repo and then install all
