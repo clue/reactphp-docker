@@ -1,14 +1,12 @@
 <?php
 
+namespace Clue\Tests\React\Docker;
+
 use React\EventLoop\LoopInterface;
 use React\Promise\PromiseInterface;
 use React\Promise\Deferred;
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
-error_reporting(-1);
-
-class TestCase extends PHPUnit_Framework_TestCase
+class TestCase extends \PHPUnit\Framework\TestCase
 {
     protected function expectCallableOnce()
     {
@@ -28,7 +26,7 @@ class TestCase extends PHPUnit_Framework_TestCase
         $mock
             ->expects($this->once())
             ->method('__invoke')
-            ->with($this->equalTo($value));
+            ->with($value);
 
         return $mock;
     }
@@ -45,21 +43,12 @@ class TestCase extends PHPUnit_Framework_TestCase
 
     protected function expectCallableOnceParameter($type)
     {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->isInstanceOf($type));
-
-        return $mock;
+        return $this->expectCallableOnceWith($this->isInstanceOf($type));
     }
 
-    /**
-     * @link https://github.com/reactphp/react/blob/master/tests/React/Tests/Socket/TestCase.php (taken from reactphp/react)
-     */
     protected function createCallableMock()
     {
-        return $this->getMock('CallableStub');
+        return $this->getMockBuilder('stdClass')->setMethods(array('__invoke'))->getMock();
     }
 
     protected function expectPromiseResolve($promise)
@@ -85,11 +74,3 @@ class TestCase extends PHPUnit_Framework_TestCase
         return $promise;
     }
 }
-
-class CallableStub
-{
-    public function __invoke()
-    {
-    }
-}
-

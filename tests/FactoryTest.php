@@ -1,5 +1,7 @@
 <?php
 
+namespace Clue\Tests\React\Docker;
+
 use Clue\React\Docker\Factory;
 use React\EventLoop\Factory as LoopFactory;
 
@@ -16,9 +18,12 @@ class FactoryTest extends TestCase
         $this->factory = new Factory($this->loop, $this->browser);
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
     public function testCtorDefaultBrowser()
     {
-        $factory = new Factory($this->loop);
+        new Factory($this->loop);
     }
 
     public function testCreateClientUsesCustomUnixSender()

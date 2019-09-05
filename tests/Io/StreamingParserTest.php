@@ -1,10 +1,13 @@
 <?php
 
+namespace Clue\Tests\React\Docker\Io;
+
 use Clue\React\Docker\Io\StreamingParser;
+use Clue\Tests\React\Docker\TestCase;
+use React\Promise;
+use React\Promise\CancellablePromiseInterface;
 use React\Promise\Deferred;
 use React\Stream\ReadableStream;
-use React\Promise\CancellablePromiseInterface;
-use React\Promise;
 
 class StreamingParserTest extends TestCase
 {
@@ -31,7 +34,7 @@ class StreamingParserTest extends TestCase
 
         $this->assertTrue($stream->isReadable());
 
-        $exception = new RuntimeException();
+        $exception = new \RuntimeException();
 
         $stream->on('error', $this->expectCallableOnceWith($exception));
         $stream->on('close', $this->expectCallableOnce());
@@ -67,7 +70,7 @@ class StreamingParserTest extends TestCase
 
     public function testDeferredClosedStreamWillReject()
     {
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
         $stream->expects($this->once())->method('isReadable')->will($this->returnValue(false));
 
         $promise = $this->parser->deferredStream($stream, 'anything');
@@ -109,7 +112,7 @@ class StreamingParserTest extends TestCase
 
     public function testDeferredCancelingPromiseWillCloseStream()
     {
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
         $stream->expects($this->once())->method('isReadable')->willReturn(true);
 
         $promise = $this->parser->deferredStream($stream, 'anything');

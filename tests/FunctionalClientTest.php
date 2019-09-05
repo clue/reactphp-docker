@@ -1,5 +1,7 @@
 <?php
 
+namespace Clue\Tests\React\Docker;
+
 use Clue\React\Docker\Client;
 use React\EventLoop\Factory as LoopFactory;
 use Clue\React\Docker\Factory;
@@ -22,7 +24,7 @@ class FunctionalClientTest extends TestCase
 
         try {
             Block\await($promise, $this->loop);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->markTestSkipped('Unable to connect to docker ' . $e->getMessage());
         }
     }
@@ -337,6 +339,9 @@ class FunctionalClientTest extends TestCase
         $this->assertGreaterThan(9, count($ret));
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
     public function testImageTag()
     {
         // create new tag "bb:now" on "busybox:latest"
