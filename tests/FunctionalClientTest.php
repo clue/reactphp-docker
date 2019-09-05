@@ -36,6 +36,23 @@ class FunctionalClientTest extends TestCase
         $this->loop->run();
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
+    public function testImageInspectCheckIfBusyboxExists()
+    {
+        $promise = $this->client->imageInspect('busybox:latest');
+
+        try {
+            Block\await($promise, $this->loop);
+        } catch (\RuntimeException $e) {
+            $this->markTestSkipped('Image "busybox" not downloaded yet');
+        }
+    }
+
+    /**
+     * @depends testImageInspectCheckIfBusyboxExists
+     */
     public function testCreateStartAndRemoveContainer()
     {
         $config = array(
@@ -75,6 +92,9 @@ class FunctionalClientTest extends TestCase
         $this->assertEquals('destroy', $ret[3]['status']);
     }
 
+    /**
+     * @depends testImageInspectCheckIfBusyboxExists
+     */
     public function testStartRunning()
     {
         $config = array(
@@ -340,6 +360,7 @@ class FunctionalClientTest extends TestCase
     }
 
     /**
+     * @depends testImageInspectCheckIfBusyboxExists
      * @doesNotPerformAssertions
      */
     public function testImageTag()
