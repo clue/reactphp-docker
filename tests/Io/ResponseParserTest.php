@@ -1,6 +1,9 @@
 <?php
 
+namespace Clue\Tests\React\Docker\Io;
+
 use Clue\React\Docker\Io\ResponseParser;
+use Clue\Tests\React\Docker\TestCase;
 use RingCentral\Psr7\Response;
 
 class ResponseParserTest extends TestCase

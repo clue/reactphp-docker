@@ -1,7 +1,10 @@
 <?php
 
-use React\Stream\ReadableStream;
+namespace Clue\Tests\React\Docker\Io;
+
 use Clue\React\Docker\Io\ReadableDemultiplexStream;
+use Clue\Tests\React\Docker\TestCase;
+use React\Stream\ReadableStream;
 use React\Stream\WritableStream;
 
 class ReadableDemultiplexStreamTest extends TestCase
@@ -89,7 +92,7 @@ class ReadableDemultiplexStreamTest extends TestCase
 
     public function testPauseWillBeForwarded()
     {
-        $this->stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $this->stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
         $this->stream->expects($this->once())->method('pause');
         $this->parser = new ReadableDemultiplexStream($this->stream);
 
@@ -98,7 +101,7 @@ class ReadableDemultiplexStreamTest extends TestCase
 
     public function testResumeWillBeForwarded()
     {
-        $this->stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $this->stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
         $this->stream->expects($this->once())->method('resume');
         $this->parser = new ReadableDemultiplexStream($this->stream);
 

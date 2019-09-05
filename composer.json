@@ -13,6 +13,9 @@
     "autoload": {
         "psr-4": { "Clue\\React\\Docker\\": "src/" }
     },
+    "autoload-dev": {
+        "psr-4": { "Clue\\Tests\\React\\Docker\\": "tests/" }
+    },
     "require": {
         "php": ">=5.3",
         "react/event-loop": "~0.3.0|~0.4.0",
@@ -23,8 +26,9 @@
         "clue/promise-stream-react": "^0.1"
     },
     "require-dev": {
-        "clue/tar-react": "~0.1.0",
+        "clue/block-react": "~0.3.0",
         "clue/caret-notation": "~0.2.0",
-        "clue/block-react": "~0.3.0"
+        "clue/tar-react": "~0.1.0",
+        "phpunit/phpunit": "^7.0 || ^6.0 || ^5.0 || ^4.8.35"
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+namespace Clue\Tests\React\Docker;
+
 use Clue\React\Docker\Client;
 use React\Promise\Deferred;
 use Clue\React\Buzz\Browser;
@@ -20,13 +22,13 @@ class ClientTest extends TestCase
 
     public function setUp()
     {
-        $this->loop = $this->getMock('React\EventLoop\LoopInterface');
+        $this->loop = $this->getMockBuilder('React\EventLoop\LoopInterface')->getMock();
         $this->sender = $this->getMockBuilder('Clue\React\Buzz\Io\Sender')->disableOriginalConstructor()->getMock();
         $this->browser = new Browser($this->loop, $this->sender);
         $this->browser = $this->browser->withBase('http://x/');
 
-        $this->parser = $this->getMock('Clue\React\Docker\Io\ResponseParser');
-        $this->streamingParser = $this->getMock('Clue\React\Docker\Io\StreamingParser');
+        $this->parser = $this->getMockBuilder('Clue\React\Docker\Io\ResponseParser')->getMock();
+        $this->streamingParser = $this->getMockBuilder('Clue\React\Docker\Io\StreamingParser')->getMock();
         $this->client = new Client($this->browser, $this->parser, $this->streamingParser);
     }
 
@@ -41,7 +43,7 @@ class ClientTest extends TestCase
     public function testEvents()
     {
         $json = array();
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('GET', '/events', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
@@ -53,7 +55,7 @@ class ClientTest extends TestCase
     public function testEventsArgs()
     {
         $json = array();
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('GET', '/events?since=10&until=20&filters=%7B%22image%22%3A%5B%22busybox%22%2C%22ubuntu%22%5D%7D', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
@@ -122,7 +124,7 @@ class ClientTest extends TestCase
 
     public function testContainerExportStream()
     {
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('get', '/containers/123/export', $this->createResponse(''));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
@@ -248,7 +250,7 @@ class ClientTest extends TestCase
 
     public function testContainerCopyStream()
     {
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('post', '/containers/123/copy', $this->createResponse(''));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
@@ -276,7 +278,7 @@ class ClientTest extends TestCase
     public function testImageCreate()
     {
         $json = array();
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('post', '/images/create?fromImage=busybox', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
@@ -287,7 +289,7 @@ class ClientTest extends TestCase
 
     public function testImageCreateStream()
     {
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('post', '/images/create?fromImage=busybox', $this->createResponseJsonStream(array()));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
@@ -314,7 +316,7 @@ class ClientTest extends TestCase
     public function testImagePush()
     {
         $json = array();
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('post', '/images/123/push', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
@@ -325,7 +327,7 @@ class ClientTest extends TestCase
 
     public function testImagePushStream()
     {
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('post', '/images/123/push', $this->createResponseJsonStream(array()));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
@@ -338,7 +340,7 @@ class ClientTest extends TestCase
         // TODO: verify headers
         $auth = array();
         $json = array();
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('post', '/images/demo.acme.com%3A5000/123/push?tag=test', $this->createResponseJsonStream($json));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
@@ -411,7 +413,7 @@ class ClientTest extends TestCase
     {
         $data = 'hello world';
         $config = array();
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('POST', '/exec/123/start', $this->createResponse($data));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
@@ -424,7 +426,7 @@ class ClientTest extends TestCase
     public function testExecStartStreamWithoutTtyWillDemultiplex()
     {
         $config = array();
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('POST', '/exec/123/start', $this->createResponse());
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
@@ -436,7 +438,7 @@ class ClientTest extends TestCase
     public function testExecStartStreamWithTtyWillNotDemultiplex()
     {
         $config = array('Tty' => true);
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('POST', '/exec/123/start', $this->createResponse());
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
@@ -448,7 +450,7 @@ class ClientTest extends TestCase
     public function testExecStartStreamWithCustomStderrEvent()
     {
         $config = array();
-        $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
         $this->expectRequest('POST', '/exec/123/start', $this->createResponse());
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));

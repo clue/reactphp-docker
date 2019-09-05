@@ -1,5 +1,7 @@
 <?php
 
+namespace Clue\Tests\React\Docker;
+
 use Clue\React\Docker\Client;
 use React\EventLoop\Factory as LoopFactory;
 use Clue\React\Docker\Factory;
@@ -22,7 +24,7 @@ class FunctionalClientTest extends TestCase
 
         try {
             Block\await($promise, $this->loop);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->markTestSkipped('Unable to connect to docker ' . $e->getMessage());
         }
     }
@@ -34,6 +36,23 @@ class FunctionalClientTest extends TestCase
         $this->loop->run();
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
+    public function testImageInspectCheckIfBusyboxExists()
+    {
+        $promise = $this->client->imageInspect('busybox:latest');
+
+        try {
+            Block\await($promise, $this->loop);
+        } catch (\RuntimeException $e) {
+            $this->markTestSkipped('Image "busybox" not downloaded yet');
+        }
+    }
+
+    /**
+     * @depends testImageInspectCheckIfBusyboxExists
+     */
     public function testCreateStartAndRemoveContainer()
     {
         $config = array(
@@ -73,6 +92,9 @@ class FunctionalClientTest extends TestCase
         $this->assertEquals('destroy', $ret[3]['status']);
     }
 
+    /**
+     * @depends testImageInspectCheckIfBusyboxExists
+     */
     public function testStartRunning()
     {
         $config = array(
@@ -86,8 +108,6 @@ class FunctionalClientTest extends TestCase
 
         $this->assertNotNull($container['Id']);
         $this->assertNull($container['Warnings']);
-
-        $start = microtime(true);
 
         $promise = $this->client->containerStart($container['Id']);
         $ret = Block\await($promise, $this->loop);
@@ -177,7 +197,7 @@ class FunctionalClientTest extends TestCase
      */
     public function testExecStreamOutputInMultipleChunksWhileRunning($container)
     {
-        $promise = $this->client->execCreate($container, 'echo -n hello && sleep 0 && echo -n world');
+        $promise = $this->client->execCreate($container, 'echo -n hello && sleep 0.2 && echo -n world');
         $exec = Block\await($promise, $this->loop);
 
         $this->assertTrue(is_array($exec));
@@ -339,27 +359,40 @@ class FunctionalClientTest extends TestCase
         $this->assertGreaterThan(9, count($ret));
     }
 
+    /**
+     * @depends testImageInspectCheckIfBusyboxExists
+     * @doesNotPerformAssertions
+     */
     public function testImageTag()
     {
         // create new tag "bb:now" on "busybox:latest"
         $promise = $this->client->imageTag('busybox', 'bb', 'now');
-        $ret = Block\await($promise, $this->loop);
+        Block\await($promise, $this->loop);
 
         // delete tag "bb:now" again
         $promise = $this->client->imageRemove('bb:now');
-        $ret = Block\await($promise, $this->loop);
+        Block\await($promise, $this->loop);
     }
 
     public function testImageCreateStreamMissingWillEmitJsonError()
     {
+        $promise = $this->client->version();
+        $version = Block\await($promise, $this->loop);
+
+        // old API reports a progress with error message, newer API just returns 404 right away
+        // https://docs.docker.com/engine/api/version-history/
+        $old = $version['ApiVersion'] < '1.22';
+
         $stream = $this->client->imageCreateStream('clue/does-not-exist');
 
         // one "progress" event, but no "data" events
-        $stream->on('progress', $this->expectCallableOnce());
+        $old && $stream->on('progress', $this->expectCallableOnce());
+        $old || $stream->on('progress', $this->expectCallableNever());
         $stream->on('data', $this->expectCallableNever());
 
         // will emit "error" with JsonProgressException and close
-        $stream->on('error', $this->expectCallableOnceParameter('Clue\React\Docker\Io\JsonProgressException'));
+        $old && $stream->on('error', $this->expectCallableOnceParameter('Clue\React\Docker\Io\JsonProgressException'));
+        $old || $stream->on('error', $this->expectCallableOnceParameter('Clue\React\Buzz\Message\ResponseException'));
         $stream->on('close', $this->expectCallableOnce());
 
         $this->loop->run();
