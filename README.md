@@ -35,6 +35,7 @@ execute arbitrary commands within isolated containers, stop running containers a
     * [JSON streaming](#json-streaming)
   * [JsonProgressException](#jsonprogressexception)
 * [Install](#install)
+* [Tests](#tests)
 * [License](#license)
 
 ## Quickstart example
@@ -387,6 +388,21 @@ The recommended way to install this library is [through composer](http://getcomp
         "clue/docker-react": "~0.2.0"
     }
 }
+```
+
+## Tests
+
+To run the test suite, you first need to clone this repo and then install all
+dependencies [through Composer](https://getcomposer.org):
+
+```bash
+$ composer install
+```
+
+To run the test suite, go to the project root and run:
+
+```bash
+$ php vendor/bin/phpunit
 ```
 
 ## License

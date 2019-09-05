@@ -109,9 +109,8 @@ class StreamingParserTest extends TestCase
 
     public function testDeferredCancelingPromiseWillCloseStream()
     {
-        $this->markTestIncomplete();
-
         $stream = $this->getMock('React\Stream\ReadableStreamInterface');
+        $stream->expects($this->once())->method('isReadable')->willReturn(true);
 
         $promise = $this->parser->deferredStream($stream, 'anything');
         if (!($promise instanceof CancellablePromiseInterface)) {
