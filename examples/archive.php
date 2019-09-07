@@ -1,5 +1,5 @@
 <?php
-// this example shows how the containerCopy() call returns a TAR stream,
+// this example shows how the containerArchiveStream() method returns a TAR stream,
 // how it can be passed to a TAR decoder and how we can then pipe each
 // individual file to the console output.
 
@@ -20,7 +20,7 @@ $loop = LoopFactory::create();
 $factory = new Factory($loop);
 $client = $factory->createClient();
 
-$stream = $client->containerCopyStream($container, $path);
+$stream = $client->containerArchiveStream($container, $path);
 
 $tar = new Decoder();
 
