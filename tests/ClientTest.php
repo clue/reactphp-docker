@@ -287,6 +287,23 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith('', $this->client->containerRemove(123, true, true));
     }
 
+    public function testContainerStats()
+    {
+        $this->expectRequestFlow('GET', '/containers/123/stats?stream=0', $this->createResponse(), 'expectJson');
+
+        $this->expectPromiseResolveWith('', $this->client->containerStats(123));
+    }
+
+    public function testContainerStatsStream()
+    {
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
+
+        $this->expectRequest('GET', '/containers/123/stats', $this->createResponse(''));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
+
+        $this->assertSame($stream, $this->client->containerStatsStream('123'));
+    }
+
     public function testContainerResize()
     {
         $this->expectRequestFlow('POST', '/containers/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
