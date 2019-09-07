@@ -1,22 +1,25 @@
-# clue/docker-react [![Build Status](https://travis-ci.org/clue/php-docker-react.svg?branch=master)](https://travis-ci.org/clue/php-docker-react)
+# clue/reactphp-docker [![Build Status](https://travis-ci.org/clue/reactphp-docker.svg?branch=master)](https://travis-ci.org/clue/reactphp-docker)
 
-Simple async/streaming access to the [Docker](https://www.docker.com/) API, built on top of [React PHP](http://reactphp.org/).
+Async, event-driven access to the [Docker Engine API](https://docs.docker.com/develop/sdk/), built on top of [ReactPHP](https://reactphp.org/).
 
 [Docker](https://www.docker.com/) is a popular open source platform
 to run and share applications within isolated, lightweight containers.
-The [Docker Remote API](https://docs.docker.com/reference/api/docker_remote_api_v1.15/)
+The [Docker Engine API](https://docs.docker.com/develop/sdk/)
 allows you to control and monitor your containers and images.
 Among others, it can be used to list existing images, download new images,
 execute arbitrary commands within isolated containers, stop running containers and much more.
+This lightweight library provides an efficient way to work with the Docker Engine API
+from within PHP. It enables you to work with its images and containers or use
+its event-driven model to react to changes and events happening.
 
 * **Async execution of Actions** -
   Send any number of actions (commands) to your Docker daemon in parallel and
   process their responses as soon as results come in.
-  The Promise-based design provides a *sane* interface to working with out of bound responses.
+  The Promise-based design provides a *sane* interface to working with out of order responses.
 * **Lightweight, SOLID design** -
-  Provides a thin abstraction that is [*just good enough*](http://en.wikipedia.org/wiki/Principle_of_good_enough)
+  Provides a thin abstraction that is [*just good enough*](https://en.wikipedia.org/wiki/Principle_of_good_enough)
   and does not get in your way.
-  This library is merely a very thin wrapper around the Remote API.
+  This library is merely a very thin wrapper around the [Docker Engine API](https://docs.docker.com/develop/sdk/).
 * **Good test coverage** -
   Comes with an automated tests suite and is regularly tested in the *real world*
 
@@ -100,7 +103,7 @@ The recommended way to create a `Client` is using the `Factory` (see above).
 
 #### Commands
 
-All public methods on the `Client` resemble the API described in the [Remote API documentation](https://docs.docker.com/reference/api/docker_remote_api_v1.15/) like this:
+All public methods on the `Client` resemble the API described in the [Docker Engine API documentation](https://docs.docker.com/develop/sdk/) like this:
 
 ```php
 $client->containerList($all, $size);
@@ -120,7 +123,7 @@ $client->version();
 ```
 
 Listing all available commands is out of scope here, please refer to the
-[Remote API documentation](https://docs.docker.com/reference/api/docker_remote_api_v1.15/)
+[Docker Engine API documentation](https://docs.docker.com/develop/sdk/)
 or the [class outline](src/Client.php).
 
 Each of these commands supports async operation and either *resolves* with its *results*
@@ -151,7 +154,7 @@ If this looks strange to you, you can also use the more traditional [blocking AP
 As stated above, this library provides you a powerful, async API by default.
 
 If, however, you want to integrate this into your traditional, blocking environment,
-you should look into also using [clue/block-react](https://github.com/clue/php-block-react).
+you should look into also using [clue/reactphp-block](https://github.com/clue/reactphp-block).
 
 The resulting blocking code could look something like this:
 
@@ -183,7 +186,7 @@ $promises = array(
 $inspections = Block\awaitAll($promises, $loop);
 ```
 
-Please refer to [clue/block-react](https://github.com/clue/php-block-react#readme) for more details.
+Please refer to [clue/reactphp-block](https://github.com/clue/reactphp-block#readme) for more details.
 
 #### Command streaming
 
@@ -279,7 +282,7 @@ $stream = $client->containerCopyStream($image, $config);
 
 Accessing individual files in the TAR file format string or stream is out of scope
 for this library.
-Several libraries are available, one that is known to work is [clue/tar-react](https://github.com/clue/php-tar-react).
+Several libraries are available, one that is known to work is [clue/reactphp-tar](https://github.com/clue/reactphp-tar).
 
 See also the [copy example](examples/copy.php) and the [export example](examples/export.php).
 
@@ -380,7 +383,8 @@ The `getData()` method can be used to obtain the progress message.
 
 ## Install
 
-The recommended way to install this library is [through composer](http://getcomposer.org). [New to composer?](http://getcomposer.org/doc/00-intro.md)
+The recommended way to install this library is [through Composer](https://getcomposer.org).
+[New to composer?](https://getcomposer.org/doc/00-intro.md)
 
 ```JSON
 {

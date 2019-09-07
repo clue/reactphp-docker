@@ -10,17 +10,18 @@ use React\Stream\ReadableStreamInterface;
 use Rize\UriTemplate;
 
 /**
- * The Docker Remote API client can be used to control your (local) Docker daemon.
+ * The Docker Engine API client can be used to control your (local) Docker daemon.
  *
  * This Client implementation provides a very thin wrapper around this
- * Remote API and exposes its exact data models.
+ * Docker Engine API and exposes its exact data models.
  * The Client uses HTTP requests via a local UNIX socket path or remotely via a
  * TLS-backed TCP/IP connection.
  *
- * Primarily tested against v1.15 API, but should also work against
- * other versions (in particular newer ones).
+ * This client has been tested against a variety of Docker Engine API versions,
+ * with support for Docker Engine API v1.40 (and newer) and versions as old as
+ * Docker Engine API v1.14. See also https://docs.docker.com/engine/api/version-history/.
  *
- * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/
+ * @link https://docs.docker.com/develop/sdk/
  */
 class Client
 {
@@ -64,7 +65,7 @@ class Client
      * Ping the docker server
      *
      * @return PromiseInterface Promise<string> "OK"
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#ping-the-docker-server
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/SystemPing
      */
     public function ping()
     {
@@ -75,7 +76,7 @@ class Client
      * Display system-wide information
      *
      * @return PromiseInterface Promise<array> system info (see link)
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#display-system-wide-information
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/SystemInfo
      */
     public function info()
     {
@@ -86,7 +87,7 @@ class Client
      * Show the docker version information
      *
      * @return PromiseInterface Promise<array> version info (see link)
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#show-the-docker-version-information
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/SystemVersion
      */
     public function version()
     {
@@ -117,9 +118,9 @@ class Client
      *
      * @param float|null $since timestamp used for polling
      * @param float|null $until timestamp used for polling
-     * @param array    $filters (optional) filters to apply (requires API v1.16+ / Docker v1.4+)
+     * @param array    $filters (optional) filters to apply (requires Docker Engine API v1.16+ / Docker v1.4+)
      * @return PromiseInterface Promise<array> array of event objects
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#monitor-dockers-events
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/SystemEvents
      * @uses self::eventsStream()
      * @see self::eventsStream()
      */
@@ -155,9 +156,9 @@ class Client
      *
      * @param float|null $since   timestamp used for polling
      * @param float|null $until   timestamp used for polling
-     * @param array      $filters (optional) filters to apply (requires API v1.16+ / Docker v1.4+)
+     * @param array      $filters (optional) filters to apply (requires Docker Engine API v1.16+ / Docker v1.4+)
      * @return ReadableStreamInterface stream of event objects
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#monitor-dockers-events
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/SystemEvents
      * @see self::events()
      */
     public function eventsStream($since = null, $until = null, $filters = array())
@@ -182,7 +183,7 @@ class Client
      * @param boolean $all
      * @param boolean $size
      * @return PromiseInterface Promise<array> list of container objects
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#list-containers
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerList
      */
     public function containerList($all = false, $size = false)
     {
@@ -203,7 +204,7 @@ class Client
      * @param array       $config e.g. `array('Image' => 'busybox', 'Cmd' => 'date')` (see link)
      * @param string|null $name   (optional) name to assign to this container
      * @return PromiseInterface Promise<array> container properties `array('Id' => $containerId', 'Warnings' => array())`
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerCreate
      */
     public function containerCreate($config, $name = null)
     {
@@ -223,7 +224,7 @@ class Client
      *
      * @param string $container container ID
      * @return PromiseInterface Promise<array> container properties
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#inspect-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerInspect
      */
     public function containerInspect($container)
     {
@@ -243,7 +244,7 @@ class Client
      * @param string      $container container ID
      * @param string|null $ps_args   (optional) ps arguments to use (e.g. aux)
      * @return PromiseInterface Promise<array>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#list-processes-running-inside-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerTop
      */
     public function containerTop($container, $ps_args = null)
     {
@@ -263,7 +264,7 @@ class Client
      *
      * @param string $container container ID
      * @return PromiseInterface Promise<array>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#inspect-changes-on-a-containers-filesystem
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerChanges
      */
     public function containerChanges($container)
     {
@@ -289,12 +290,12 @@ class Client
      *
      * Accessing individual files in the TAR file format string is out of scope
      * for this library. Several libraries are available, one that is known to
-     * work is clue/tar-react (see links).
+     * work is clue/reactphp-tar (see links).
      *
      * @param string $container container ID
      * @return PromiseInterface Promise<string> tar stream
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
-     * @link https://github.com/clue/php-tar-react library clue/tar-react
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerExport
+     * @link https://github.com/clue/reactphp-tar
      * @see self::containerExportStream()
      */
     public function containerExport($container)
@@ -320,15 +321,15 @@ class Client
      *
      * Accessing individual files in the TAR file format stream is out of scope
      * for this library. Several libraries are available, one that is known to
-     * work is clue/tar-react (see links).
+     * work is clue/reactphp-tar (see links).
      *
      * The resulting stream is a well-behaving readable stream that will emit
      * the normal stream events.
      *
      * @param string $container container ID
      * @return ReadableStreamInterface tar stream
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#export-a-container
-     * @link https://github.com/clue/php-tar-react library clue/tar-react
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerExport
+     * @link https://github.com/clue/reactphp-tar
      * @see self::containerExport()
      */
     public function containerExportStream($container)
@@ -352,7 +353,7 @@ class Client
      * @param int    $w         TTY width
      * @param int    $h         TTY height
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#resize-a-container-tty
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerResize
      */
     public function containerResize($container, $w, $h)
     {
@@ -374,7 +375,7 @@ class Client
      * @param string $container container ID
      * @param array  $config    (optional) start config (see link)
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#start-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerStart
      */
     public function containerStart($container, $config = array())
     {
@@ -395,7 +396,7 @@ class Client
      * @param string   $container container ID
      * @param null|int $t         (optional) number of seconds to wait before killing the container
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#stop-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerStop
      */
     public function containerStop($container, $t = null)
     {
@@ -416,7 +417,7 @@ class Client
      * @param string   $container container ID
      * @param null|int $t         (optional) number of seconds to wait before killing the container
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#restart-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerRestart
      */
     public function containerRestart($container, $t = null)
     {
@@ -437,7 +438,7 @@ class Client
      * @param string          $container container ID
      * @param string|int|null $signal    (optional) signal name or number
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#kill-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerKill
      */
     public function containerKill($container, $signal = null)
     {
@@ -455,12 +456,12 @@ class Client
     /**
      * Rename the container id
      *
-     * Requires API v1.17+ / Docker v1.5+
+     * Requires Docker Engine API v1.17+ / Docker v1.5+
      *
      * @param string $container container ID
      * @param string $name      new name for the container
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/engine/reference/api/docker_remote_api_v1.17/#rename-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerRename
      */
     public function containerRename($container, $name)
     {
@@ -480,7 +481,7 @@ class Client
      *
      * @param string $container container ID
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#pause-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerPause
      */
     public function containerPause($container)
     {
@@ -499,7 +500,7 @@ class Client
      *
      * @param string $container container ID
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#unpause-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerUnpause
      */
     public function containerUnpause($container)
     {
@@ -518,7 +519,7 @@ class Client
      *
      * @param string $container container ID
      * @return PromiseInterface Promise<array> `array('StatusCode' => 0)` (see link)
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#wait-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerWait
      */
     public function containerWait($container)
     {
@@ -539,7 +540,7 @@ class Client
      * @param boolean $v         Remove the volumes associated to the container. Default false
      * @param boolean $force     Kill then remove the container. Default false
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#remove-a-container
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerRemove
      */
     public function containerRemove($container, $v = false, $force = false)
     {
@@ -567,13 +568,13 @@ class Client
      *
      * Accessing individual files in the TAR file format string is out of scope
      * for this library. Several libraries are available, one that is known to
-     * work is clue/tar-react (see links).
+     * work is clue/reactphp-tar (see links).
      *
      * @param string $container container ID
      * @param string $resource  path to file or directory to copy
      * @return PromiseInterface Promise<string> tar stream
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
-     * @link https://github.com/clue/php-tar-react library clue/tar-react
+     * @link https://docs.docker.com/engine/api/v1.22/#copy-files-or-folders-from-a-container
+     * @link https://github.com/clue/reactphp-tar
      * @see self::containerCopyStream()
      */
     public function containerCopy($container, $path)
@@ -602,7 +603,7 @@ class Client
      *
      * Accessing individual files in the TAR file format stream is out of scope
      * for this library. Several libraries are available, one that is known to
-     * work is clue/tar-react (see links).
+     * work is clue/reactphp-tar (see links).
      *
      * The resulting stream is a well-behaving readable stream that will emit
      * the normal stream events.
@@ -610,8 +611,8 @@ class Client
      * @param string $container container ID
      * @param string $path      path to file or directory to copy
      * @return ReadableStreamInterface tar stream
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#copy-files-or-folders-from-a-container
-     * @link https://github.com/clue/php-tar-react library clue/tar-react
+     * @link https://docs.docker.com/engine/api/v1.22/#copy-files-or-folders-from-a-container
+     * @link https://github.com/clue/reactphp-tar
      * @see self::containerCopy()
      */
     public function containerCopyStream($container, $path)
@@ -639,7 +640,7 @@ class Client
      *
      * @param boolean $all
      * @return PromiseInterface Promise<array> list of image objects
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#list-images
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImageList
      * @todo support $filters param
      */
     public function imageList($all = false)
@@ -674,7 +675,7 @@ class Client
      * @param string|null $registry     the registry to pull from
      * @param array|null  $registryAuth AuthConfig object (to send as X-Registry-Auth header)
      * @return PromiseInterface Promise<array> stream of message objects
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImageCreate
      * @uses self::imageCreateStream()
      */
     public function imageCreate($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
@@ -708,7 +709,7 @@ class Client
      * @param string|null $registry     the registry to pull from
      * @param array|null  $registryAuth AuthConfig object (to send as X-Registry-Auth header)
      * @return ReadableStreamInterface
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#create-an-image
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImageCreate
      * @see self::imageCreate()
      * @uses self::authHeaders()
      */
@@ -736,7 +737,7 @@ class Client
      *
      * @param string $image image ID
      * @return PromiseInterface Promise<array> image properties
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#inspect-an-image
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImageInspect
      */
     public function imageInspect($image)
     {
@@ -755,7 +756,7 @@ class Client
      *
      * @param string $image image ID
      * @return PromiseInterface Promise<array> list of image history objects
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#get-the-history-of-an-image
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImageHistory
      */
     public function imageHistory($image)
     {
@@ -788,7 +789,7 @@ class Client
      * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
      * @return PromiseInterface Promise<array> list of image push messages
      * @uses self::imagePushStream()
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImagePush
      */
     public function imagePush($image, $tag = null, $registry = null, $registryAuth = null)
     {
@@ -820,7 +821,7 @@ class Client
      * @param array|null  $registryAuth (optional) AuthConfig object (to send as X-Registry-Auth header)
      * @return ReadableStreamInterface stream of image push messages
      * @uses self::authHeaders()
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#push-an-image-on-the-registry
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImagePush
      */
     public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
     {
@@ -847,7 +848,7 @@ class Client
      * @param string|null $tag    The new tag name
      * @param boolean     $force  1/True/true or 0/False/false, default false
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#tag-an-image-into-a-repository
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImageTag
      */
     public function imageTag($image, $repo, $tag = null, $force = false)
     {
@@ -871,7 +872,7 @@ class Client
      * @param boolean $force   1/True/true or 0/False/false, default false
      * @param boolean $noprune 1/True/true or 0/False/false, default false
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#remove-an-image
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImageRemove
      */
     public function imageRemove($image, $force = false, $noprune = false)
     {
@@ -892,7 +893,7 @@ class Client
      *
      * @param string $term term to search
      * @return PromiseInterface Promise<array> list of image search result objects
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#search-images
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ImageSearch
      */
     public function imageSearch($term)
     {
@@ -937,10 +938,10 @@ class Client
      * @param boolean      $stdin      attaches to STDIN of the exec command
      * @param boolean      $stdout     attaches to STDOUT of the exec command
      * @param boolean      $stderr     attaches to STDERR of the exec command
-     * @param string|int   $user       user-specific exec, otherwise defaults to main container user (requires API v1.19+ / Docker v1.7+)
-     * @param boolean      $privileged privileged exec with all capabilities enabled (requires API v1.19+ / Docker v1.7+)
+     * @param string|int   $user       user-specific exec, otherwise defaults to main container user (requires Docker Engine API v1.19+ / Docker v1.7+)
+     * @param boolean      $privileged privileged exec with all capabilities enabled (requires Docker Engine API v1.19+ / Docker v1.7+)
      * @return PromiseInterface Promise<array> with exec ID in the form of `array("Id" => $execId)`
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-create
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerExec
      */
     public function execCreate($container, $cmd, $tty = false, $stdin = false, $stdout = true, $stderr = true, $user = '', $privileged = false)
     {
@@ -981,7 +982,7 @@ class Client
      * @param string  $exec exec ID
      * @param boolean $tty  tty mode
      * @return PromiseInterface Promise<string> buffered exec data
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ExecStart
      * @uses self::execStartStream()
      * @see self::execStartStream()
      * @see self::execStartDetached()
@@ -1002,7 +1003,7 @@ class Client
      * @param string  $exec exec ID
      * @param boolean $tty  tty mode
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ExecStart
      * @see self::execStart()
      * @see self::execStartStream()
      */
@@ -1046,7 +1047,7 @@ class Client
      * @param boolean $tty         tty mode
      * @param string  $stderrEvent custom event to emit for STDERR data (otherwise emits as "data")
      * @return ReadableStreamInterface stream of exec data
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-start
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ExecStart
      * @see self::execStart()
      * @see self::execStartDetached()
      */
@@ -1086,7 +1087,7 @@ class Client
      * @param int    $w    TTY width
      * @param int    $h    TTY height
      * @return PromiseInterface Promise<null>
-     * @link https://docs.docker.com/reference/api/docker_remote_api_v1.15/#exec-resize
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ExecResize
      */
     public function execResize($exec, $w, $h)
     {
@@ -1105,11 +1106,11 @@ class Client
     /**
      * Returns low-level information about the exec command id.
      *
-     * Requires API v1.16+ / Docker v1.4+
+     * Requires Docker Engine API v1.16+ / Docker v1.4+
      *
      * @param string $exec exec ID
      * @return PromiseInterface Promise<array>
-     * @link https://docs.docker.com/engine/reference/api/docker_remote_api_v1.16/#exec-inspect
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ExecInspect
      */
     public function execInspect($exec)
     {
@@ -1159,7 +1160,7 @@ class Client
      *
      * @param array $registryAuth
      * @return array
-     * @link https://docs.docker.com/reference/api/docker_remote_api/ for details about the AuthConfig object
+     * @link https://docs.docker.com/engine/api/v1.40/#section/Authentication for details about the AuthConfig object
      * @link https://github.com/docker/docker/issues/9315 for error description
      */
     private function authHeaders($registryAuth)

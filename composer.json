@@ -1,8 +1,8 @@
 {
     "name": "clue/docker-react",
-    "description": "Simple async/streaming Docker client",
+    "description": "Async, event-driven access to the Docker Engine API, built on top of ReactPHP.",
     "keywords": ["Docker", "container", "ReactPHP", "async"],
-    "homepage": "https://github.com/clue/php-docker-react",
+    "homepage": "https://github.com/clue/reactphp-docker",
     "license": "MIT",
     "authors": [
         {
