@@ -127,8 +127,7 @@ class Client
     public function events($since = null, $until = null, $filters = array())
     {
         return $this->streamingParser->deferredStream(
-            $this->eventsStream($since, $until, $filters),
-            'progress'
+            $this->eventsStream($since, $until, $filters)
         );
     }
 
@@ -138,12 +137,9 @@ class Client
      * This is a JSON streaming API endpoint that returns a stream instance.
      *
      * The resulting stream will emit the following events:
-     * - progress: for *each* element in the update stream
-     * - error:    once if an error occurs, will close() stream then
-     * - close:    once the stream ends (either finished or after "error")
-     *
-     * Please note that the resulting stream does not emit any "data" events, so
-     * you will not be able to pipe() its events into another `WritableStream`.
+     * - data:  for *each* element in the update stream
+     * - error: once if an error occurs, will close() stream then
+     * - close: once the stream ends (either finished or after "error")
      *
      * The optional `$filters` parameter can be used to only get events for
      * certain event types, images and/or containers etc. like this:
@@ -758,9 +754,9 @@ class Client
      */
     public function imageCreate($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
-        $stream = $this->imageCreateStream($fromImage, $fromSrc, $repo, $tag, $registry, $registryAuth);
-
-        return $this->streamingParser->deferredStream($stream, 'progress');
+        return $this->streamingParser->deferredStream(
+            $this->imageCreateStream($fromImage, $fromSrc, $repo, $tag, $registry, $registryAuth)
+        );
     }
 
     /**
@@ -769,12 +765,9 @@ class Client
      * This is a JSON streaming API endpoint that returns a stream instance.
      *
      * The resulting stream will emit the following events:
-     * - progress: for *each* element in the update stream
-     * - error:    once if an error occurs, will close() stream then
-     * - close:    once the stream ends (either finished or after "error")
-     *
-     * Please note that the resulting stream does not emit any "data" events, so
-     * you will not be able to pipe() its events into another `WritableStream`.
+     * - data:  for *each* element in the update stream
+     * - error: once if an error occurs, will close() stream then
+     * - close: once the stream ends (either finished or after "error").
      *
      * Pulling a private image from a remote registry will likely require authorization, so make
      * sure to pass the $registryAuth parameter, see `self::authHeaders()` for
@@ -871,9 +864,9 @@ class Client
      */
     public function imagePush($image, $tag = null, $registry = null, $registryAuth = null)
     {
-        $stream = $this->imagePushStream($image, $tag, $registry, $registryAuth);
-
-        return $this->streamingParser->deferredStream($stream, 'progress');
+        return $this->streamingParser->deferredStream(
+            $this->imagePushStream($image, $tag, $registry, $registryAuth)
+        );
     }
 
     /**
@@ -882,12 +875,9 @@ class Client
      * This is a JSON streaming API endpoint that returns a stream instance.
      *
      * The resulting stream will emit the following events:
-     * - progress: for *each* element in the update stream
-     * - error:    once if an error occurs, will close() stream then
-     * - close:    once the stream ends (either finished or after "error")
-     *
-     * Please note that the resulting stream does not emit any "data" events, so
-     * you will not be able to pipe() its events into another `WritableStream`.
+     * - data:  for *each* element in the update stream
+     * - error: once if an error occurs, will close() stream then
+     * - close: once the stream ends (either finished or after "error")
      *
      * Pushing to a remote registry will likely require authorization, so make
      * sure to pass the $registryAuth parameter, see `self::authHeaders()` for

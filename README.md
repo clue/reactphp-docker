@@ -330,18 +330,15 @@ $stream = $client->eventsStream();
 
 The resulting stream will emit the following events:
 
-* `progress`: for *each* element in the update stream
-* `error`:    once if an error occurs, will close() stream then
+* `data`:  for *each* element in the update stream
+* `error`: once if an error occurs, will close() stream then
   * Will emit an [`Io\JsonProgressException`](#jsonprogressexception) if an individual progress message contains an error message
   * Any other `Exception` in case of an transport error, like invalid request etc.
-* `close`:    once the stream ends (either finished or after "error")
-
-Please note that the resulting stream does not emit any "data" events, so
-you will not be able to pipe() its events into another `WritableStream`.
+* `close`: once the stream ends (either finished or after "error")
 
 ```php
 $stream = $client->imageCreateStream('clue/redis-benchmark');
-$stream->on('progress', function ($data) {
+$stream->on('data', function ($data) {
     // data will be emitted for *each* complete element in the JSON stream
     echo $data['status'] . PHP_EOL;
 });

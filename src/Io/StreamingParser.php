@@ -52,7 +52,7 @@ class StreamingParser
                     $out->close();
                     return;
                 }
-                $out->emit('progress', array($object, $out));
+                $out->emit('data', array($object, $out));
             }
         });
 
@@ -108,13 +108,12 @@ class StreamingParser
     }
 
     /**
-     * Returns a promise which resolves with an array of all "progress" events
+     * Returns a promise which resolves with an array of all "data" events
      *
      * @param ReadableStreamInterface $stream
-     * @param string                  $progressEventName the name of the event to collect
      * @return PromiseInterface Promise<array, Exception>
      */
-    public function deferredStream(ReadableStreamInterface $stream, $progressEventName)
+    public function deferredStream(ReadableStreamInterface $stream)
     {
         // cancelling the deferred will (try to) close the stream
         $deferred = new Deferred(function () use ($stream) {
@@ -126,7 +125,7 @@ class StreamingParser
         if ($stream->isReadable()) {
             // buffer all data events for deferred resolving
             $buffered = array();
-            $stream->on($progressEventName, function ($data) use (&$buffered) {
+            $stream->on('data', function ($data) use (&$buffered) {
                 $buffered []= $data;
             });
 
