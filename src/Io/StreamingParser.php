@@ -2,10 +2,10 @@
 
 namespace Clue\React\Docker\Io;
 
-use Clue\React\Promise\Stream;
 use Psr\Http\Message\ResponseInterface;
-use React\Promise\PromiseInterface;
 use React\Promise\Deferred;
+use React\Promise\PromiseInterface;
+use React\Promise\Stream;
 use React\Stream\ReadableStreamInterface;
 use RuntimeException;
 

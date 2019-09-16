@@ -20,7 +20,7 @@ class StreamingParserTest extends TestCase
 
     public function testJsonPassingRejectedPromiseResolvesWithClosedStream()
     {
-        $stream = $this->parser->parseJsonStream(Promise\reject());
+        $stream = $this->parser->parseJsonStream(Promise\reject(new \RuntimeException()));
 
         $this->assertInstanceOf('React\Stream\ReadableStreamInterface', $stream);
         $this->assertFalse($stream->isReadable());
@@ -62,7 +62,7 @@ class StreamingParserTest extends TestCase
 
     public function testPlainPassingRejectedPromiseResolvesWithClosedStream()
     {
-        $stream = $this->parser->parsePlainStream(Promise\reject());
+        $stream = $this->parser->parsePlainStream(Promise\reject(new \RuntimeException()));
 
         $this->assertInstanceOf('React\Stream\ReadableStreamInterface', $stream);
         $this->assertFalse($stream->isReadable());
@@ -102,12 +102,12 @@ class StreamingParserTest extends TestCase
 
         $stream->emit('data', array('a'));
 
-        $stream->emit('error', array('value', 'ignord'));
+        $stream->emit('error', array(new \RuntimeException()));
 
         $stream->close();
 
         $this->expectPromiseReject($promise);
-        $promise->then(null, $this->expectCallableOnceWith('value'));
+        $promise->then(null, $this->expectCallableOnceWith($this->isInstanceOf('RuntimeException')));
     }
 
     public function testDeferredCancelingPromiseWillCloseStream()

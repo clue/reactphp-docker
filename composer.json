@@ -18,17 +18,17 @@
     },
     "require": {
         "php": ">=5.3",
-        "react/event-loop": "~0.3.0|~0.4.0",
-        "clue/buzz-react": "^0.5",
-        "react/promise": "~2.0|~1.1",
-        "clue/json-stream": "~0.1.0",
-        "rize/uri-template": "^0.3",
-        "clue/promise-stream-react": "^0.1"
+        "clue/buzz-react": "^1.0",
+        "clue/json-stream": "^0.1",
+        "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3",
+        "react/promise": "^2.0 || ^1.1",
+        "react/promise-stream": "^1.0",
+        "rize/uri-template": "^0.3"
     },
     "require-dev": {
-        "clue/block-react": "~0.3.0",
-        "clue/caret-notation": "~0.2.0",
-        "clue/tar-react": "~0.1.0",
+        "clue/block-react": "^1.0 || ^0.3",
+        "clue/caret-notation": "^0.2",
+        "clue/tar-react": "^0.2 || ^0.1",
         "phpunit/phpunit": "^7.0 || ^6.0 || ^5.0 || ^4.8.35"
     }
 }

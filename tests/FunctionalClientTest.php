@@ -4,8 +4,8 @@ namespace Clue\Tests\React\Docker;
 
 use Clue\React\Block;
 use Clue\React\Docker\Client;
-use Clue\React\Promise\Stream;
 use React\EventLoop\Factory as LoopFactory;
+use React\Promise\Stream;
 
 class FunctionalClientTest extends TestCase
 {
