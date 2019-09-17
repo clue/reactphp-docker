@@ -2,10 +2,11 @@
 
 namespace Clue\React\Docker\Io;
 
-use React\Stream\ReadableStreamInterface;
 use Evenement\EventEmitter;
-use React\Stream\WritableStreamInterface;
+use React\Stream\ReadableStreamInterface;
 use React\Stream\Util;
+use React\Stream\WritableStreamInterface;
+
 /**
  * Parser for Docker's own frame format used for bidrectional frames
  *
@@ -48,7 +49,7 @@ class ReadableDemultiplexStream extends EventEmitter implements ReadableStreamIn
 
             // buffer must be empty on end, otherwise this is an error situation
             if ($buffer === '') {
-                $out->emit('end', array());
+                $out->emit('end');
             } else {
                 $out->emit('error', array(new \RuntimeException('Stream ended within incomplete multiplexed chunk')));
             }
@@ -62,7 +63,7 @@ class ReadableDemultiplexStream extends EventEmitter implements ReadableStreamIn
         });
 
         // forward close event to output
-        $multiplexed->on('close', function ($error) use ($out) {
+        $multiplexed->on('close', function () use ($out) {
             $out->close();
         });
     }
@@ -130,7 +131,9 @@ class ReadableDemultiplexStream extends EventEmitter implements ReadableStreamIn
 
         // closing output stream closes input stream
         $this->multiplexed->close();
+        $this->buffer = '';
 
-        $this->emit('close', array());
+        $this->emit('close');
+        $this->removeAllListeners();
     }
 }

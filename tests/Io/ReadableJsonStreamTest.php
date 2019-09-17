@@ -2,12 +2,12 @@
 
 namespace Clue\Tests\React\Docker\Io;
 
-use Clue\React\Docker\Io\ReadableDemultiplexStream;
+use Clue\React\Docker\Io\ReadableJsonStream;
 use Clue\Tests\React\Docker\TestCase;
 use React\Stream\ReadableStream;
 use React\Stream\WritableStream;
 
-class ReadableDemultiplexStreamTest extends TestCase
+class ReadableJsonStreamTest extends TestCase
 {
     private $stream;
     private $parser;
@@ -15,7 +15,7 @@ class ReadableDemultiplexStreamTest extends TestCase
     public function setUp()
     {
         $this->stream = new ReadableStream();
-        $this->parser = new ReadableDemultiplexStream($this->stream);
+        $this->parser = new ReadableJsonStream($this->stream);
     }
 
     public function testStreamWillForwardEndAndClose()
@@ -24,7 +24,7 @@ class ReadableDemultiplexStreamTest extends TestCase
         $this->parser->on('close', $this->expectCallableOnce());
         $this->parser->on('end', $this->expectCallableOnce());
 
-        $this->stream->emit('end', array());
+        $this->stream->emit('end');
 
         $this->assertFalse($this->parser->isReadable());
     }
@@ -47,39 +47,62 @@ class ReadableDemultiplexStreamTest extends TestCase
         $this->parser->on('close', $this->expectCallableOnce());
         $this->parser->on('end', $this->expectCallableNever());
 
-        $this->stream->emit('data', array('XX'));
-        $this->stream->emit('end', array());
+        $this->stream->emit('data', array('['));
+        $this->stream->emit('end');
 
         $this->assertFalse($this->parser->isReadable());
     }
 
-    public function testStreamWillEmitDataOnCompleteFrame()
+    public function testStreamWillEmitDataOnCompleteArray()
     {
-        $this->parser->on('data', $this->expectCallableOnceWith('test'));
+        $this->parser->on('data', $this->expectCallableOnceWith(array(1, 2)));
 
-        $this->stream->emit('data', array("\x01\x00\x00\x00" . "\x00\x00\x00\x04" . "test"));
+        $this->stream->emit('data', array("[1,2]"));
     }
 
-    public function testStreamWillNotEmitDataOnIncompleteFrameHeader()
+    public function testStreamWillEmitErrorOnCompleteErrorObject()
+    {
+        $this->parser->on('data', $this->expectCallableNever());
+        $this->parser->on('error', $this->expectCallableOnce());
+        $this->parser->on('end', $this->expectCallableNever());
+        $this->parser->on('close', $this->expectCallableOnce());
+
+        $this->stream->emit('data', array("{\"error\":\"message\"}"));
+    }
+
+    public function testStreamWillEmitErrorOnInvalidData()
+    {
+        $this->parser->on('data', $this->expectCallableNever());
+        $this->parser->on('error', $this->expectCallableOnce());
+        $this->parser->on('end', $this->expectCallableNever());
+        $this->parser->on('close', $this->expectCallableOnce());
+
+        $this->stream->emit('data', array("oops"));
+    }
+
+    public function testStreamWillNotEmitDataOnIncompleteArray()
     {
         $this->parser->on('data', $this->expectCallableNever());
 
-        $this->stream->emit('data', array("\x01\0\0\0"));
+        $this->stream->emit('data', array("[1,2"));
     }
 
-    public function testStreamWillNotEmitDataOnIncompleteFramePayload()
+    public function testStreamWillEmitDataOnCompleteArrayChunked()
     {
-        $this->parser->on('data', $this->expectCallableNever());
+        $this->parser->on('data', $this->expectCallableOnceWith(array(1,2)));
 
-        $this->stream->emit('data', array("\x01\0\0\0" . "\0\0\0\x04" . "te"));
+        $this->stream->emit('data', array("[1,"));
+        $this->stream->emit('data', array("2]"));
     }
 
-    public function testStreamWillEmitDataOnCompleteFrameChunked()
+    public function testStreamWillEmitDataTwiceOnOneChunkWithTwoCompleteArrays()
     {
-        $this->parser->on('data', $this->expectCallableOnceWith('test'));
+        $mock = $this->createCallableMock();
+        $mock->expects($this->exactly(2))->method('__invoke');
 
-        $this->stream->emit('data', array("\x01\x00\x00\x00" . "\x00\x00\x00\x04" . "te"));
-        $this->stream->emit('data', array("st"));
+        $this->parser->on('data',$mock);
+
+        $this->stream->emit('data', array("[1][2]"));
     }
 
     public function testCloseFromDataEventWillStopEmittingFurtherDataEvents()
@@ -89,9 +112,9 @@ class ReadableDemultiplexStreamTest extends TestCase
             $parser->close();
         });
 
-        $this->parser->on('data', $this->expectCallableOnceWith('a'));
+        $this->parser->on('data', $this->expectCallableOnceWith(array(1)));
 
-        $this->stream->emit('data', array("\x01\x00\x00\x00" . "\x00\x00\x00\x01" . "a" . "\x01\x00\x00\x00" . "\x00\x00\x00\x01" . "b"));
+        $this->stream->emit('data', array("[1][2]"));
     }
 
     public function testCloseTwiceWillEmitCloseOnceAndRemoveAllListeners()
@@ -116,7 +139,7 @@ class ReadableDemultiplexStreamTest extends TestCase
     {
         $this->stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
         $this->stream->expects($this->once())->method('pause');
-        $this->parser = new ReadableDemultiplexStream($this->stream);
+        $this->parser = new ReadableJsonStream($this->stream);
 
         $this->parser->pause();
     }
@@ -125,7 +148,7 @@ class ReadableDemultiplexStreamTest extends TestCase
     {
         $this->stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
         $this->stream->expects($this->once())->method('resume');
-        $this->parser = new ReadableDemultiplexStream($this->stream);
+        $this->parser = new ReadableJsonStream($this->stream);
 
         $this->parser->resume();
     }

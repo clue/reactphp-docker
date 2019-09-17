@@ -34,7 +34,6 @@ its event-driven model to react to changes and events happening.
     * [Command streaming](#command-streaming)
     * [TAR streaming](#tar-streaming)
     * [JSON streaming](#json-streaming)
-  * [JsonProgressException](#jsonprogressexception)
 * [Install](#install)
 * [Tests](#tests)
 * [License](#license)
@@ -295,17 +294,13 @@ progress events once the stream ends:
 
 ```php
 $client->imageCreate('clue/streamripper')->then(
-    function ($data) {
+    function (array $data) {
         // $data is an array of *all* elements in the JSON stream
+        var_dump($data);
     },
-    function ($error) {
+    function (Exception $error) {
         // an error occurred (possibly after receiving *some* elements)
-        
-        if ($error instanceof Io\JsonProgressException) {
-            // a progress message (usually the last) contains an error message
-        } else {
-            // any other error, like invalid request etc.
-        }
+        echo 'Error: ' . $error->getMessage() . PHP_EOL;
     }
 );
 ```
@@ -332,13 +327,13 @@ The resulting stream will emit the following events:
 
 * `data`:  for *each* element in the update stream
 * `error`: once if an error occurs, will close() stream then
-  * Will emit an [`Io\JsonProgressException`](#jsonprogressexception) if an individual progress message contains an error message
-  * Any other `Exception` in case of an transport error, like invalid request etc.
+  * Will emit a `RuntimeException` if an individual progress message contains an error message
+    or any other `Exception` in case of an transport error, like invalid request etc.
 * `close`: once the stream ends (either finished or after "error")
 
 ```php
 $stream = $client->imageCreateStream('clue/redis-benchmark');
-$stream->on('data', function ($data) {
+$stream->on('data', function (array $data) {
     // data will be emitted for *each* complete element in the JSON stream
     echo $data['status'] . PHP_EOL;
 });
@@ -349,13 +344,6 @@ $stream->on('close', function () {
 ```
 
 See also the [pull example](examples/pull.php) and the [push example](examples/push.php).
-
-### JsonProgressException
-
-The `Io\JsonProgressException` will be thrown by [JSON streaming](#json-streaming)
-endpoints if an individual progress message contains an error message.
-
-The `getData()` method can be used to obtain the progress message.
 
 ## Install
 
