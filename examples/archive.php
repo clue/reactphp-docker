@@ -1,24 +1,22 @@
 <?php
+
 // this example shows how the containerArchiveStream() method returns a TAR stream,
 // how it can be passed to a TAR decoder and how we can then pipe each
 // individual file to the console output.
 
-require __DIR__ . '/../vendor/autoload.php';
-
-use React\EventLoop\Factory as LoopFactory;
-use Clue\React\Docker\Factory;
+use Clue\CaretNotation\Encoder;
+use Clue\React\Docker\Client;
 use Clue\React\Tar\Decoder;
 use React\Stream\ReadableStreamInterface;
-use Clue\CaretNotation\Encoder;
+
+require __DIR__ . '/../vendor/autoload.php';
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 $path = isset($argv[2]) ? $argv[2] : '/etc/passwd';
 echo 'Container "' . $container . '" dumping "' . $path . '" (pass as arguments to this example)' . PHP_EOL;
 
-$loop = LoopFactory::create();
-
-$factory = new Factory($loop);
-$client = $factory->createClient();
+$loop = React\EventLoop\Factory::create();
+$client = new Client($loop);
 
 $stream = $client->containerArchiveStream($container, $path);
 

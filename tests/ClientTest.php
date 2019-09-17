@@ -2,13 +2,13 @@
 
 namespace Clue\Tests\React\Docker;
 
-use Clue\React\Docker\Client;
-use React\Promise\Deferred;
 use Clue\React\Buzz\Browser;
-use RingCentral\Psr7\Response;
-use Psr\Http\Message\ResponseInterface;
+use Clue\React\Docker\Client;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use React\Promise;
+use React\Promise\Deferred;
+use RingCentral\Psr7\Response;
 
 class ClientTest extends TestCase
 {
@@ -29,7 +29,66 @@ class ClientTest extends TestCase
 
         $this->parser = $this->getMockBuilder('Clue\React\Docker\Io\ResponseParser')->getMock();
         $this->streamingParser = $this->getMockBuilder('Clue\React\Docker\Io\StreamingParser')->getMock();
-        $this->client = new Client($this->browser, $this->parser, $this->streamingParser);
+
+        $this->client = new Client($this->loop);
+
+        $ref = new \ReflectionProperty($this->client, 'browser');
+        $ref->setAccessible(true);
+        $ref->setValue($this->client, $this->browser);
+
+        $ref = new \ReflectionProperty($this->client, 'parser');
+        $ref->setAccessible(true);
+        $ref->setValue($this->client, $this->parser);
+
+        $ref = new \ReflectionProperty($this->client, 'streamingParser');
+        $ref->setAccessible(true);
+        $ref->setValue($this->client, $this->streamingParser);
+    }
+
+    /**
+     * @doesNotPerformAssertions
+     */
+    public function testCtor()
+    {
+        new Client($this->loop);
+    }
+
+    public function testCtorWithExplicitUnixPath()
+    {
+        $client = new Client($this->loop, 'unix://docker.sock');
+
+        $ref = new \ReflectionProperty($client, 'browser');
+        $ref->setAccessible(true);
+        $browser = $ref->getValue($client);
+
+        $ref = new \ReflectionProperty($browser, 'baseUri');
+        $ref->setAccessible(true);
+        $url = $ref->getValue($browser);
+
+        $this->assertEquals('http://localhost/', $url);
+    }
+
+    public function testCtorWithExplicitHttpUrl()
+    {
+        $client = new Client($this->loop, 'http://localhost:8001/');
+
+        $ref = new \ReflectionProperty($client, 'browser');
+        $ref->setAccessible(true);
+        $browser = $ref->getValue($client);
+
+        $ref = new \ReflectionProperty($browser, 'baseUri');
+        $ref->setAccessible(true);
+        $url = $ref->getValue($browser);
+
+        $this->assertEquals('http://localhost:8001/', $url);
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testCtorWithInvalidUrlThrows()
+    {
+        new Client($this->loop, 'ftp://invalid');
     }
 
     public function testPing()

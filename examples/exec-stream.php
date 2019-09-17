@@ -1,12 +1,12 @@
 <?php
+
 // this example executes some commands within the given running container and
 // displays the streaming output as it happens.
 
-require __DIR__ . '/../vendor/autoload.php';
-
-use React\EventLoop\Factory as LoopFactory;
-use Clue\React\Docker\Factory;
+use Clue\React\Docker\Client;
 use React\Stream\Stream;
+
+require __DIR__ . '/../vendor/autoload.php';
 
 $container = 'asd';
 //$cmd = array('echo', 'hello world');
@@ -19,10 +19,8 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$loop = LoopFactory::create();
-
-$factory = new Factory($loop);
-$client = $factory->createClient();
+$loop = React\EventLoop\Factory::create();
+$client = new Client($loop);
 
 $out = new Stream(STDOUT, $loop);
 $out->pause();

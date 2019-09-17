@@ -1,14 +1,13 @@
 <?php
+
 // this simple example executes a command within the given running container and
 // displays how fast it can receive its output.
 // expect this to be significantly faster than the (totally unfair) equivalent:
 // $ docker exec asd dd if=/dev/zero bs=1M count=1000 | dd of=/dev/null
 
-require __DIR__ . '/../vendor/autoload.php';
+use Clue\React\Docker\Client;
 
-use React\EventLoop\Factory as LoopFactory;
-use Clue\React\Docker\Factory;
-use React\Stream\Stream;
+require __DIR__ . '/../vendor/autoload.php';
 
 $container = 'asd';
 $cmd = array('dd', 'if=/dev/zero', 'bs=1M', 'count=1000');
@@ -18,10 +17,8 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$loop = LoopFactory::create();
-
-$factory = new Factory($loop);
-$client = $factory->createClient();
+$loop = React\EventLoop\Factory::create();
+$client = new Client($loop);
 
 $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     $stream = $client->execStartStream($info['Id'], true);
