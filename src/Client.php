@@ -42,11 +42,13 @@ class Client
 
         if (substr($url, 0, 7) === 'unix://') {
             // send everything through a local unix domain socket
-            $browser = $browser->withSender(
-                Sender::createFromLoopUnix($loop, $url)
+            $connector = new \React\Socket\FixedUriConnector(
+                $url,
+                new \React\Socket\UnixConnector($loop)
             );
 
             // pretend all HTTP URLs to be on localhost
+            $browser = new Browser($loop, $connector);
             $url = 'http://localhost/';
         }
 

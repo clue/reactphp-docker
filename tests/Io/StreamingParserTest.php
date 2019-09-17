@@ -7,7 +7,7 @@ use Clue\Tests\React\Docker\TestCase;
 use React\Promise;
 use React\Promise\CancellablePromiseInterface;
 use React\Promise\Deferred;
-use React\Stream\ReadableStream;
+use React\Stream\ThroughStream;
 
 class StreamingParserTest extends TestCase
 {
@@ -79,7 +79,7 @@ class StreamingParserTest extends TestCase
 
     public function testDeferredStreamEventsWillBeEmittedAndBuffered()
     {
-        $stream = new ReadableStream();
+        $stream = new ThroughStream();
 
         $promise = $this->parser->deferredStream($stream);
 
@@ -94,7 +94,7 @@ class StreamingParserTest extends TestCase
 
     public function testDeferredStreamErrorEventWillRejectPromise()
     {
-        $stream = new ReadableStream();
+        $stream = new ThroughStream();
 
         $promise = $this->parser->deferredStream($stream);
 
@@ -126,7 +126,7 @@ class StreamingParserTest extends TestCase
 
     public function testDemultiplexStreamWillReturnReadable()
     {
-        $stream = new ReadableStream();
+        $stream = new ThroughStream();
 
         $out = $this->parser->demultiplexStream($stream);
 

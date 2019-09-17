@@ -4,9 +4,13 @@
 // and how we it can be piped into a output tar file.
 
 use Clue\React\Docker\Client;
-use React\Stream\Stream;
+use React\Stream\WritableResourceStream;
 
 require __DIR__ . '/../vendor/autoload.php';
+
+if (DIRECTORY_SEPARATOR === '\\') {
+    exit('File I/O not supported on Windows' . PHP_EOL);
+}
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 $target = isset($argv[2]) ? $argv[2] : ($container . '.tar');
@@ -22,8 +26,7 @@ $stream->on('error', function ($e = null) {
     echo 'ERROR requesting stream' . PHP_EOL . $e;
 });
 
-$out = new Stream(fopen($target, 'w'), $loop);
-$out->pause();
+$out = new WritableResourceStream(fopen($target, 'w'), $loop);
 $stream->pipe($out);
 
 $loop->run();

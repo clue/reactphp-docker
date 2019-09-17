@@ -2,7 +2,6 @@
 
 namespace Clue\Tests\React\Docker;
 
-use Clue\React\Buzz\Browser;
 use Clue\React\Docker\Client;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -13,7 +12,6 @@ use RingCentral\Psr7\Response;
 class ClientTest extends TestCase
 {
     private $loop;
-    private $sender;
     private $browser;
 
     private $parser;
@@ -23,9 +21,7 @@ class ClientTest extends TestCase
     public function setUp()
     {
         $this->loop = $this->getMockBuilder('React\EventLoop\LoopInterface')->getMock();
-        $this->sender = $this->getMockBuilder('Clue\React\Buzz\Io\Sender')->disableOriginalConstructor()->getMock();
-        $this->browser = new Browser($this->loop, $this->sender);
-        $this->browser = $this->browser->withBase('http://x/');
+        $this->browser = $this->getMockBuilder('Clue\React\Buzz\Browser')->disableOriginalConstructor()->getMock();
 
         $this->parser = $this->getMockBuilder('Clue\React\Docker\Io\ResponseParser')->getMock();
         $this->streamingParser = $this->getMockBuilder('Clue\React\Docker\Io\StreamingParser')->getMock();
@@ -562,13 +558,8 @@ class ClientTest extends TestCase
 
     private function expectRequest($method, $url, ResponseInterface $response)
     {
-        $that = $this;
-        $this->sender->expects($this->once())->method('send')->with($this->callback(function (RequestInterface $request) use ($that, $method, $url) {
-            $that->assertEquals(strtoupper($method), $request->getMethod());
-            $that->assertEquals('http://x' . $url, (string)$request->getUri());
-
-            return true;
-        }))->will($this->returnPromise($response));
+        $this->browser->expects($this->any())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->once())->method(strtolower($method))->with($url)->willReturn(\React\Promise\resolve($response));
     }
 
     private function createResponse($body = '')

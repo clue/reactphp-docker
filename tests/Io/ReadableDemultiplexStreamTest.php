@@ -4,8 +4,7 @@ namespace Clue\Tests\React\Docker\Io;
 
 use Clue\React\Docker\Io\ReadableDemultiplexStream;
 use Clue\Tests\React\Docker\TestCase;
-use React\Stream\ReadableStream;
-use React\Stream\WritableStream;
+use React\Stream\ThroughStream;
 
 class ReadableDemultiplexStreamTest extends TestCase
 {
@@ -14,7 +13,7 @@ class ReadableDemultiplexStreamTest extends TestCase
 
     public function setUp()
     {
-        $this->stream = new ReadableStream();
+        $this->stream = new ThroughStream();
         $this->parser = new ReadableDemultiplexStream($this->stream);
     }
 
@@ -106,7 +105,7 @@ class ReadableDemultiplexStreamTest extends TestCase
 
     public function testPipeWillBeForwardedToTargetStream()
     {
-        $target = new WritableStream();
+        $target = new ThroughStream();
         $target->on('pipe', $this->expectCallableOnceWith($this->parser));
 
         $this->parser->pipe($target);
