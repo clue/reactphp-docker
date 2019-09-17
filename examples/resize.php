@@ -1,18 +1,16 @@
 <?php
+
 // this example tries to adjust the TTY size of the given container to 10x10.
 // you can check this via "docker logs".
 
-require __DIR__ . '/../vendor/autoload.php';
+use Clue\React\Docker\Client;
 
-use React\EventLoop\Factory as LoopFactory;
-use Clue\React\Docker\Factory;
+require __DIR__ . '/../vendor/autoload.php';
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 
-$loop = LoopFactory::create();
-
-$factory = new Factory($loop);
-$client = $factory->createClient();
+$loop = React\EventLoop\Factory::create();
+$client = new Client($loop);
 
 $client->containerInspect($container)->then(function ($info) use ($client, $container) {
     $size = $info['HostConfig']['ConsoleSize'];

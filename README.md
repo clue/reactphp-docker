@@ -27,8 +27,6 @@ its event-driven model to react to changes and events happening.
 
 * [Quickstart example](#quickstart-example)
 * [Usage](#usage)
-  * [Factory](#factory)
-    * [createClient()](#createclient)
   * [Client](#client)
     * [Commands](#commands)
     * [Promises](#promises)
@@ -48,10 +46,9 @@ Docker API of your local docker daemon:
 
 ```php
 $loop = React\EventLoop\Factory::create();
-$factory = new Factory($loop);
-$client = $factory->createClient();
+$client = new Clue\React\Docker\Client($loop);
 
-$client->imageSearch('clue')->then(function ($images) {
+$client->imageSearch('clue')->then(function (array $images) {
     var_dump($images);
 });
 
@@ -62,44 +59,27 @@ See also the [examples](examples).
 
 ## Usage
 
-### Factory
+### Client
 
-The `Factory` is responsible for creating your `Client` instance.
-It also registers everything with the main [`EventLoop`](https://github.com/reactphp/event-loop#usage).
+The `Client` is responsible for assembling and sending HTTP requests to the Docker Engine API.
+It uses an HTTP client bound to the main [`EventLoop`](https://github.com/reactphp/event-loop#usage)
+in order to handle async requests:
 
 ```php
 $loop = React\EventLoop\Factory::create();
-$factory = new Factory($loop);
+$client = new Clue\React\Docker\Client($loop);
 ```
 
-If you need custom DNS, SSL/TLS or proxy settings, you can explicitly pass a
-custom [`Browser`](https://github.com/clue/php-buzz-react#browser) instance:
+If your Docker Engine API is not accessible using the default `unix:///var/run/docker.sock`
+Unix domain socket path, you may optionally pass an explicit URL like this:
 
-```php
-$factory = new Factory($loop, $browser);
 ```
-
-#### createClient()
-
-The `createClient($url = null)` method can be used to create a new `Client`.
-It helps with constructing a `Browser` object for the given remote URL.
-
-```php
-// create client with default URL (unix:///var/run/docker.sock)
-$client = $factory->createClient();
-
 // explicitly use given UNIX socket path
-$client = $factory->createClient('unix:///var/run/docker.sock');
+$client = new Clue\React\Docker\Client($loop, 'unix:///var/run/docker.sock');
 
-// connect via TCP/IP
-$client = $factory->createClient('http://10.0.0.2:8000/');
+// or connect via TCP/IP to a remote Docker Engine API
+$client = new Clue\React\Docker\Client($loop, 'http://10.0.0.2:8000/');
 ```
-
-### Client
-
-The `Client` is responsible for assembling and sending HTTP requests to the Docker API.
-It requires a `Browser` object bound to the main `EventLoop` in order to handle async requests and a base URL.
-The recommended way to create a `Client` is using the `Factory` (see above).
 
 #### Commands
 
@@ -162,8 +142,7 @@ The resulting blocking code could look something like this:
 use Clue\React\Block;
 
 $loop = React\EventLoop\Factory::create();
-$factory = new Factory($loop);
-$client = $factory->createClient();
+$client = new Clue\React\Docker\Client($loop);
 
 $promise = $client->imageInspect('busybox');
 

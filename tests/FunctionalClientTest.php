@@ -2,11 +2,10 @@
 
 namespace Clue\Tests\React\Docker;
 
-use Clue\React\Docker\Client;
-use React\EventLoop\Factory as LoopFactory;
-use Clue\React\Docker\Factory;
 use Clue\React\Block;
+use Clue\React\Docker\Client;
 use Clue\React\Promise\Stream;
+use React\EventLoop\Factory as LoopFactory;
 
 class FunctionalClientTest extends TestCase
 {
@@ -15,10 +14,7 @@ class FunctionalClientTest extends TestCase
     public function setUp()
     {
         $this->loop = LoopFactory::create();
-
-        $factory = new Factory($this->loop);
-
-        $this->client = $factory->createClient();
+        $this->client = new Client($this->loop);
 
         $promise = $this->client->ping();
 

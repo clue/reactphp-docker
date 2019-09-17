@@ -1,11 +1,11 @@
 <?php
+
 // this simple example executes a "sleep 2" within the given running container
 
-require __DIR__ . '/../vendor/autoload.php';
-
-use React\EventLoop\Factory as LoopFactory;
-use Clue\React\Docker\Factory;
 use Clue\React\Buzz\Message\ResponseException;
+use Clue\React\Docker\Client;
+
+require __DIR__ . '/../vendor/autoload.php';
 
 $container = 'asd';
 //$cmd = array('echo', 'hello world');
@@ -18,10 +18,8 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$loop = LoopFactory::create();
-
-$factory = new Factory($loop);
-$client = $factory->createClient();
+$loop = React\EventLoop\Factory::create();
+$client = new Client($loop);
 
 $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     echo 'Created with info: ' . json_encode($info) . PHP_EOL;

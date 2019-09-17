@@ -3,9 +3,11 @@
 namespace Clue\React\Docker;
 
 use Clue\React\Buzz\Browser;
+use Clue\React\Buzz\Io\Sender;
 use Clue\React\Docker\Io\ResponseParser;
-use React\Promise\PromiseInterface;
 use Clue\React\Docker\Io\StreamingParser;
+use React\EventLoop\LoopInterface;
+use React\Promise\PromiseInterface;
 use React\Stream\ReadableStreamInterface;
 use Rize\UriTemplate;
 
@@ -30,35 +32,33 @@ class Client
     private $streamingParser;
     private $uri;
 
-    /**
-     * Instantiate new Client
-     *
-     * SHOULD NOT be called manually, see Factory::createClient() instead
-     *
-     * @param Browser              $browser         Browser instance to use, requires correct Sender and base URI
-     * @param ResponseParser|null  $parser          (optional) ResponseParser instance to use
-     * @param StreamingParser|null $streamingParser (optional) StreamingParser instance to use
-     * @param UriTemplate|null     $uri             (optional) UriTemplate instance to use
-     * @see Factory::createClient()
-     */
-    public function __construct(Browser $browser, ResponseParser $parser = null, StreamingParser $streamingParser = null, UriTemplate $uri = null)
+    public function __construct(LoopInterface $loop, $url = null)
     {
-        if ($parser === null) {
-            $parser = new ResponseParser();
+        if ($url === null) {
+            $url = 'unix:///var/run/docker.sock';
         }
 
-        if ($streamingParser === null) {
-            $streamingParser = new StreamingParser();
+        $browser = new Browser($loop);
+
+        if (substr($url, 0, 7) === 'unix://') {
+            // send everything through a local unix domain socket
+            $browser = $browser->withSender(
+                Sender::createFromLoopUnix($loop, $url)
+            );
+
+            // pretend all HTTP URLs to be on localhost
+            $url = 'http://localhost/';
         }
 
-        if ($uri === null) {
-            $uri = new UriTemplate();
+        $parts = parse_url($url);
+        if (!isset($parts['scheme'], $parts['host']) || ($parts['scheme'] !== 'http' && $parts['scheme'] !== 'https')) {
+            throw new \InvalidArgumentException('Invalid Docker Engine API URL given');
         }
 
-        $this->browser = $browser;
-        $this->parser = $parser;
-        $this->streamingParser = $streamingParser;
-        $this->uri = $uri;
+        $this->browser = $browser->withBase($url);
+        $this->parser = new ResponseParser();
+        $this->streamingParser = new StreamingParser();
+        $this->uri = new UriTemplate();
     }
 
     /**

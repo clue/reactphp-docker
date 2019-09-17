@@ -1,19 +1,17 @@
 <?php
+
 // this example shows how the imageCreateStream() call can be used to pull a given image.
 // demonstrates the JSON streaming API, individual progress events will be printed as they happen.
 
-require __DIR__ . '/../vendor/autoload.php';
+use Clue\React\Docker\Client;
 
-use React\EventLoop\Factory as LoopFactory;
-use Clue\React\Docker\Factory;
+require __DIR__ . '/../vendor/autoload.php';
 
 $image = isset($argv[1]) ? $argv[1] : 'clue/redis-benchmark';
 echo 'Pulling image "' . $image . '" (pass as argument to this example)' . PHP_EOL;
 
-$loop = LoopFactory::create();
-
-$factory = new Factory($loop);
-$client = $factory->createClient();
+$loop = React\EventLoop\Factory::create();
+$client = new Client($loop);
 
 $stream = $client->imageCreateStream($image);
 
