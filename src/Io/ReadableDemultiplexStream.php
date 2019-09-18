@@ -35,18 +35,12 @@ class ReadableDemultiplexStream extends EventEmitter implements ReadableStreamIn
 
         $out = $this;
         $buffer =& $this->buffer;
-        $closed =& $this->closed;
 
         // pass all input data chunks through the parser
         $multiplexed->on('data', array($out, 'push'));
 
         // forward end event to output (unless parsing is still in progress)
-        $multiplexed->on('end', function () use (&$buffer, $out, &$closed) {
-            // ignore duplicate end events
-            if ($closed) {
-                return;
-            }
-
+        $multiplexed->on('end', function () use (&$buffer, $out) {
             // buffer must be empty on end, otherwise this is an error situation
             if ($buffer === '') {
                 $out->emit('end');

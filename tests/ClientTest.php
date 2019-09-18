@@ -3,10 +3,9 @@
 namespace Clue\Tests\React\Docker;
 
 use Clue\React\Docker\Client;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use React\Promise;
 use React\Promise\Deferred;
+use React\Stream\ThroughStream;
 use RingCentral\Psr7\Response;
 
 class ClientTest extends TestCase
@@ -167,6 +166,113 @@ class ClientTest extends TestCase
         $this->expectRequestFlow('get', '/containers/123/changes', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerChanges(123));
+    }
+
+    public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerIsPending()
+    {
+        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(new \React\Promise\Promise(function () { }));
+
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
+
+        $promise = $this->client->containerLogs('123');
+
+        $promise->then($this->expectCallableNever(), $this->expectCallableNever());
+    }
+
+    public function testContainerLogsRejectsWhenInspectingContainerRejects()
+    {
+        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\reject(new \RuntimeException()));
+
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(\React\Promise\reject(new \RuntimeException()));
+
+        $promise = $this->client->containerLogs('123');
+
+        $promise->then($this->expectCallableNever(), $this->expectCallableOnce());
+    }
+
+    public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerResolvesWithTtyAndContainerLogsArePending()
+    {
+        $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
+            array('/containers/123/json'),
+            array('/containers/123/logs')
+        )->willReturnOnConsecutiveCalls(
+            \React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')),
+            new \React\Promise\Promise(function () { })
+        );
+
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock());
+        $this->streamingParser->expects($this->never())->method('demultiplexStream');
+
+        $promise = $this->client->containerLogs('123');
+
+        $promise->then($this->expectCallableNever(), $this->expectCallableNever());
+    }
+
+    public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerResolvesWithoutTtyAndContainerLogsArePending()
+    {
+        $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
+            array('/containers/123/json'),
+            array('/containers/123/logs')
+        )->willReturnOnConsecutiveCalls(
+            \React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')),
+            new \React\Promise\Promise(function () { })
+        );
+
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => false)));
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock());
+        $this->streamingParser->expects($this->once())->method('demultiplexStream')->willReturn($this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock());
+
+        $promise = $this->client->containerLogs('123');
+
+        $promise->then($this->expectCallableNever(), $this->expectCallableNever());
+    }
+
+    public function testContainerLogsResolvesWhenInspectingContainerResolvesWithTtyAndContainerLogsResolves()
+    {
+        $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
+            array('/containers/123/json'),
+            array('/containers/123/logs')
+        )->willReturnOnConsecutiveCalls(
+            \React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')),
+            \React\Promise\resolve(new Response(200, array(), ''))
+        );
+
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(\React\Promise\resolve('output'));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock());
+        $this->streamingParser->expects($this->never())->method('demultiplexStream');
+
+        $promise = $this->client->containerLogs('123');
+
+        $promise->then($this->expectCallableOnceWith('output'), $this->expectCallableNever());
+    }
+
+    public function testContainerLogsStreamReturnStreamWhenInspectingContainerResolvesWithTtyAndContainerLogsResolves()
+    {
+        $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
+            array('/containers/123/json'),
+            array('/containers/123/logs')
+        )->willReturnOnConsecutiveCalls(
+            \React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')),
+            \React\Promise\resolve(new Response(200, array(), ''))
+        );
+
+        $response = new ThroughStream();
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($response);
+        $this->streamingParser->expects($this->never())->method('demultiplexStream');
+
+        $stream = $this->client->containerLogsStream('123');
+
+        $stream->on('data', $this->expectCallableOnceWith('output'));
+        $response->write('output');
     }
 
     public function testContainerExport()
@@ -506,7 +612,7 @@ class ClientTest extends TestCase
         $this->expectRequest('POST', '/exec/123/start', $this->createResponse($data));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($stream)->willReturn($stream);
-        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->equalTo($stream))->willReturn(Promise\resolve($data));
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->equalTo($stream))->willReturn(\React\Promise\resolve($data));
 
         $this->expectPromiseResolveWith($data, $this->client->execStart(123, $config));
     }

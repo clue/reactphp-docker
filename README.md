@@ -168,10 +168,11 @@ Please refer to [clue/reactphp-block](https://github.com/clue/reactphp-block#rea
 
 #### Command streaming
 
-The following API endpoint resolves with a buffered string of the command output
+The following API endpoints resolve with a buffered string of the command output
 (STDOUT and/or STDERR):
 
 ```php
+$client->containerLogs($container);
 $client->execStart($exec);
 ```
 
@@ -181,10 +182,11 @@ for bigger command outputs, it's usually a better idea to use a streaming
 approach.
 
 This works for (any number of) commands of arbitrary sizes.
-The following API endpoint complements the default Promise-based API and returns
+The following API endpoints complement the default Promise-based API and return
 a [`Stream`](https://github.com/reactphp/stream) instance instead:
 
 ```php
+$stream = $client->containerLogsStream($container);
 $stream = $client->execStartStream($exec);
 ```
 

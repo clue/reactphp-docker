@@ -69,6 +69,11 @@ class FunctionalClientTest extends TestCase
 
         $this->assertEquals('', $ret);
 
+        $promise = $this->client->containerLogs($container['Id'], false, true, true);
+        $ret = Block\await($promise, $this->loop);
+
+        $this->assertEquals("test\n", $ret);
+
         $promise = $this->client->containerRemove($container['Id'], false, true);
         $ret = Block\await($promise, $this->loop);
 
