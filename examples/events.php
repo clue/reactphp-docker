@@ -20,7 +20,7 @@ $client = new Client($loop);
 // stream all events for 10 seconds
 $stream = $client->eventsStream(null, microtime(true) + 10.0);
 
-$stream->on('progress', function ($event) {
+$stream->on('data', function ($event) {
     echo json_encode($event) . PHP_EOL;
 });
 

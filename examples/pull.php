@@ -15,7 +15,7 @@ $client = new Client($loop);
 
 $stream = $client->imageCreateStream($image);
 
-$stream->on('progress', function ($progress) {
+$stream->on('data', function ($progress) {
     echo 'progress: '. json_encode($progress) . PHP_EOL;
 });
 

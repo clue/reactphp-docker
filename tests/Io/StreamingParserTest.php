@@ -73,7 +73,7 @@ class StreamingParserTest extends TestCase
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
         $stream->expects($this->once())->method('isReadable')->will($this->returnValue(false));
 
-        $promise = $this->parser->deferredStream($stream, 'anything');
+        $promise = $this->parser->deferredStream($stream);
         $this->expectPromiseReject($promise);
     }
 
@@ -81,11 +81,11 @@ class StreamingParserTest extends TestCase
     {
         $stream = new ReadableStream();
 
-        $promise = $this->parser->deferredStream($stream, 'demo');
+        $promise = $this->parser->deferredStream($stream);
 
         $stream->emit('ignored', array('ignored'));
-        $stream->emit('demo', array('a'));
-        $stream->emit('demo', array('b'));
+        $stream->emit('data', array('a'));
+        $stream->emit('data', array('b'));
 
         $stream->close();
 
@@ -96,11 +96,11 @@ class StreamingParserTest extends TestCase
     {
         $stream = new ReadableStream();
 
-        $promise = $this->parser->deferredStream($stream, 'demo');
+        $promise = $this->parser->deferredStream($stream);
 
         $stream->emit('ignored', array('ignored'));
 
-        $stream->emit('demo', array('a'));
+        $stream->emit('data', array('a'));
 
         $stream->emit('error', array('value', 'ignord'));
 
@@ -115,7 +115,7 @@ class StreamingParserTest extends TestCase
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
         $stream->expects($this->once())->method('isReadable')->willReturn(true);
 
-        $promise = $this->parser->deferredStream($stream, 'anything');
+        $promise = $this->parser->deferredStream($stream);
         if (!($promise instanceof CancellablePromiseInterface)) {
             $this->markTestSkipped('Requires Promise v2 API and has no effect on v1 API');
         }

@@ -386,8 +386,8 @@ class FunctionalClientTest extends TestCase
         $old || $stream->on('progress', $this->expectCallableNever());
         $stream->on('data', $this->expectCallableNever());
 
-        // will emit "error" with JsonProgressException and close
-        $old && $stream->on('error', $this->expectCallableOnceParameter('Clue\React\Docker\Io\JsonProgressException'));
+        // will emit "error" with RuntimeException and close
+        $old && $stream->on('error', $this->expectCallableOnceParameter('RuntimeException'));
         $old || $stream->on('error', $this->expectCallableOnceParameter('Clue\React\Buzz\Message\ResponseException'));
         $stream->on('close', $this->expectCallableOnce());
 
