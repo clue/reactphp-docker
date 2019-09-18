@@ -33,13 +33,7 @@ class ReadableJsonStream extends EventEmitter implements ReadableStreamInterface
 
         // forward end event to output
         $out = $this;
-        $closed =& $this->closed;
-        $input->on('end', function () use ($out, $parser, &$closed) {
-            // ignore duplicate end events
-            if ($closed) {
-                return;
-            }
-
+        $input->on('end', function () use ($out, $parser) {
             if ($parser->isEmpty()) {
                 $out->emit('end');
             } else {
