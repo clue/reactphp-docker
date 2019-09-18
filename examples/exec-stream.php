@@ -4,9 +4,13 @@
 // displays the streaming output as it happens.
 
 use Clue\React\Docker\Client;
-use React\Stream\Stream;
+use React\Stream\WritableResourceStream;
 
 require __DIR__ . '/../vendor/autoload.php';
+
+if (DIRECTORY_SEPARATOR === '\\') {
+    exit('File I/O not supported on Windows' . PHP_EOL);
+}
 
 $container = 'asd';
 //$cmd = array('echo', 'hello world');
@@ -22,11 +26,8 @@ if (isset($argv[1])) {
 $loop = React\EventLoop\Factory::create();
 $client = new Client($loop);
 
-$out = new Stream(STDOUT, $loop);
-$out->pause();
-
-$stderr = new Stream(STDERR, $loop);
-$stderr->pause();
+$out = new WritableResourceStream(STDOUT, $loop);
+$stderr = new WritableResourceStream(STDERR, $loop);
 
 // unkown exit code by default
 $exit = 1;
