@@ -531,20 +531,18 @@ class Client
      * Start the container id
      *
      * @param string $container container ID
-     * @param array  $config    (optional) start config (see link)
      * @return PromiseInterface Promise<null>
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerStart
      */
-    public function containerStart($container, $config = array())
+    public function containerStart($container)
     {
-        return $this->postJson(
+        return $this->browser->post(
             $this->uri->expand(
                 '/containers/{container}/start',
                 array(
                     'container' => $container
                 )
-            ),
-            $config
+            )
         )->then(array($this->parser, 'expectEmpty'));
     }
 
