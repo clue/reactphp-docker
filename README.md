@@ -321,6 +321,7 @@ a [`Stream`](https://github.com/reactphp/stream) instance instead:
 $stream = $client->imageCreateStream();
 $stream = $client->imagePushStream();
 $stream = $client->eventsStream();
+$stream = $client->containerStatsStream($container);
 ```
 
 The resulting stream will emit the following events:

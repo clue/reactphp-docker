@@ -345,6 +345,61 @@ class Client
     }
 
     /**
+     * Returns a container’s resource usage statistics.
+     *
+     * This is a JSON API endpoint that resolves with a single stats info.
+     *
+     * If you want to monitor live stats events as they happen, you
+     * should consider using `imageStatsStream()` instead.
+     *
+     * @param string $container container ID
+     * @return PromiseInterface Promise<array> JSON stats
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerStats
+     * @since 0.3.0 Available as of Docker Engine API v1.19 (Docker v1.7), use `containerStatsStream()` on legacy versions
+     * @see self::containerStatsStream()
+     */
+    public function containerStats($container)
+    {
+        return $this->browser->get(
+            $this->uri->expand(
+                '/containers/{container}/stats{?stream}',
+                array(
+                    'container' => $container,
+                    'stream' => 0
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Returns a live stream of a container’s resource usage statistics.
+     *
+     * The resulting stream will emit the following events:
+     * - data:  for *each* element in the stats stream
+     * - error: once if an error occurs, will close() stream then
+     * - close: once the stream ends (either finished or after "error")
+     *
+     * @param string $container container ID
+     * @return ReadableStreamInterface JSON stats stream
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerStats
+     * @since 0.3.0 Available as of Docker Engine API v1.17 (Docker v1.5)
+     * @see self::containerStats()
+     */
+    public function containerStatsStream($container)
+    {
+        return $this->streamingParser->parseJsonStream(
+            $this->browser->withOptions(array('streaming' => true))->get(
+                $this->uri->expand(
+                    '/containers/{container}/stats',
+                    array(
+                        'container' => $container
+                    )
+                )
+            )
+        );
+    }
+
+    /**
      * Resize the TTY of container id
      *
      * @param string $container container ID
