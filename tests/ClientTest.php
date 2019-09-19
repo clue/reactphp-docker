@@ -417,24 +417,6 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith('', $this->client->containerResize(123, 800, 600));
     }
 
-    public function testContainerCopy()
-    {
-        $data = 'tar stream';
-        $this->expectRequestFlow('post', '/containers/123/copy', $this->createResponse($data), 'expectPlain');
-
-        $this->expectPromiseResolveWith($data, $this->client->containerCopy('123', 'file.txt'));
-    }
-
-    public function testContainerCopyStream()
-    {
-        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
-
-        $this->expectRequest('post', '/containers/123/copy', $this->createResponse(''));
-        $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
-
-        $this->assertSame($stream, $this->client->containerCopyStream('123', 'file.txt'));
-    }
-
     public function testContainerArchive()
     {
         $data = 'tar stream';
