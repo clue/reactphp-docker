@@ -195,7 +195,7 @@ class ClientTest extends TestCase
         $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
         $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
             array('/containers/123/json'),
-            array('/containers/123/logs')
+            array('/containers/123/logs?stdout=1&stderr=1')
         )->willReturnOnConsecutiveCalls(
             \React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')),
             new \React\Promise\Promise(function () { })
@@ -216,7 +216,7 @@ class ClientTest extends TestCase
         $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
         $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
             array('/containers/123/json'),
-            array('/containers/123/logs')
+            array('/containers/123/logs?stdout=1&stderr=1')
         )->willReturnOnConsecutiveCalls(
             \React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')),
             new \React\Promise\Promise(function () { })
@@ -237,7 +237,7 @@ class ClientTest extends TestCase
         $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
         $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
             array('/containers/123/json'),
-            array('/containers/123/logs')
+            array('/containers/123/logs?stdout=1&stderr=1')
         )->willReturnOnConsecutiveCalls(
             \React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')),
             \React\Promise\resolve(new Response(200, array(), ''))
@@ -258,7 +258,7 @@ class ClientTest extends TestCase
         $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
         $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
             array('/containers/123/json'),
-            array('/containers/123/logs')
+            array('/containers/123/logs?stdout=1&stderr=1')
         )->willReturnOnConsecutiveCalls(
             \React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')),
             \React\Promise\resolve(new Response(200, array(), ''))
