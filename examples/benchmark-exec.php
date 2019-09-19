@@ -1,8 +1,14 @@
 <?php
 
-// this simple example executes a command within the given running container and
+// This simple example executes a command within the given running container and
 // displays how fast it can receive its output.
-// expect this to be significantly faster than the (totally unfair) equivalent:
+//
+// Before starting the benchmark, you have to start a container first, such as:
+//
+// $ docker run -it --rm --name=asd busybox sh
+//
+// Expect this to be significantly faster than the (totally unfair) equivalent:
+//
 // $ docker exec asd dd if=/dev/zero bs=1M count=1000 | dd of=/dev/null
 
 use Clue\React\Docker\Client;
@@ -35,7 +41,7 @@ $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     $stream->on('close', function () use ($client, &$bytes, $start) {
         $time = microtime(true) - $start;
 
-        echo 'Received ' . $bytes . ' bytes in ' . round($time, 1) . 's => ' . round($bytes / $time / 1024 / 1024, 1) . ' MiB/s' . PHP_EOL;
+        echo 'Received ' . $bytes . ' bytes in ' . round($time, 1) . 's => ' . round($bytes / $time / 1000000, 1) . ' MB/s' . PHP_EOL;
     });
 }, 'printf');
 
