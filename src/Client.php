@@ -277,8 +277,8 @@ class Client
      *
      * @param string   $container  container ID
      * @param boolean  $follow     1/True/true or 0/False/false, return stream. Default false
-     * @param boolean  $stdout     1/True/true or 0/False/false, show stdout log. Default false
-     * @param boolean  $stderr     1/True/true or 0/False/false, show stderr log. Default false
+     * @param boolean  $stdout     1/True/true or 0/False/false, show stdout log. Default true
+     * @param boolean  $stderr     1/True/true or 0/False/false, show stderr log. Default true
      * @param int      $since      UNIX timestamp (integer) to filter logs. Specifying a timestamp will only output log-entries since that timestamp. Default: 0 (unfiltered) (requires API v1.19+ / Docker v1.7+)
      * @param boolean  $timestamps 1/True/true or 0/False/false, print timestamps for every log line. Default false
      * @param int|null $tail       Output specified number of lines at the end of logs: all or <number>. Default all
@@ -287,7 +287,7 @@ class Client
      * @uses self::containerLogsStream()
      * @see self::containerLogsStream()
      */
-    public function containerLogs($container, $follow = false, $stdout = false, $stderr = false, $since = 0, $timestamps = false, $tail = null)
+    public function containerLogs($container, $follow = false, $stdout = true, $stderr = true, $since = 0, $timestamps = false, $tail = null)
     {
         return $this->streamingParser->bufferedStream(
             $this->containerLogsStream($container, $follow, $stdout, $stderr, $since, $timestamps, $tail)
@@ -323,8 +323,8 @@ class Client
      *
      * @param string   $container   container ID
      * @param boolean  $follow      1/True/true or 0/False/false, return stream. Default false
-     * @param boolean  $stdout      1/True/true or 0/False/false, show stdout log. Default false
-     * @param boolean  $stderr      1/True/true or 0/False/false, show stderr log. Default false
+     * @param boolean  $stdout      1/True/true or 0/False/false, show stdout log. Default true
+     * @param boolean  $stderr      1/True/true or 0/False/false, show stderr log. Default true
      * @param int      $since       UNIX timestamp (integer) to filter logs. Specifying a timestamp will only output log-entries since that timestamp. Default: 0 (unfiltered) (requires API v1.19+ / Docker v1.7+)
      * @param boolean  $timestamps  1/True/true or 0/False/false, print timestamps for every log line. Default false
      * @param int|null $tail        Output specified number of lines at the end of logs: all or <number>. Default all
@@ -333,7 +333,7 @@ class Client
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerLogs
      * @see self::containerLogs()
      */
-    public function containerLogsStream($container, $follow = false, $stdout = false, $stderr = false, $since = 0, $timestamps = false, $tail = null, $stderrEvent = null)
+    public function containerLogsStream($container, $follow = false, $stdout = true, $stderr = true, $since = 0, $timestamps = false, $tail = null, $stderrEvent = null)
     {
         $parser = $this->streamingParser;
         $browser = $this->browser;
