@@ -457,10 +457,11 @@ class Client
      * If you want to monitor live stats events as they happen, you
      * should consider using `imageStatsStream()` instead.
      *
+     * Available as of Docker Engine API v1.19 (Docker v1.7), use `containerStatsStream()` on legacy versions
+     *
      * @param string $container container ID
      * @return PromiseInterface Promise<array> JSON stats
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerStats
-     * @since 0.3.0 Available as of Docker Engine API v1.19 (Docker v1.7), use `containerStatsStream()` on legacy versions
      * @see self::containerStatsStream()
      */
     public function containerStats($container)
@@ -484,10 +485,11 @@ class Client
      * - error: once if an error occurs, will close() stream then
      * - close: once the stream ends (either finished or after "error")
      *
+     * Available as of Docker Engine API v1.17 (Docker v1.5)
+     *
      * @param string $container container ID
      * @return ReadableStreamInterface JSON stats stream
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerStats
-     * @since 0.3.0 Available as of Docker Engine API v1.17 (Docker v1.5)
      * @see self::containerStats()
      */
     public function containerStatsStream($container)
@@ -726,12 +728,13 @@ class Client
      * for this library. Several libraries are available, one that is known to
      * work is clue/reactphp-tar (see links).
      *
+     * Available as of Docker Engine API v1.20 (Docker v1.8)
+     *
      * @param string $container container ID
      * @param string $resource  path to file or directory to archive
      * @return PromiseInterface Promise<string> tar stream
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerArchive
      * @link https://github.com/clue/reactphp-tar
-     * @since 0.3.0 Available as of Docker Engine API v1.20 (Docker v1.8)
      * @see self::containerArchiveStream()
      */
     public function containerArchive($container, $path)
@@ -763,12 +766,13 @@ class Client
      * The resulting stream is a well-behaving readable stream that will emit
      * the normal stream events.
      *
+     * Available as of Docker Engine API v1.20 (Docker v1.8)
+     *
      * @param string $container container ID
      * @param string $path      path to file or directory to archive
      * @return ReadableStreamInterface tar stream
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerArchive
      * @link https://github.com/clue/reactphp-tar
-     * @since 0.3.0 Available as of Docker Engine API v1.20 (Docker v1.8)
      * @see self::containerArchive()
      */
     public function containerArchiveStream($container, $path)
