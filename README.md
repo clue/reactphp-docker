@@ -227,14 +227,14 @@ See also the [streaming exec example](examples/exec-stream.php) and the [exec be
 The TTY mode should be set depending on whether your command needs a TTY
 or not. Note that toggling the TTY mode affects how/whether you can access
 the STDERR stream and also has a significant impact on performance for
-larger streams (relevant for 100 MiB and above). See also the TTY mode
-on the `execStart*()` call.
+larger streams (relevant for hundreds of megabytes and more). See also the TTY
+mode on the `execStart*()` call.
 
-Running this benchmark on my personal (rather mediocre) VM setup reveals that
-the benchmark achieves a throughput of ~300 MiB/s while the (totally unfair)
-comparison script using the plain Docker client only yields ~100 MiB/s.
-Instead of me posting more details here, I encourage you to re-run the benchmark
-yourself and adjust it to better suite your problem domain.
+Running the provided benchmark example on a range of systems, it suggests that
+this library can process several gigabytes per second and may in fact outperform
+the Docker client and seems to be limited only by the Docker Engine implementation.
+Instead of posting more details here, you're encouraged to re-run the benchmarks
+yourself and see for yourself.
 The key takeway here is: *PHP is faster than you probably thought*.
 
 #### TAR streaming
