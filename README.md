@@ -243,7 +243,7 @@ The following API endpoints resolve with a string in the [TAR file format](https
 
 ```php
 $client->containerExport($container);
-$client->containerCopy($container, $config);
+$client->containerArchive($container, $path);
 ```
 
 Keep in mind that this means the whole string has to be kept in memory.
@@ -257,14 +257,14 @@ a [`Stream`](https://github.com/reactphp/stream) instance instead:
 
 ```php
 $stream = $client->containerExportStream($image);
-$stream = $client->containerCopyStream($image, $config);
+$stream = $client->containerArchiveStream($container, $path);
 ```
 
 Accessing individual files in the TAR file format string or stream is out of scope
 for this library.
 Several libraries are available, one that is known to work is [clue/reactphp-tar](https://github.com/clue/reactphp-tar).
 
-See also the [copy example](examples/copy.php) and the [export example](examples/export.php).
+See also the [archive example](examples/archive.php) and the [export example](examples/export.php).
 
 #### JSON streaming
 

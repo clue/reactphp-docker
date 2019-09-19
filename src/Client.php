@@ -531,20 +531,18 @@ class Client
      * Start the container id
      *
      * @param string $container container ID
-     * @param array  $config    (optional) start config (see link)
      * @return PromiseInterface Promise<null>
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerStart
      */
-    public function containerStart($container, $config = array())
+    public function containerStart($container)
     {
-        return $this->postJson(
+        return $this->browser->post(
             $this->uri->expand(
                 '/containers/{container}/start',
                 array(
                     'container' => $container
                 )
-            ),
-            $config
+            )
         )->then(array($this->parser, 'expectEmpty'));
     }
 
@@ -715,89 +713,6 @@ class Client
     }
 
     /**
-     * [deprecated] Copy files or folders of container id
-     *
-     * This resolves with a string in the TAR file format containing all files
-     * specified in the given $path.
-     *
-     * Keep in mind that this means the whole string has to be kept in memory.
-     * For bigger containers it's usually a better idea to use a streaming approach,
-     * see containerCopyStream() for more details.
-     *
-     * Accessing individual files in the TAR file format string is out of scope
-     * for this library. Several libraries are available, one that is known to
-     * work is clue/reactphp-tar (see links).
-     *
-     * @param string $container container ID
-     * @param string $resource  path to file or directory to copy
-     * @return PromiseInterface Promise<string> tar stream
-     * @link https://docs.docker.com/engine/api/v1.22/#copy-files-or-folders-from-a-container
-     * @link https://github.com/clue/reactphp-tar
-     * @deprecated 0.3.0 Deprecated in Docker Engine API v1.20 (Docker v1.8) and removed in Docker Engine API v1.24 (Docker v1.12), use `containerArchive()` instead
-     * @see self::containerArchive()
-     * @see self::containerCopyStream()
-     */
-    public function containerCopy($container, $path)
-    {
-        return $this->postJson(
-            $this->uri->expand(
-                '/containers/{container}/copy',
-                array(
-                    'container' => $container
-                )
-            ),
-            array(
-                'Resource' => $path
-            )
-        )->then(array($this->parser, 'expectPlain'));
-    }
-
-    /**
-     * [Deprecated] Copy files or folders of container id
-     *
-     * This returns a stream in the TAR file format containing all files
-     * specified in the given $path.
-     *
-     * This works for (any number of) files of arbitrary sizes as only small chunks have to
-     * be kept in memory.
-     *
-     * Accessing individual files in the TAR file format stream is out of scope
-     * for this library. Several libraries are available, one that is known to
-     * work is clue/reactphp-tar (see links).
-     *
-     * The resulting stream is a well-behaving readable stream that will emit
-     * the normal stream events.
-     *
-     * @param string $container container ID
-     * @param string $path      path to file or directory to copy
-     * @return ReadableStreamInterface tar stream
-     * @link https://docs.docker.com/engine/api/v1.22/#copy-files-or-folders-from-a-container
-     * @link https://github.com/clue/reactphp-tar
-     * @deprecated 0.3.0 Deprecated in Docker Engine API v1.20 (Docker v1.8) and removed in Docker Engine API v1.24 (Docker v1.12), use `containerArchiveStream()` instead
-     * @see self::containerArchiveStream()
-     * @see self::containerCopy()
-     */
-    public function containerCopyStream($container, $path)
-    {
-        return $this->streamingParser->parsePlainStream(
-            $this->browser->withOptions(array('streaming' => true))->post(
-                $this->uri->expand(
-                    '/containers/{container}/copy',
-                    array(
-                        'container' => $container
-                    )
-                ),
-                array(
-                    'Content-Type' => 'application/json'
-                ),
-                $this->json(array(
-                    'Resource' => $path
-                ))
-            )
-        );
-    }
-
-    /**
      * Get a tar archive of a resource in the filesystem of container id.
      *
      * This resolves with a string in the TAR file format containing all files
@@ -816,7 +731,7 @@ class Client
      * @return PromiseInterface Promise<string> tar stream
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerArchive
      * @link https://github.com/clue/reactphp-tar
-     * @since 0.3.0 Available as of Docker Engine API v1.20 (Docker v1.8), use deprecated `containerCopy()` on legacy versions
+     * @since 0.3.0 Available as of Docker Engine API v1.20 (Docker v1.8)
      * @see self::containerArchiveStream()
      */
     public function containerArchive($container, $path)
@@ -853,7 +768,7 @@ class Client
      * @return ReadableStreamInterface tar stream
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerArchive
      * @link https://github.com/clue/reactphp-tar
-     * @since 0.3.0 Available as of Docker Engine API v1.20 (Docker v1.8), use deprecated `containerCopyStream()` on legacy versions
+     * @since 0.3.0 Available as of Docker Engine API v1.20 (Docker v1.8)
      * @see self::containerArchive()
      */
     public function containerArchiveStream($container, $path)
