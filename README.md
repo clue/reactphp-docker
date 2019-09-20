@@ -172,6 +172,7 @@ The following API endpoints resolve with a buffered string of the command output
 (STDOUT and/or STDERR):
 
 ```php
+$client->containerAttach($container);
 $client->containerLogs($container);
 $client->execStart($exec);
 ```
@@ -186,6 +187,7 @@ The following API endpoints complement the default Promise-based API and return
 a [`Stream`](https://github.com/reactphp/stream) instance instead:
 
 ```php
+$stream = $client->containerAttachStream($container);
 $stream = $client->containerLogsStream($container);
 $stream = $client->execStartStream($exec);
 ```

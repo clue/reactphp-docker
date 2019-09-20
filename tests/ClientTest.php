@@ -190,7 +190,7 @@ class ClientTest extends TestCase
         $promise->then($this->expectCallableNever(), $this->expectCallableOnce());
     }
 
-    public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerResolvesWithTtyAndContainerLogsArePending()
+    public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerResolvesWithTtyAndContainerLogsRequestIsPending()
     {
         $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
         $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
@@ -211,7 +211,7 @@ class ClientTest extends TestCase
         $promise->then($this->expectCallableNever(), $this->expectCallableNever());
     }
 
-    public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerResolvesWithoutTtyAndContainerLogsArePending()
+    public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerResolvesWithoutTtyAndContainerLogsRequestIsPending()
     {
         $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
         $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
@@ -232,7 +232,7 @@ class ClientTest extends TestCase
         $promise->then($this->expectCallableNever(), $this->expectCallableNever());
     }
 
-    public function testContainerLogsResolvesWhenInspectingContainerResolvesWithTtyAndContainerLogsResolves()
+    public function testContainerLogsResolvesWhenInspectingContainerResolvesWithTtyAndContainerLogsRequestResolves()
     {
         $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
         $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
@@ -253,7 +253,7 @@ class ClientTest extends TestCase
         $promise->then($this->expectCallableOnceWith('output'), $this->expectCallableNever());
     }
 
-    public function testContainerLogsStreamReturnStreamWhenInspectingContainerResolvesWithTtyAndContainerLogsResolves()
+    public function testContainerLogsStreamReturnStreamWhenInspectingContainerResolvesWithTtyAndContainerLogsRequestResolves()
     {
         $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
         $this->browser->expects($this->exactly(2))->method('get')->withConsecutive(
@@ -377,6 +377,93 @@ class ClientTest extends TestCase
         $this->expectRequestFlow('post', '/containers/123/unpause', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerUnpause(123));
+    }
+
+    public function testContainerAttachReturnsPendingPromiseWhenInspectingContainerIsPending()
+    {
+        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(new \React\Promise\Promise(function () { }));
+
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
+
+        $promise = $this->client->containerAttach('123', true, false);
+
+        $promise->then($this->expectCallableNever(), $this->expectCallableNever());
+    }
+
+    public function testContainerAttachRejectsWhenInspectingContainerRejects()
+    {
+        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\reject(new \RuntimeException()));
+
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(\React\Promise\reject(new \RuntimeException()));
+
+        $promise = $this->client->containerAttach('123', true, false);
+
+        $promise->then($this->expectCallableNever(), $this->expectCallableOnce());
+    }
+
+    public function testContainerAttachReturnsPendingPromiseWhenInspectingContainerResolvesWithTtyAndContainerAttachIsPending()
+    {
+        $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('post')->with('/containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
+
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock());
+        $this->streamingParser->expects($this->never())->method('demultiplexStream');
+
+        $promise = $this->client->containerAttach('123', true, false);
+
+        $promise->then($this->expectCallableNever(), $this->expectCallableNever());
+    }
+
+    public function testContainerAttachReturnsPendingPromiseWhenInspectingContainerResolvesWithoutTtyAndContainerAttachRequestIsPending()
+    {
+        $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')));
+        $this->browser->expects($this->once())->method('post')->with('/containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
+
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => false)));
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock());
+        $this->streamingParser->expects($this->once())->method('demultiplexStream')->willReturn($this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock());
+
+        $promise = $this->client->containerAttach('123', true, false);
+
+        $promise->then($this->expectCallableNever(), $this->expectCallableNever());
+    }
+
+    public function testContainerAttachResolvesWhenInspectingContainerResolvesWithTtyAndContainerAttachResolvesAndContainerAttachRequestResolves()
+    {
+        $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('post')->with('/containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
+
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
+        $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(\React\Promise\resolve('output'));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock());
+        $this->streamingParser->expects($this->never())->method('demultiplexStream');
+
+        $promise = $this->client->containerAttach('123', true, false);
+
+        $promise->then($this->expectCallableOnceWith('output'), $this->expectCallableNever());
+    }
+
+    public function testContainerAttachStreamReturnStreamWhenInspectingContainerResolvesWithTtyAndContainerAttachRequestResolves()
+    {
+        $this->browser->expects($this->once())->method('withOptions')->willReturnSelf();
+        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('post')->with('/containers/123/attach?logs=1&stream=1&stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
+
+        $response = new ThroughStream();
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($response);
+        $this->streamingParser->expects($this->never())->method('demultiplexStream');
+
+        $stream = $this->client->containerAttachStream('123', true, true);
+
+        $stream->on('data', $this->expectCallableOnceWith('output'));
+        $response->write('output');
     }
 
     public function testContainerRemove()
