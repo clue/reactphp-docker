@@ -650,6 +650,64 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->execInspect(123));
     }
 
+    public function testNetworkList()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/networks', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->networkList());
+    }
+
+    public function testNetworkInspect()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', '/networks/123', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->networkInspect(123));
+    }
+
+    public function testNetworkRemove()
+    {
+        $json = array();
+        $this->expectRequestFlow('delete', '/networks/123', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->networkRemove(123));
+    }
+
+    public function testNetworkCreate()
+    {
+        $json = array();
+        $config = array();
+        $this->expectRequestFlow('post', '/networks/create', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->networkCreate($config));
+    }
+
+    public function testNetworkConnect()
+    {
+        $json = array();
+        $config = array();
+        $this->expectRequestFlow('post', '/networks/123/connect', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->networkConnect(123, $config));
+    }
+
+    public function testNetworkDisconnect()
+    {
+        $json = array();
+        $this->expectRequestFlow('post', '/networks/123/disconnect', $this->createResponse(), 'expectEmpty');
+
+        $this->expectPromiseResolveWith('', $this->client->networkDisconnect(123, 'abc'));
+    }
+
+    public function testNetworkPrune()
+    {
+        $json = array();
+        $this->expectRequestFlow('post', '/networks/prune', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->networkPrune());
+    }
+
     private function expectRequestFlow($method, $url, ResponseInterface $response, $parser)
     {
         $return = (string)$response->getBody();
