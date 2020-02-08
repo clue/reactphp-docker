@@ -1273,6 +1273,152 @@ class Client
         )->then(array($this->parser, 'expectJson'));
     }
 
+    /**
+     * List networks.
+     *
+     * @return PromiseInterface Promise<array>
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/NetworkList
+     */
+    public function networkList()
+    {
+        return $this->browser->get(
+            $this->uri->expand(
+                '/networks',
+                array()
+            )
+        )->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Inspect network.
+     *
+     * @param string $network The network id or name
+     *
+     * @return PromiseInterface Promise<array>
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/NetworkInspect
+     */
+    public function networkInspect($network)
+    {
+        return $this->browser->get(
+            $this->uri->expand(
+                '/networks/{network}',
+                array(
+                    'network' => $network
+                )
+            )
+        )->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Remove network.
+     *
+     * @param string $network The network id or name
+     *
+     * @return PromiseInterface Promise<null>
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/NetworkRemove
+     */
+    public function networkRemove($network)
+    {
+        return $this->browser->delete(
+            $this->uri->expand(
+                '/networks/{network}',
+                array(
+                    'network' => $network
+                )
+            )
+        )->then(array($this->parser, 'expectEmpty'));
+    }
+
+    /**
+     * Create network.
+     *
+     * @param string $name   The network name
+     * @param array  $config (optional) The network configuration
+     *
+     * @return PromiseInterface Promise<array>
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/NetworkCreate
+     */
+    public function networkCreate($name, $config = array())
+    {
+        $config['Name'] = $name;
+
+        return $this->postJson(
+            $this->uri->expand(
+                '/networks/create'
+            ),
+            $config
+        )->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Connect container to network
+     *
+     * @param string $network        The network id or name
+     * @param string $container      The id or name of the container to connect to network
+     * @param array  $endpointConfig (optional) Configuration for a network endpoint
+     *
+     * @return PromiseInterface Promise<array>
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/NetworkConnect
+     */
+    public function networkConnect($network, $container, $endpointConfig = array())
+    {
+        return $this->postJson(
+            $this->uri->expand(
+                '/networks/{network}/connect',
+                array(
+                    'network' => $network
+                )
+            ),
+            array(
+                'Container' => $container,
+                'EndpointConfig' => $endpointConfig ? json_encode($endpointConfig) : null
+            )
+        )->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
+     * Disconnect container from network.
+     *
+     * @param string $network The id or name of network
+     * @param string $container The id or name of container to disconnect
+     * @param bool $force (optional) Force the disconnect
+     *
+     * @return PromiseInterface Promise<null>
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/NetworkDisconnect
+     */
+    public function networkDisconnect($network, $container, $force = false)
+    {
+        return $this->postJson(
+            $this->uri->expand(
+                '/networks/{network}/disconnect',
+                array(
+                    'network' => $network
+                )
+            ),
+            array(
+                'Container' => $container,
+                'Force' => $this->boolArg($force)
+            )
+        )->then(array($this->parser, 'expectEmpty'));
+    }
+
+    /**
+     * Remove all unused networks.
+     *
+     * @return PromiseInterface Promise<array>
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/NetworkPrune
+     */
+    public function networkPrune()
+    {
+        return $this->postJson(
+            $this->uri->expand(
+                '/networks/prune',
+                array()
+            ),
+            array()
+        )->then(array($this->parser, 'expectJson'));
+    }
+
     private function postJson($url, $data)
     {
         $body = $this->json($data);

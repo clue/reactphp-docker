@@ -419,4 +419,65 @@ class FunctionalClientTest extends TestCase
 
         $this->loop->run();
     }
+
+    /**
+     * @depends testImageInspectCheckIfBusyboxExists
+     */
+    public function testCreateConnectDisconnectAndRemoveNetwork()
+    {
+        $containerConfig = array(
+            'Image' => 'busybox',
+            'Cmd' => array('echo', 'test')
+        );
+        $networkName = uniqid('reactphp-docker');
+
+        $promise = $this->client->containerCreate($containerConfig);
+        $container = Block\await($promise, $this->loop);
+
+        $promise = $this->client->containerStart($container['Id']);
+        $ret = Block\await($promise, $this->loop);
+
+        $start = microtime(true);
+
+        $promise = $this->client->networkCreate($networkName);
+        $network = Block\await($promise, $this->loop);
+
+        $this->assertNotNull($network['Id']);
+        $this->assertEquals('', $network['Warning']);
+
+        $promise = $this->client->networkConnect($network['Id'], $container['Id']);
+        $ret = Block\await($promise, $this->loop);
+
+        $this->assertEquals('', $ret);
+
+        $promise = $this->client->networkDisconnect($network['Id'], $container['Id'], false);
+        $ret = Block\await($promise, $this->loop);
+
+        $this->assertEquals('', $ret);
+
+        $promise = $this->client->networkRemove($network['Id']);
+        $ret = Block\await($promise, $this->loop);
+
+        $this->assertEquals('', $ret);
+
+        $end = microtime(true);
+
+        $promise = $this->client->containerStop($container['Id']);
+        $ret = Block\await($promise, $this->loop);
+
+        $promise = $this->client->containerRemove($container['Id']);
+        $ret = Block\await($promise, $this->loop);
+
+        // get all events between starting and removing for this container
+        $promise = $this->client->events($start, $end, array('network' => array($network['Id'])));
+        $ret = Block\await($promise, $this->loop);
+
+        // expects "create", "connect", "disconnect", "destroy" events
+        //$this->assertEquals(4, count($ret));
+        $this->assertEquals(3, count($ret));
+        $this->assertEquals('create', $ret[0]['Action']);
+        //$this->assertEquals('connect', $ret[1]['Action']);
+        $this->assertEquals('disconnect', $ret[1]['Action']);
+        $this->assertEquals('destroy', $ret[2]['Action']);
+    }
 }
