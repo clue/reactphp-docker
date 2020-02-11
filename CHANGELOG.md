@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0 (2020-02-11)
+
+*   Feature: Add network API methods.
+    (#57 by @tjoussen)
+
+*   Improve test suite by testing against PHP 7.4 and simplify test matrix
+    and add support / sponsorship info.
+    (#58 and #59 by @clue)
+
 ## 1.0.0 (2019-09-19)
 
 *   First stable release, now following SemVer!
