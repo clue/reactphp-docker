@@ -1,21 +1,27 @@
 <?php
 
-// This simple example executes a command within the given running container and
+// This example executes a command within the given running container and
 // displays how fast it can receive its output.
 //
 // Before starting the benchmark, you have to start a container first, such as:
 //
-// $ docker run -it --rm --name=asd busybox sh
+// $ docker run -it --rm --name=foo busybox sh
+// $ php examples/benchmark-exec.php
+// $ php examples/benchmark-exec.php foo echo -n hello
 //
 // Expect this to be significantly faster than the (totally unfair) equivalent:
 //
-// $ docker exec asd dd if=/dev/zero bs=1M count=1000 | dd of=/dev/null
+// $ docker exec foo dd if=/dev/zero bs=1M count=1000 | dd of=/dev/null
 
 use Clue\React\Docker\Client;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$container = 'asd';
+if (extension_loaded('xdebug')) {
+    echo 'NOTICE: The "xdebug" extension is loaded, this has a major impact on performance.' . PHP_EOL;
+}
+
+$container = 'foo';
 $cmd = array('dd', 'if=/dev/zero', 'bs=1M', 'count=1000');
 
 if (isset($argv[1])) {
