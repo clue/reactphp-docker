@@ -60,7 +60,7 @@ class FunctionalClientTest extends TestCase
         $container = Block\await($promise, $this->loop);
 
         $this->assertNotNull($container['Id']);
-        $this->assertNull($container['Warnings']);
+        $this->assertEmpty($container['Warnings']);
 
         $start = microtime(true);
 
@@ -108,7 +108,7 @@ class FunctionalClientTest extends TestCase
         $container = Block\await($promise, $this->loop);
 
         $this->assertNotNull($container['Id']);
-        $this->assertNull($container['Warnings']);
+        $this->assertEmpty($container['Warnings']);
 
         $promise = $this->client->containerStart($container['Id']);
         $ret = Block\await($promise, $this->loop);
@@ -434,9 +434,6 @@ class FunctionalClientTest extends TestCase
         $promise = $this->client->containerCreate($containerConfig);
         $container = Block\await($promise, $this->loop);
 
-        $promise = $this->client->containerStart($container['Id']);
-        $ret = Block\await($promise, $this->loop);
-
         $start = microtime(true);
 
         $promise = $this->client->networkCreate($networkName);
@@ -462,9 +459,6 @@ class FunctionalClientTest extends TestCase
 
         $end = microtime(true);
 
-        $promise = $this->client->containerStop($container['Id']);
-        $ret = Block\await($promise, $this->loop);
-
         $promise = $this->client->containerRemove($container['Id']);
         $ret = Block\await($promise, $this->loop);
 
@@ -472,11 +466,9 @@ class FunctionalClientTest extends TestCase
         $promise = $this->client->events($start, $end, array('network' => array($network['Id'])));
         $ret = Block\await($promise, $this->loop);
 
-        // expects "create", "connect", "disconnect", "destroy" events
-        //$this->assertEquals(4, count($ret));
+        // expects "create", "disconnect", "destroy" events ("connect" will be skipped because we don't start the container)
         $this->assertEquals(3, count($ret));
         $this->assertEquals('create', $ret[0]['Action']);
-        //$this->assertEquals('connect', $ret[1]['Action']);
         $this->assertEquals('disconnect', $ret[1]['Action']);
         $this->assertEquals('destroy', $ret[2]['Action']);
     }
