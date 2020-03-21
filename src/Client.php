@@ -673,6 +673,106 @@ class Client
     }
 
     /**
+     * Attach to a container to read its output.
+     *
+     * This resolves with a string containing the container output, i.e. STDOUT
+     * and STDERR as requested.
+     *
+     * Keep in mind that this means the whole string has to be kept in memory.
+     * For a larger container output it's usually a better idea to use a streaming
+     * approach, see `containerAttachStream()` for more details.
+     * In particular, the same also applies for the `$stream` flag. It can be used
+     * to follow the container output as long as the container is running.
+     *
+     * Note that this endpoint internally has to check the `containerInspect()`
+     * endpoint first in order to figure out the TTY settings to properly decode
+     * the raw container output.
+     *
+     * @param string $container container ID
+     * @param bool   $logs      replay previous logs before attaching. Default false
+     * @param bool   $stream    continue streaming. Default false
+     * @param bool   $stdout    attach to stdout. Default true
+     * @param bool   $stderr    attach to stderr. Default true
+     * @return PromiseInterface Promise<string> container output string
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerAttach
+     * @uses self::containerAttachStream()
+     * @see self::containerAttachStream()
+     */
+    public function containerAttach($container, $logs = false, $stream = false, $stdout = true, $stderr = true)
+    {
+        return $this->streamingParser->bufferedStream(
+            $this->containerAttachStream($container, $logs, $stream, $stdout, $stderr)
+        );
+    }
+
+    /**
+     * Attach to a container to read its output.
+     *
+     * This is a streaming API endpoint that returns a readable stream instance
+     * containing the container output, i.e. STDOUT and STDERR as requested.
+     *
+     * This works for container output of arbitrary sizes as only small chunks have to
+     * be kept in memory.
+     *
+     * This is particularly useful for the `$stream` flag. It can be used to
+     * follow the container output as long as the container is running. Either
+     * the `$stream` or `$logs` parameter must be `true` for this endpoint to do
+     * anything meaningful.
+     *
+     * Note that by default the output of both STDOUT and STDERR will be emitted
+     * as normal "data" events. You can optionally pass a custom event name which
+     * will be used to emit STDERR data so that it can be handled separately.
+     * Note that the normal streaming primitives likely do not know about this
+     * event, so special care may have to be taken.
+     * Also note that this option has no effect if the container has been
+     * created with a TTY.
+     *
+     * Note that this endpoint internally has to check the `containerInspect()`
+     * endpoint first in order to figure out the TTY settings to properly decode
+     * the raw container output.
+     *
+     * Note that this endpoint intentionally does not expose the `$stdin` flag.
+     * Access to STDIN will be exposed as a dedicated API endpoint in a future
+     * version.
+     *
+     * @param string $container   container ID
+     * @param bool   $logs        replay previous logs before attaching. Default false
+     * @param bool   $stream      continue streaming. Default false
+     * @param bool   $stdout      attach to stdout. Default true
+     * @param bool   $stderr      attach to stderr. Default true
+     * @param string $stderrEvent custom event to emit for STDERR data (otherwise emits as "data")
+     * @return ReadableStreamInterface container output stream
+     * @link https://docs.docker.com/engine/api/v1.40/#operation/ContainerAttach
+     * @see self::containerAttach()
+     */
+    public function containerAttachStream($container, $logs = false, $stream = false, $stdout = true, $stderr = true, $stderrEvent = null)
+    {
+        $parser = $this->streamingParser;
+        $browser = $this->browser;
+        $url = $this->uri->expand(
+            '/containers/{container}/attach{?logs,stream,stdout,stderr}',
+            array(
+                'container' => $container,
+                'logs' => $this->boolArg($logs),
+                'stream' => $this->boolArg($stream),
+                'stdout' => $this->boolArg($stdout),
+                'stderr' => $this->boolArg($stderr)
+            )
+        );
+
+        // first inspect container to check TTY setting, then attach with appropriate log parser
+        return \React\Promise\Stream\unwrapReadable($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
+            $stream = $parser->parsePlainStream($browser->withOptions(array('streaming' => true))->post($url));
+
+            if (!$info['Config']['Tty']) {
+                $stream = $parser->demultiplexStream($stream, $stderrEvent);
+            }
+
+            return $stream;
+        }));
+    }
+
+    /**
      * Block until container id stops, then returns the exit code
      *
      * @param string $container container ID

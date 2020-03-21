@@ -2,13 +2,17 @@
 
 // this example shows how the containerLogs() call can be used to get the logs of the given container.
 // demonstrates the deferred logs API, which can be used to dump the logs in one go
+//
+// $ docker run -d --name=foo busybox ps
+// $ php examples/logs.php foo
+// $ docker rm foo
 
 use Clue\CaretNotation\Encoder;
 use Clue\React\Docker\Client;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$container = isset($argv[1]) ? $argv[1] : 'asd';
+$container = isset($argv[1]) ? $argv[1] : 'foo';
 echo 'Dumping logs (last 100 lines) of container "' . $container . '" (pass as argument to this example)' . PHP_EOL;
 
 $loop = React\EventLoop\Factory::create();
