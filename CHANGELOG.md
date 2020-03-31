@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 (2020-03-31)
+
+*   Feature: Add `containerAttach()` and `containerAttachStream()` API methods.
+    (#61 by @clue)
+
+*   Improve test suite and fix failing tests with new Docker Engine API.
+    (#60 by @clue)
+
 ## 1.1.0 (2020-02-11)
 
 *   Feature: Add network API methods.
@@ -12,6 +20,7 @@
 ## 1.0.0 (2019-09-19)
 
 *   First stable release, now following SemVer!
+    See [**release announcement**](https://clue.engineering/2019/introducing-reactphp-docker).
 
 *   Feature: Update all ReactPHP dependencies to latest versions and
     significantly improve performance (see included benchmark examples).

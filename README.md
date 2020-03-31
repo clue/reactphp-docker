@@ -359,7 +359,7 @@ This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-$ composer require clue/docker-react:^1.1
+$ composer require clue/docker-react:^1.2
 ```
 
 This project aims to run on any platform and thus does not require any PHP
