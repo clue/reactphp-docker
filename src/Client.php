@@ -161,7 +161,8 @@ class Client
     public function eventsStream($since = null, $until = null, $filters = array())
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->withOptions(array('streaming' => true))->get(
+            $this->browser->requestStreaming(
+                'GET',
                 $this->uri->expand(
                     '/events{?since,until,filters}',
                     array(
@@ -352,7 +353,7 @@ class Client
 
         // first inspect container to check TTY setting, then request logs with appropriate log parser
         return \React\Promise\Stream\unwrapReadable($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
-            $stream = $parser->parsePlainStream($browser->withOptions(array('streaming' => true))->get($url));
+            $stream = $parser->parsePlainStream($browser->requestStreaming('GET', $url));
 
             if (!$info['Config']['Tty']) {
                 $stream = $parser->demultiplexStream($stream, $stderrEvent);
@@ -438,7 +439,8 @@ class Client
     public function containerExportStream($container)
     {
         return $this->streamingParser->parsePlainStream(
-            $this->browser->withOptions(array('streaming' => true))->get(
+            $this->browser->requestStreaming(
+                'GET',
                 $this->uri->expand(
                     '/containers/{container}/export',
                     array(
@@ -495,7 +497,8 @@ class Client
     public function containerStatsStream($container)
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->withOptions(array('streaming' => true))->get(
+            $this->browser->requestStreaming(
+                'GET',
                 $this->uri->expand(
                     '/containers/{container}/stats',
                     array(
@@ -762,7 +765,7 @@ class Client
 
         // first inspect container to check TTY setting, then attach with appropriate log parser
         return \React\Promise\Stream\unwrapReadable($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
-            $stream = $parser->parsePlainStream($browser->withOptions(array('streaming' => true))->post($url));
+            $stream = $parser->parsePlainStream($browser->requestStreaming('POST', $url));
 
             if (!$info['Config']['Tty']) {
                 $stream = $parser->demultiplexStream($stream, $stderrEvent);
@@ -878,7 +881,8 @@ class Client
     public function containerArchiveStream($container, $path)
     {
         return $this->streamingParser->parsePlainStream(
-            $this->browser->withOptions(array('streaming' => true))->get(
+            $this->browser->requestStreaming(
+                'GET',
                 $this->uri->expand(
                     '/containers/{container}/archive{?path}',
                     array(
@@ -968,7 +972,8 @@ class Client
     public function imageCreateStream($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->withOptions(array('streaming' => true))->post(
+            $this->browser->requestStreaming(
+                'POST',
                 $this->uri->expand(
                     '/images/create{?fromImage,fromSrc,repo,tag,registry}',
                     array(
@@ -1075,7 +1080,8 @@ class Client
     public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->withOptions(array('streaming' => true))->post(
+            $this->browser->requestStreaming(
+                'POST',
                 $this->uri->expand(
                     '/images{/registry}/{image}/push{?tag}',
                     array(
@@ -1303,7 +1309,8 @@ class Client
     public function execStartStream($exec, $tty = false, $stderrEvent = null)
     {
         $stream = $this->streamingParser->parsePlainStream(
-            $this->browser->withOptions(array('streaming' => true))->post(
+            $this->browser->requestStreaming(
+                'POST',
                 $this->uri->expand(
                     '/exec/{exec}/start',
                     array(
