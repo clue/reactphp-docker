@@ -20,7 +20,7 @@ class ClientTest extends TestCase
     public function setUp()
     {
         $this->loop = $this->getMockBuilder('React\EventLoop\LoopInterface')->getMock();
-        $this->browser = $this->getMockBuilder('Clue\React\Buzz\Browser')->disableOriginalConstructor()->getMock();
+        $this->browser = $this->getMockBuilder('React\Http\Browser')->disableOriginalConstructor()->getMock();
 
         $this->parser = $this->getMockBuilder('Clue\React\Docker\Io\ResponseParser')->getMock();
         $this->streamingParser = $this->getMockBuilder('Clue\React\Docker\Io\StreamingParser')->getMock();

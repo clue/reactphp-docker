@@ -399,7 +399,7 @@ class FunctionalClientTest extends TestCase
 
         // will emit "error" with RuntimeException and close
         $old && $stream->on('error', $this->expectCallableOnceParameter('RuntimeException'));
-        $old || $stream->on('error', $this->expectCallableOnceParameter('Clue\React\Buzz\Message\ResponseException'));
+        $old || $stream->on('error', $this->expectCallableOnceParameter('React\Http\Message\ResponseException'));
         $stream->on('close', $this->expectCallableOnce());
 
         $this->loop->run();
