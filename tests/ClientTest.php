@@ -48,36 +48,6 @@ class ClientTest extends TestCase
         new Client($this->loop);
     }
 
-    public function testCtorWithExplicitUnixPath()
-    {
-        $client = new Client($this->loop, 'unix://docker.sock');
-
-        $ref = new \ReflectionProperty($client, 'browser');
-        $ref->setAccessible(true);
-        $browser = $ref->getValue($client);
-
-        $ref = new \ReflectionProperty($browser, 'baseUrl');
-        $ref->setAccessible(true);
-        $url = $ref->getValue($browser);
-
-        $this->assertEquals('http://localhost/', $url);
-    }
-
-    public function testCtorWithExplicitHttpUrl()
-    {
-        $client = new Client($this->loop, 'http://localhost:8001/');
-
-        $ref = new \ReflectionProperty($client, 'browser');
-        $ref->setAccessible(true);
-        $browser = $ref->getValue($client);
-
-        $ref = new \ReflectionProperty($browser, 'baseUrl');
-        $ref->setAccessible(true);
-        $url = $ref->getValue($browser);
-
-        $this->assertEquals('http://localhost:8001/', $url);
-    }
-
     /**
      * @expectedException InvalidArgumentException
      */
@@ -89,7 +59,7 @@ class ClientTest extends TestCase
     public function testPing()
     {
         $body = 'OK';
-        $this->expectRequestFlow('get', '/_ping', $this->createResponse($body), 'expectPlain');
+        $this->expectRequestFlow('get', '_ping', $this->createResponse($body), 'expectPlain');
 
         $this->expectPromiseResolveWith($body, $this->client->ping());
     }
@@ -99,7 +69,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/events')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'events')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream))->will($this->returnPromise($json));
 
@@ -111,7 +81,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/events?since=10&until=20&filters=%7B%22image%22%3A%5B%22busybox%22%2C%22ubuntu%22%5D%7D')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'events?since=10&until=20&filters=%7B%22image%22%3A%5B%22busybox%22%2C%22ubuntu%22%5D%7D')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream))->will($this->returnPromise($json));
 
@@ -122,7 +92,7 @@ class ClientTest extends TestCase
     {
         $json = array();
         $config = array();
-        $this->expectRequestFlow('post', '/containers/create', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', 'containers/create', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerCreate($config));
     }
@@ -131,7 +101,7 @@ class ClientTest extends TestCase
     {
         $json = array();
         $config = array();
-        $this->expectRequestFlow('post', '/containers/create?name=demo', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', 'containers/create?name=demo', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerCreate($config, 'demo'));
     }
@@ -139,7 +109,7 @@ class ClientTest extends TestCase
     public function testContainerInspect()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/containers/123/json', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'containers/123/json', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerInspect(123));
     }
@@ -147,7 +117,7 @@ class ClientTest extends TestCase
     public function testContainerTop()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/containers/123/top', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'containers/123/top', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerTop(123));
     }
@@ -155,7 +125,7 @@ class ClientTest extends TestCase
     public function testContainerTopArgs()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/containers/123/top?ps_args=aux', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'containers/123/top?ps_args=aux', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerTop(123, 'aux'));
     }
@@ -163,14 +133,14 @@ class ClientTest extends TestCase
     public function testContainerChanges()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/containers/123/changes', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'containers/123/changes', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerChanges(123));
     }
 
     public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerIsPending()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(new \React\Promise\Promise(function () { }));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(new \React\Promise\Promise(function () { }));
 
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
 
@@ -181,7 +151,7 @@ class ClientTest extends TestCase
 
     public function testContainerLogsRejectsWhenInspectingContainerRejects()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\reject(new \RuntimeException()));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\reject(new \RuntimeException()));
 
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(\React\Promise\reject(new \RuntimeException()));
 
@@ -192,8 +162,8 @@ class ClientTest extends TestCase
 
     public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerResolvesWithTtyAndContainerLogsRequestIsPending()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/containers/123/logs?stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'containers/123/logs?stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
 
         $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
@@ -207,8 +177,8 @@ class ClientTest extends TestCase
 
     public function testContainerLogsReturnsPendingPromiseWhenInspectingContainerResolvesWithoutTtyAndContainerLogsRequestIsPending()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')));
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/containers/123/logs?stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'containers/123/logs?stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
 
         $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => false)));
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
@@ -222,8 +192,8 @@ class ClientTest extends TestCase
 
     public function testContainerLogsResolvesWhenInspectingContainerResolvesWithTtyAndContainerLogsRequestResolves()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/containers/123/logs?stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'containers/123/logs?stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
 
         $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(\React\Promise\resolve('output'));
@@ -237,8 +207,8 @@ class ClientTest extends TestCase
 
     public function testContainerLogsStreamReturnStreamWhenInspectingContainerResolvesWithTtyAndContainerLogsRequestResolves()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/containers/123/logs?stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'containers/123/logs?stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
 
         $response = new ThroughStream();
         $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
@@ -254,7 +224,7 @@ class ClientTest extends TestCase
     public function testContainerExport()
     {
         $data = 'tar stream';
-        $this->expectRequestFlow('get', '/containers/123/export', $this->createResponse($data), 'expectPlain');
+        $this->expectRequestFlow('get', 'containers/123/export', $this->createResponse($data), 'expectPlain');
 
         $this->expectPromiseResolveWith($data, $this->client->containerExport(123));
     }
@@ -263,7 +233,7 @@ class ClientTest extends TestCase
     {
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/containers/123/export')->willReturn(\React\Promise\resolve($this->createResponse('')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'containers/123/export')->willReturn(\React\Promise\resolve($this->createResponse('')));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
 
         $this->assertSame($stream, $this->client->containerExportStream(123));
@@ -272,28 +242,28 @@ class ClientTest extends TestCase
     public function testContainerWait()
     {
         $json = array();
-        $this->expectRequestFlow('post', '/containers/123/wait', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', 'containers/123/wait', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->containerWait(123));
     }
 
     public function testContainerKill()
     {
-        $this->expectRequestFlow('post', '/containers/123/kill', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/kill', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerKill(123));
     }
 
     public function testContainerKillSignalName()
     {
-        $this->expectRequestFlow('post', '/containers/123/kill?signal=SIGKILL', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/kill?signal=SIGKILL', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerKill(123, 'SIGKILL'));
     }
 
     public function testContainerKillSignalNumber()
     {
-        $this->expectRequestFlow('post', '/containers/123/kill?signal=9', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/kill?signal=9', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerKill(123, 9));
     }
@@ -301,63 +271,63 @@ class ClientTest extends TestCase
     public function testContainerStart()
     {
         $config = array();
-        $this->expectRequestFlow('post', '/containers/123/start', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/start', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerStart(123, $config));
     }
 
     public function testContainerStop()
     {
-        $this->expectRequestFlow('post', '/containers/123/stop', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/stop', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerStop(123));
     }
 
     public function testContainerStopTimeout()
     {
-        $this->expectRequestFlow('post', '/containers/123/stop?t=10', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/stop?t=10', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerStop(123, 10));
     }
 
     public function testContainerRestart()
     {
-        $this->expectRequestFlow('post', '/containers/123/restart', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/restart', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerRestart(123));
     }
 
     public function testContainerRestartTimeout()
     {
-        $this->expectRequestFlow('post', '/containers/123/restart?t=10', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/restart?t=10', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerRestart(123, 10));
     }
 
     public function testContainerRename()
     {
-        $this->expectRequestFlow('POST', '/containers/123/rename?name=newname', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('POST', 'containers/123/rename?name=newname', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerRename(123, 'newname'));
     }
 
     public function testContainerPause()
     {
-        $this->expectRequestFlow('post', '/containers/123/pause', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/pause', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerPause(123));
     }
 
     public function testContainerUnpause()
     {
-        $this->expectRequestFlow('post', '/containers/123/unpause', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'containers/123/unpause', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerUnpause(123));
     }
 
     public function testContainerAttachReturnsPendingPromiseWhenInspectingContainerIsPending()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(new \React\Promise\Promise(function () { }));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(new \React\Promise\Promise(function () { }));
 
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
 
@@ -368,7 +338,7 @@ class ClientTest extends TestCase
 
     public function testContainerAttachRejectsWhenInspectingContainerRejects()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\reject(new \RuntimeException()));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\reject(new \RuntimeException()));
 
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(\React\Promise\reject(new \RuntimeException()));
 
@@ -379,8 +349,8 @@ class ClientTest extends TestCase
 
     public function testContainerAttachReturnsPendingPromiseWhenInspectingContainerResolvesWithTtyAndContainerAttachIsPending()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
 
         $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
@@ -394,8 +364,8 @@ class ClientTest extends TestCase
 
     public function testContainerAttachReturnsPendingPromiseWhenInspectingContainerResolvesWithoutTtyAndContainerAttachRequestIsPending()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')));
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(new \React\Promise\Promise(function () { }));
 
         $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => false)));
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(new \React\Promise\Promise(function () { }));
@@ -409,8 +379,8 @@ class ClientTest extends TestCase
 
     public function testContainerAttachResolvesWhenInspectingContainerResolvesWithTtyAndContainerAttachResolvesAndContainerAttachRequestResolves()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'containers/123/attach?logs=1&stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
 
         $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->isInstanceOf('React\Stream\ReadableStreamInterface'))->willReturn(\React\Promise\resolve('output'));
@@ -424,8 +394,8 @@ class ClientTest extends TestCase
 
     public function testContainerAttachStreamReturnStreamWhenInspectingContainerResolvesWithTtyAndContainerAttachRequestResolves()
     {
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/containers/123/attach?logs=1&stream=1&stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":true}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'containers/123/attach?logs=1&stream=1&stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
 
         $response = new ThroughStream();
         $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => true)));
@@ -440,21 +410,21 @@ class ClientTest extends TestCase
 
     public function testContainerRemove()
     {
-        $this->expectRequestFlow('delete', '/containers/123', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('delete', 'containers/123', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerRemove(123, false, false));
     }
 
     public function testContainerRemoveVolumeForce()
     {
-        $this->expectRequestFlow('delete', '/containers/123?v=1&force=1', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('delete', 'containers/123?v=1&force=1', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerRemove(123, true, true));
     }
 
     public function testContainerStats()
     {
-        $this->expectRequestFlow('GET', '/containers/123/stats?stream=0', $this->createResponse(), 'expectJson');
+        $this->expectRequestFlow('GET', 'containers/123/stats?stream=0', $this->createResponse(), 'expectJson');
 
         $this->expectPromiseResolveWith('', $this->client->containerStats(123));
     }
@@ -463,7 +433,7 @@ class ClientTest extends TestCase
     {
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/containers/123/stats')->willReturn(\React\Promise\resolve($this->createResponse('')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'containers/123/stats')->willReturn(\React\Promise\resolve($this->createResponse('')));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
 
         $this->assertSame($stream, $this->client->containerStatsStream('123'));
@@ -471,7 +441,7 @@ class ClientTest extends TestCase
 
     public function testContainerResize()
     {
-        $this->expectRequestFlow('POST', '/containers/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('POST', 'containers/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->containerResize(123, 800, 600));
     }
@@ -480,7 +450,7 @@ class ClientTest extends TestCase
     {
         $data = 'tar stream';
 
-        $this->browser->expects($this->once())->method('get')->with('/containers/123/archive?path=file.txt')->willReturn(\React\Promise\resolve($this->createResponse($data)));
+        $this->browser->expects($this->once())->method('get')->with('containers/123/archive?path=file.txt')->willReturn(\React\Promise\resolve($this->createResponse($data)));
         $this->parser->expects($this->once())->method('expectPlain')->will($this->returnValue($data));
 
         $this->expectPromiseResolveWith($data, $this->client->containerArchive('123', 'file.txt'));
@@ -490,7 +460,7 @@ class ClientTest extends TestCase
     {
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', '/containers/123/archive?path=file.txt')->willReturn(\React\Promise\resolve($this->createResponse('')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'containers/123/archive?path=file.txt')->willReturn(\React\Promise\resolve($this->createResponse('')));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
 
         $this->assertSame($stream, $this->client->containerArchiveStream('123', 'file.txt'));
@@ -499,7 +469,7 @@ class ClientTest extends TestCase
     public function testImageList()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/images/json', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'images/json', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->imageList());
     }
@@ -507,7 +477,7 @@ class ClientTest extends TestCase
     public function testImageListAll()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/images/json?all=1', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'images/json?all=1', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->imageList(true));
     }
@@ -517,7 +487,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/images/create?fromImage=busybox')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'images/create?fromImage=busybox')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream))->will($this->returnPromise($json));
 
@@ -528,7 +498,7 @@ class ClientTest extends TestCase
     {
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/images/create?fromImage=busybox')->willReturn(\React\Promise\resolve($this->createResponseJsonStream(array())));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'images/create?fromImage=busybox')->willReturn(\React\Promise\resolve($this->createResponseJsonStream(array())));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
 
         $this->assertSame($stream, $this->client->imageCreateStream('busybox'));
@@ -537,7 +507,7 @@ class ClientTest extends TestCase
     public function testImageInspect()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/images/123/json', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'images/123/json', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->imageInspect('123'));
     }
@@ -545,7 +515,7 @@ class ClientTest extends TestCase
     public function testImageHistory()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/images/123/history', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'images/123/history', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->imageHistory('123'));
     }
@@ -555,7 +525,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/images/123/push')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'images/123/push')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream))->will($this->returnPromise($json));
 
@@ -566,7 +536,7 @@ class ClientTest extends TestCase
     {
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/images/123/push')->willReturn(\React\Promise\resolve($this->createResponseJsonStream(array())));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'images/123/push')->willReturn(\React\Promise\resolve($this->createResponseJsonStream(array())));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
 
         $this->assertSame($stream, $this->client->imagePushStream('123'));
@@ -579,7 +549,7 @@ class ClientTest extends TestCase
         $json = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/images/demo.acme.com%3A5000/123/push?tag=test')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'images/demo.acme.com%3A5000/123/push?tag=test')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
         $this->streamingParser->expects($this->once())->method('parseJsonStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream))->will($this->returnPromise($json));
 
@@ -588,28 +558,28 @@ class ClientTest extends TestCase
 
     public function testImageTag()
     {
-        $this->expectRequestFlow('post', '/images/123/tag?repo=test', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'images/123/tag?repo=test', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->imageTag('123', 'test'));
     }
 
     public function testImageTagNameForce()
     {
-        $this->expectRequestFlow('post', '/images/123/tag?repo=test&tag=tag&force=1', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'images/123/tag?repo=test&tag=tag&force=1', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->imageTag('123', 'test', 'tag', true));
     }
 
     public function testImageRemove()
     {
-        $this->expectRequestFlow('delete', '/images/123', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('delete', 'images/123', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->imageRemove('123'));
     }
 
     public function testImageRemoveForceNoprune()
     {
-        $this->expectRequestFlow('delete', '/images/123?force=1&noprune=1', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('delete', 'images/123?force=1&noprune=1', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->imageRemove('123', true, true));
     }
@@ -617,7 +587,7 @@ class ClientTest extends TestCase
     public function testImageSearch()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/images/search?term=clue', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'images/search?term=clue', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->imageSearch('clue'));
     }
@@ -625,7 +595,7 @@ class ClientTest extends TestCase
     public function testExecCreate()
     {
         $json = array();
-        $this->expectRequestFlow('post', '/containers/123/exec', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', 'containers/123/exec', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->execCreate(123, array('env')));
     }
@@ -633,7 +603,7 @@ class ClientTest extends TestCase
     public function testExecCreateStringCommand()
     {
         $json = array();
-        $this->expectRequestFlow('post', '/containers/123/exec', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', 'containers/123/exec', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->execCreate(123, 'env'));
     }
@@ -641,7 +611,7 @@ class ClientTest extends TestCase
     public function testExecDetached()
     {
         $body = '';
-        $this->expectRequestFlow('POST', '/exec/123/start', $this->createResponse($body), 'expectEmpty');
+        $this->expectRequestFlow('POST', 'exec/123/start', $this->createResponse($body), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->execStartDetached(123, true));
     }
@@ -652,7 +622,7 @@ class ClientTest extends TestCase
         $config = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/exec/123/start')->willReturn(\React\Promise\resolve($this->createResponse($data)));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'exec/123/start')->willReturn(\React\Promise\resolve($this->createResponse($data)));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($stream)->willReturn($stream);
         $this->streamingParser->expects($this->once())->method('bufferedStream')->with($this->equalTo($stream))->willReturn(\React\Promise\resolve($data));
@@ -665,7 +635,7 @@ class ClientTest extends TestCase
         $config = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/exec/123/start')->willReturn(\React\Promise\resolve($this->createResponse()));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'exec/123/start')->willReturn(\React\Promise\resolve($this->createResponse()));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($stream)->willReturn($stream);
 
@@ -677,7 +647,7 @@ class ClientTest extends TestCase
         $config = array('Tty' => true);
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/exec/123/start')->willReturn(\React\Promise\resolve($this->createResponse()));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'exec/123/start')->willReturn(\React\Promise\resolve($this->createResponse()));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->never())->method('demultiplexStream');
 
@@ -689,7 +659,7 @@ class ClientTest extends TestCase
         $config = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
 
-        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', '/exec/123/start')->willReturn(\React\Promise\resolve($this->createResponse()));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'exec/123/start')->willReturn(\React\Promise\resolve($this->createResponse()));
         $this->streamingParser->expects($this->once())->method('parsePlainStream')->will($this->returnValue($stream));
         $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($stream, 'stderr')->willReturn($stream);
 
@@ -698,7 +668,7 @@ class ClientTest extends TestCase
 
     public function testExecResize()
     {
-        $this->expectRequestFlow('POST', '/exec/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('POST', 'exec/123/resize?w=800&h=600', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->execResize(123, 800, 600));
     }
@@ -706,7 +676,7 @@ class ClientTest extends TestCase
     public function testExecInspect()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/exec/123/json', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'exec/123/json', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->execInspect(123));
     }
@@ -714,7 +684,7 @@ class ClientTest extends TestCase
     public function testNetworkList()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/networks', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'networks', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->networkList());
     }
@@ -722,7 +692,7 @@ class ClientTest extends TestCase
     public function testNetworkInspect()
     {
         $json = array();
-        $this->expectRequestFlow('get', '/networks/123', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('get', 'networks/123', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->networkInspect(123));
     }
@@ -730,7 +700,7 @@ class ClientTest extends TestCase
     public function testNetworkRemove()
     {
         $json = array();
-        $this->expectRequestFlow('delete', '/networks/123', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('delete', 'networks/123', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->networkRemove(123));
     }
@@ -739,7 +709,7 @@ class ClientTest extends TestCase
     {
         $json = array();
         $config = array();
-        $this->expectRequestFlow('post', '/networks/create', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', 'networks/create', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->networkCreate($config));
     }
@@ -748,7 +718,7 @@ class ClientTest extends TestCase
     {
         $json = array();
         $config = array();
-        $this->expectRequestFlow('post', '/networks/123/connect', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', 'networks/123/connect', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->networkConnect(123, $config));
     }
@@ -756,7 +726,7 @@ class ClientTest extends TestCase
     public function testNetworkDisconnect()
     {
         $json = array();
-        $this->expectRequestFlow('post', '/networks/123/disconnect', $this->createResponse(), 'expectEmpty');
+        $this->expectRequestFlow('post', 'networks/123/disconnect', $this->createResponse(), 'expectEmpty');
 
         $this->expectPromiseResolveWith('', $this->client->networkDisconnect(123, 'abc'));
     }
@@ -764,7 +734,7 @@ class ClientTest extends TestCase
     public function testNetworkPrune()
     {
         $json = array();
-        $this->expectRequestFlow('post', '/networks/prune', $this->createResponseJson($json), 'expectJson');
+        $this->expectRequestFlow('post', 'networks/prune', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->networkPrune());
     }
