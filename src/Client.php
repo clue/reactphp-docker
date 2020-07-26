@@ -2,7 +2,7 @@
 
 namespace Clue\React\Docker;
 
-use Clue\React\Buzz\Browser;
+use React\Http\Browser;
 use Clue\React\Docker\Io\ResponseParser;
 use Clue\React\Docker\Io\StreamingParser;
 use React\EventLoop\LoopInterface;

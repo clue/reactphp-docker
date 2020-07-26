@@ -18,7 +18,7 @@
     },
     "require": {
         "php": ">=5.3",
-        "clue/buzz-react": "^2.0",
+        "react/http": "dev-master",
         "clue/json-stream": "^0.1",
         "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3",
         "react/promise": "^2.0 || ^1.1",
@@ -32,5 +32,14 @@
         "clue/caret-notation": "^0.2",
         "clue/tar-react": "^0.2",
         "phpunit/phpunit": "^7.0 || ^6.0 || ^5.0 || ^4.8.35"
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "/Users/mac/Projects/oss/http",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }
