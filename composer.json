@@ -4,6 +4,8 @@
     "keywords": ["Docker", "container", "ReactPHP", "async"],
     "homepage": "https://github.com/clue/reactphp-docker",
     "license": "MIT",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "authors": [
         {
             "name": "Christian Lück",
@@ -18,7 +20,7 @@
     },
     "require": {
         "php": ">=5.3",
-        "react/http": "dev-master",
+        "react/http": "dev-writable",
         "clue/json-stream": "^0.1",
         "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3",
         "react/promise": "^2.0 || ^1.1",
