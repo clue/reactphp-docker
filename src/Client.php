@@ -1302,7 +1302,7 @@ class Client
      * @see self::execStart()
      * @see self::execStartDetached()
      */
-    public function execStartStream($exec, $tty = false, $hijack = false, $stderrEvent = null)
+    public function execStartStream($exec, $tty = false, $stderrEvent = null, $hijack = false)
     {
         if ($hijack) {
             return $this->execStartStreamUpgrade($exec, $stderrEvent);
