@@ -1333,10 +1333,9 @@ class Client
         return $stream;
     }
 
-    protected function execStartStreamUpgrade($exec, $stderrEvent = null)
+    protected function execStartStreamUpgrade($exec, $tty = false)
     {
-        return $this->browser->withOptions(array('streaming' => true, 'hijack' => true))->requestUpgrade(
-            "POST",
+        return $this->browser->withOptions(array('streaming' => true, 'upgrade' => true))->post(
             $this->uri->expand(
                 '/exec/{exec}/start',
                 array(
@@ -1349,7 +1348,7 @@ class Client
                 'Upgrade' => 'tcp',
             ),
             $this->json(array(
-                'Tty' => true
+                'Tty' => !!$tty
             ))
         );
     }
