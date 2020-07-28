@@ -2,10 +2,10 @@
 
 namespace Clue\React\Docker;
 
-use Clue\React\Buzz\Browser;
 use Clue\React\Docker\Io\ResponseParser;
 use Clue\React\Docker\Io\StreamingParser;
 use React\EventLoop\LoopInterface;
+use React\Http\Browser;
 use React\Promise\PromiseInterface;
 use React\Stream\ReadableStreamInterface;
 use Rize\UriTemplate;
@@ -70,7 +70,7 @@ class Client
      */
     public function ping()
     {
-        return $this->browser->get('/_ping')->then(array($this->parser, 'expectPlain'));
+        return $this->browser->get('_ping')->then(array($this->parser, 'expectPlain'));
     }
 
     /**
@@ -81,7 +81,7 @@ class Client
      */
     public function info()
     {
-        return $this->browser->get('/info')->then(array($this->parser, 'expectJson'));
+        return $this->browser->get('info')->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -92,7 +92,7 @@ class Client
      */
     public function version()
     {
-        return $this->browser->get('/version')->then(array($this->parser, 'expectJson'));
+        return $this->browser->get('version')->then(array($this->parser, 'expectJson'));
     }
 
     /**
@@ -161,9 +161,10 @@ class Client
     public function eventsStream($since = null, $until = null, $filters = array())
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->withOptions(array('streaming' => true))->get(
+            $this->browser->requestStreaming(
+                'GET',
                 $this->uri->expand(
-                    '/events{?since,until,filters}',
+                    'events{?since,until,filters}',
                     array(
                         'since' => $since,
                         'until' => $until,
@@ -186,7 +187,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/containers/json{?all,size}',
+                'containers/json{?all,size}',
                 array(
                     'all' => $this->boolArg($all),
                     'size' => $this->boolArg($size)
@@ -207,7 +208,7 @@ class Client
     {
         return $this->postJson(
             $this->uri->expand(
-                '/containers/create{?name}',
+                'containers/create{?name}',
                 array(
                     'name' => $name
                 )
@@ -227,7 +228,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/containers/{container}/json',
+                'containers/{container}/json',
                 array(
                     'container' => $container
                 )
@@ -247,7 +248,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/containers/{container}/top{?ps_args}',
+                'containers/{container}/top{?ps_args}',
                 array(
                     'container' => $container,
                     'ps_args' => $ps_args
@@ -338,7 +339,7 @@ class Client
         $parser = $this->streamingParser;
         $browser = $this->browser;
         $url = $this->uri->expand(
-            '/containers/{container}/logs{?follow,stdout,stderr,since,timestamps,tail}',
+            'containers/{container}/logs{?follow,stdout,stderr,since,timestamps,tail}',
             array(
                 'container' => $container,
                 'follow' => $this->boolArg($follow),
@@ -352,7 +353,7 @@ class Client
 
         // first inspect container to check TTY setting, then request logs with appropriate log parser
         return \React\Promise\Stream\unwrapReadable($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
-            $stream = $parser->parsePlainStream($browser->withOptions(array('streaming' => true))->get($url));
+            $stream = $parser->parsePlainStream($browser->requestStreaming('GET', $url));
 
             if (!$info['Config']['Tty']) {
                 $stream = $parser->demultiplexStream($stream, $stderrEvent);
@@ -373,7 +374,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/containers/{container}/changes',
+                'containers/{container}/changes',
                 array(
                     'container' => $container
                 )
@@ -405,7 +406,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/containers/{container}/export',
+                'containers/{container}/export',
                 array(
                     'container' => $container
                 )
@@ -438,9 +439,10 @@ class Client
     public function containerExportStream($container)
     {
         return $this->streamingParser->parsePlainStream(
-            $this->browser->withOptions(array('streaming' => true))->get(
+            $this->browser->requestStreaming(
+                'GET',
                 $this->uri->expand(
-                    '/containers/{container}/export',
+                    'containers/{container}/export',
                     array(
                         'container' => $container
                     )
@@ -468,7 +470,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/containers/{container}/stats{?stream}',
+                'containers/{container}/stats{?stream}',
                 array(
                     'container' => $container,
                     'stream' => 0
@@ -495,9 +497,10 @@ class Client
     public function containerStatsStream($container)
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->withOptions(array('streaming' => true))->get(
+            $this->browser->requestStreaming(
+                'GET',
                 $this->uri->expand(
-                    '/containers/{container}/stats',
+                    'containers/{container}/stats',
                     array(
                         'container' => $container
                     )
@@ -519,7 +522,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/resize{?w,h}',
+                'containers/{container}/resize{?w,h}',
                 array(
                     'container' => $container,
                     'w' => $w,
@@ -540,7 +543,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/start',
+                'containers/{container}/start',
                 array(
                     'container' => $container
                 )
@@ -560,7 +563,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/stop{?t}',
+                'containers/{container}/stop{?t}',
                 array(
                     'container' => $container,
                     't' => $t
@@ -581,7 +584,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/restart{?t}',
+                'containers/{container}/restart{?t}',
                 array(
                     'container' => $container,
                     't' => $t
@@ -602,7 +605,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/kill{?signal}',
+                'containers/{container}/kill{?signal}',
                 array(
                     'container' => $container,
                     'signal' => $signal
@@ -625,7 +628,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/rename{?name}',
+                'containers/{container}/rename{?name}',
                 array(
                     'container' => $container,
                     'name' => $name
@@ -645,7 +648,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/pause',
+                'containers/{container}/pause',
                 array(
                     'container' => $container
                 )
@@ -664,7 +667,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/unpause',
+                'containers/{container}/unpause',
                 array(
                     'container' => $container
                 )
@@ -750,7 +753,7 @@ class Client
         $parser = $this->streamingParser;
         $browser = $this->browser;
         $url = $this->uri->expand(
-            '/containers/{container}/attach{?logs,stream,stdout,stderr}',
+            'containers/{container}/attach{?logs,stream,stdout,stderr}',
             array(
                 'container' => $container,
                 'logs' => $this->boolArg($logs),
@@ -762,7 +765,7 @@ class Client
 
         // first inspect container to check TTY setting, then attach with appropriate log parser
         return \React\Promise\Stream\unwrapReadable($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
-            $stream = $parser->parsePlainStream($browser->withOptions(array('streaming' => true))->post($url));
+            $stream = $parser->parsePlainStream($browser->requestStreaming('POST', $url));
 
             if (!$info['Config']['Tty']) {
                 $stream = $parser->demultiplexStream($stream, $stderrEvent);
@@ -783,7 +786,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/containers/{container}/wait',
+                'containers/{container}/wait',
                 array(
                     'container' => $container
                 )
@@ -804,7 +807,7 @@ class Client
     {
         return $this->browser->delete(
             $this->uri->expand(
-                '/containers/{container}{?v,force}',
+                'containers/{container}{?v,force}',
                 array(
                     'container' => $container,
                     'v' => $this->boolArg($v),
@@ -841,7 +844,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/containers/{container}/archive{?path}',
+                'containers/{container}/archive{?path}',
                 array(
                     'container' => $container,
                     'path' => $path
@@ -878,9 +881,10 @@ class Client
     public function containerArchiveStream($container, $path)
     {
         return $this->streamingParser->parsePlainStream(
-            $this->browser->withOptions(array('streaming' => true))->get(
+            $this->browser->requestStreaming(
+                'GET',
                 $this->uri->expand(
-                    '/containers/{container}/archive{?path}',
+                    'containers/{container}/archive{?path}',
                     array(
                         'container' => $container,
                         'path' => $path
@@ -902,7 +906,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/images/json{?all}',
+                'images/json{?all}',
                 array(
                     'all' => $this->boolArg($all)
                 )
@@ -968,9 +972,10 @@ class Client
     public function imageCreateStream($fromImage = null, $fromSrc = null, $repo = null, $tag = null, $registry = null, $registryAuth = null)
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->withOptions(array('streaming' => true))->post(
+            $this->browser->requestStreaming(
+                'POST',
                 $this->uri->expand(
-                    '/images/create{?fromImage,fromSrc,repo,tag,registry}',
+                    'images/create{?fromImage,fromSrc,repo,tag,registry}',
                     array(
                         'fromImage' => $fromImage,
                         'fromSrc' => $fromSrc,
@@ -995,7 +1000,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/images/{image}/json',
+                'images/{image}/json',
                 array(
                     'image' => $image
                 )
@@ -1014,7 +1019,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/images/{image}/history',
+                'images/{image}/history',
                 array(
                     'image' => $image
                 )
@@ -1075,9 +1080,10 @@ class Client
     public function imagePushStream($image, $tag = null, $registry = null, $registryAuth = null)
     {
         return $this->streamingParser->parseJsonStream(
-            $this->browser->withOptions(array('streaming' => true))->post(
+            $this->browser->requestStreaming(
+                'POST',
                 $this->uri->expand(
-                    '/images{/registry}/{image}/push{?tag}',
+                    'images{/registry}/{image}/push{?tag}',
                     array(
                         'registry' => $registry,
                         'image' => $image,
@@ -1103,7 +1109,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/images/{image}/tag{?repo,tag,force}',
+                'images/{image}/tag{?repo,tag,force}',
                 array(
                     'image' => $image,
                     'repo' => $repo,
@@ -1127,7 +1133,7 @@ class Client
     {
         return $this->browser->delete(
             $this->uri->expand(
-                '/images/{image}{?force,noprune}',
+                'images/{image}{?force,noprune}',
                 array(
                     'image' => $image,
                     'force' => $this->boolArg($force),
@@ -1148,7 +1154,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/images/search{?term}',
+                'images/search{?term}',
                 array(
                     'term' => $term
                 )
@@ -1200,7 +1206,7 @@ class Client
 
         return $this->postJson(
             $this->uri->expand(
-                '/containers/{container}/exec',
+                'containers/{container}/exec',
                 array(
                     'container' => $container
                 )
@@ -1260,7 +1266,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/exec/{exec}/start',
+                'exec/{exec}/start',
                 array(
                     'exec' => $exec
                 )
@@ -1303,9 +1309,10 @@ class Client
     public function execStartStream($exec, $tty = false, $stderrEvent = null)
     {
         $stream = $this->streamingParser->parsePlainStream(
-            $this->browser->withOptions(array('streaming' => true))->post(
+            $this->browser->requestStreaming(
+                'POST',
                 $this->uri->expand(
-                    '/exec/{exec}/start',
+                    'exec/{exec}/start',
                     array(
                         'exec' => $exec
                     )
@@ -1342,7 +1349,7 @@ class Client
     {
         return $this->browser->post(
             $this->uri->expand(
-                '/exec/{exec}/resize{?w,h}',
+                'exec/{exec}/resize{?w,h}',
                 array(
                     'exec' => $exec,
                     'w' => $w,
@@ -1365,7 +1372,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/exec/{exec}/json',
+                'exec/{exec}/json',
                 array(
                     'exec' => $exec
                 )
@@ -1383,7 +1390,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/networks',
+                'networks',
                 array()
             )
         )->then(array($this->parser, 'expectJson'));
@@ -1401,7 +1408,7 @@ class Client
     {
         return $this->browser->get(
             $this->uri->expand(
-                '/networks/{network}',
+                'networks/{network}',
                 array(
                     'network' => $network
                 )
@@ -1421,7 +1428,7 @@ class Client
     {
         return $this->browser->delete(
             $this->uri->expand(
-                '/networks/{network}',
+                'networks/{network}',
                 array(
                     'network' => $network
                 )
@@ -1444,7 +1451,7 @@ class Client
 
         return $this->postJson(
             $this->uri->expand(
-                '/networks/create'
+                'networks/create'
             ),
             $config
         )->then(array($this->parser, 'expectJson'));
@@ -1464,7 +1471,7 @@ class Client
     {
         return $this->postJson(
             $this->uri->expand(
-                '/networks/{network}/connect',
+                'networks/{network}/connect',
                 array(
                     'network' => $network
                 )
@@ -1490,7 +1497,7 @@ class Client
     {
         return $this->postJson(
             $this->uri->expand(
-                '/networks/{network}/disconnect',
+                'networks/{network}/disconnect',
                 array(
                     'network' => $network
                 )
@@ -1512,7 +1519,7 @@ class Client
     {
         return $this->postJson(
             $this->uri->expand(
-                '/networks/prune',
+                'networks/prune',
                 array()
             ),
             array()
