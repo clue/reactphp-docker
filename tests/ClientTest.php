@@ -17,7 +17,10 @@ class ClientTest extends TestCase
     private $streamingParser;
     private $client;
 
-    public function setUp()
+    /**
+     * @before
+     */
+    public function setUpClient()
     {
         $this->loop = $this->getMockBuilder('React\EventLoop\LoopInterface')->getMock();
         $this->browser = $this->getMockBuilder('React\Http\Browser')->disableOriginalConstructor()->getMock();
@@ -48,11 +51,9 @@ class ClientTest extends TestCase
         new Client($this->loop);
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testCtorWithInvalidUrlThrows()
     {
+        $this->setExpectedException('InvalidArgumentException');
         new Client($this->loop, 'ftp://invalid');
     }
 

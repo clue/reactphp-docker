@@ -11,7 +11,10 @@ class FunctionalClientTest extends TestCase
 {
     private $client;
 
-    public function setUp()
+    /**
+     * @before
+     */
+    public function setUpClient()
     {
         $this->loop = LoopFactory::create();
         $this->client = new Client($this->loop);
@@ -349,12 +352,10 @@ class FunctionalClientTest extends TestCase
         $this->assertEquals('', $ret);
     }
 
-    /**
-     * @expectedException RuntimeException
-     */
     public function testContainerRemoveInvalid()
     {
         $promise = $this->client->containerRemove('invalid123');
+        $this->setExpectedException('RuntimeException');
         Block\await($promise, $this->loop);
     }
 

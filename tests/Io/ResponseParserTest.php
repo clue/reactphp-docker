@@ -10,7 +10,10 @@ class ResponseParserTest extends TestCase
 {
     private $parser;
 
-    public function setUp()
+    /**
+     * @before
+     */
+    public function setUpParser()
     {
         $this->parser = new ResponseParser();
     }
