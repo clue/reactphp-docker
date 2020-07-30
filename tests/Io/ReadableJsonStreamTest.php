@@ -11,7 +11,10 @@ class ReadableJsonStreamTest extends TestCase
     private $stream;
     private $parser;
 
-    public function setUp()
+    /**
+     * @before
+     */
+    public function setUpParser()
     {
         $this->stream = new ThroughStream();
         $this->parser = new ReadableJsonStream($this->stream);
