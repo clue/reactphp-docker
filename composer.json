@@ -31,6 +31,6 @@
         "clue/block-react": "^1.0 || ^0.3",
         "clue/caret-notation": "^0.2",
         "clue/tar-react": "^0.2",
-        "phpunit/phpunit": "^9.0 || ^5.7 || ^4.8.35"
+        "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
     }
 }
