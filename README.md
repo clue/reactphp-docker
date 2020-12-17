@@ -1,4 +1,6 @@
-# clue/reactphp-docker [![Build Status](https://travis-ci.org/clue/reactphp-docker.svg?branch=master)](https://travis-ci.org/clue/reactphp-docker)
+# clue/reactphp-docker
+
+[![CI status](https://github.com/clue/reactphp-docker/workflows/CI/badge.svg)](https://github.com/clue/reactphp-docker/actions)
 
 Async, event-driven access to the [Docker Engine API](https://docs.docker.com/develop/sdk/), built on top of [ReactPHP](https://reactphp.org/).
 
@@ -363,7 +365,7 @@ $ composer require clue/docker-react:^1.2
 ```
 
 This project aims to run on any platform and thus does not require any PHP
-extensions and supports running on legacy PHP 5.3 through current PHP 7+.
+extensions and supports running on legacy PHP 5.3 through current PHP 8+.
 It's *highly recommended to use PHP 7+* for this project.
 
 ## Tests
