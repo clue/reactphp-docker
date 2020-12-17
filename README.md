@@ -1,4 +1,6 @@
-# clue/reactphp-docker [![Build Status](https://travis-ci.org/clue/reactphp-docker.svg?branch=master)](https://travis-ci.org/clue/reactphp-docker)
+# clue/reactphp-docker
+
+[![CI status](https://github.com/clue/reactphp-docker/workflows/CI/badge.svg)](https://github.com/clue/reactphp-docker/actions)
 
 Async, event-driven access to the [Docker Engine API](https://docs.docker.com/develop/sdk/), built on top of [ReactPHP](https://reactphp.org/).
 
