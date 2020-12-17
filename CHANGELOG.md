@@ -1,5 +1,14 @@
 # Changelog
 
+# 1.3.0 (2020-12-17)
+
+*   Feature: Update to reactphp/http v1.0.0.
+    (#64 by @clue)
+
+*   Improve test suite and add `.gitattributes` to exclude dev files from exports.
+    Add PHP 8 support, update to PHPUnit 9 and simplify test setup.
+    (#62, #65, #66 and #67 by @SimonFrings)
+
 ## 1.2.0 (2020-03-31)
 
 *   Feature: Add `containerAttach()` and `containerAttachStream()` API methods.

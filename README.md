@@ -23,22 +23,33 @@ its event-driven model to react to changes and events happening.
   and does not get in your way.
   This library is merely a very thin wrapper around the [Docker Engine API](https://docs.docker.com/develop/sdk/).
 * **Good test coverage** -
-  Comes with an automated tests suite and is regularly tested in the *real world*
+  Comes with an automated tests suite and is regularly tested in the *real world*.
 
 **Table of contents**
 
+* [Support us](#support-us)
 * [Quickstart example](#quickstart-example)
 * [Usage](#usage)
-  * [Client](#client)
-    * [Commands](#commands)
-    * [Promises](#promises)
-    * [Blocking](#blocking)
-    * [Command streaming](#command-streaming)
-    * [TAR streaming](#tar-streaming)
-    * [JSON streaming](#json-streaming)
+    * [Client](#client)
+        * [Commands](#commands)
+        * [Promises](#promises)
+        * [Blocking](#blocking)
+        * [Command streaming](#command-streaming)
+        * [TAR streaming](#tar-streaming)
+        * [JSON streaming](#json-streaming)
 * [Install](#install)
 * [Tests](#tests)
 * [License](#license)
+
+## Support us
+
+We invest a lot of time developing, maintaining and updating our awesome
+open-source projects. You can help us sustain this high-quality of our work by
+[becoming a sponsor on GitHub](https://github.com/sponsors/clue). Sponsors get
+numerous benefits in return, see our [sponsoring page](https://github.com/sponsors/clue)
+for details.
+
+Let's take these projects to the next level together! 🚀
 
 ## Quickstart example
 
@@ -354,15 +365,17 @@ See also the [pull example](examples/pull.php) and the [push example](examples/p
 
 ## Install
 
-The recommended way to install this library is [through Composer](https://getcomposer.org).
-[New to composer?](https://getcomposer.org/doc/00-intro.md)
+The recommended way to install this library is [through Composer](https://getcomposer.org/).
+[New to Composer?](https://getcomposer.org/doc/00-intro.md)
 
 This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-$ composer require clue/docker-react:^1.2
+$ composer require clue/docker-react:^1.3
 ```
+
+See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.
 
 This project aims to run on any platform and thus does not require any PHP
 extensions and supports running on legacy PHP 5.3 through current PHP 8+.
@@ -371,7 +384,7 @@ It's *highly recommended to use PHP 7+* for this project.
 ## Tests
 
 To run the test suite, you first need to clone this repo and then install all
-dependencies [through Composer](https://getcomposer.org):
+dependencies [through Composer](https://getcomposer.org/):
 
 ```bash
 $ composer install
