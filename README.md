@@ -365,7 +365,7 @@ $ composer require clue/docker-react:^1.2
 ```
 
 This project aims to run on any platform and thus does not require any PHP
-extensions and supports running on legacy PHP 5.3 through current PHP 7+.
+extensions and supports running on legacy PHP 5.3 through current PHP 8+.
 It's *highly recommended to use PHP 7+* for this project.
 
 ## Tests
