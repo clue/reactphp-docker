@@ -7,6 +7,7 @@ use Clue\React\Docker\Io\StreamingParser;
 use React\EventLoop\LoopInterface;
 use React\Http\Browser;
 use React\Promise\PromiseInterface;
+use React\Socket\ConnectionInterface;
 use React\Stream\ReadableStreamInterface;
 use Rize\UriTemplate;
 
@@ -1300,14 +1301,19 @@ class Client
      *
      * @param string  $exec        exec ID
      * @param boolean $tty         tty mode
+     * @param boolean $hijack      hijack tcp connection
      * @param string  $stderrEvent custom event to emit for STDERR data (otherwise emits as "data")
-     * @return ReadableStreamInterface stream of exec data
+     * @return ReadableStreamInterface|PromiseInterface<ConnectionInterface> Readable stream of exec data or Hijacked Connection in TTY mode
      * @link https://docs.docker.com/engine/api/v1.40/#operation/ExecStart
      * @see self::execStart()
      * @see self::execStartDetached()
      */
-    public function execStartStream($exec, $tty = false, $stderrEvent = null)
+    public function execStartStream($exec, $tty = false, $stderrEvent = null, $hijack = false)
     {
+        if ($hijack) {
+            return $this->execStartStreamUpgrade($exec, $stderrEvent);
+        }
+
         $stream = $this->streamingParser->parsePlainStream(
             $this->browser->requestStreaming(
                 'POST',
@@ -1332,6 +1338,26 @@ class Client
         }
 
         return $stream;
+    }
+
+    protected function execStartStreamUpgrade($exec, $tty = false)
+    {
+        return $this->browser->withOptions(array('streaming' => true, 'upgrade' => true))->post(
+            $this->uri->expand(
+                '/exec/{exec}/start',
+                array(
+                    'exec' => $exec
+                )
+            ),
+            array(
+                'Content-Type' => 'application/json',
+                'Connection' => 'Upgrade',
+                'Upgrade' => 'tcp',
+            ),
+            $this->json(array(
+                'Tty' => !!$tty
+            ))
+        );
     }
 
     /**
