@@ -58,14 +58,11 @@ Once [installed](#install), you can use the following code to access the
 Docker API of your local docker daemon:
 
 ```php
-$loop = React\EventLoop\Factory::create();
-$client = new Clue\React\Docker\Client($loop);
+$client = new Clue\React\Docker\Client();
 
 $client->imageSearch('clue')->then(function (array $images) {
     var_dump($images);
 });
-
-$loop->run();
 ```
 
 See also the [examples](examples).
@@ -75,23 +72,26 @@ See also the [examples](examples).
 ### Client
 
 The `Client` is responsible for assembling and sending HTTP requests to the Docker Engine API.
-It uses an HTTP client bound to the main [`EventLoop`](https://github.com/reactphp/event-loop#usage)
-in order to handle async requests:
 
 ```php
-$loop = React\EventLoop\Factory::create();
-$client = new Clue\React\Docker\Client($loop);
+$client = new Clue\React\Docker\Client();
 ```
+
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
 
 If your Docker Engine API is not accessible using the default `unix:///var/run/docker.sock`
 Unix domain socket path, you may optionally pass an explicit URL like this:
 
-```
+```php
 // explicitly use given UNIX socket path
-$client = new Clue\React\Docker\Client($loop, 'unix:///var/run/docker.sock');
+$client = new Clue\React\Docker\Client(null, 'unix:///var/run/docker.sock');
 
 // or connect via TCP/IP to a remote Docker Engine API
-$client = new Clue\React\Docker\Client($loop, 'http://10.0.0.2:8000/');
+$client = new Clue\React\Docker\Client(null, 'http://10.0.0.2:8000/');
 ```
 
 #### Commands
@@ -154,13 +154,12 @@ The resulting blocking code could look something like this:
 ```php
 use Clue\React\Block;
 
-$loop = React\EventLoop\Factory::create();
-$client = new Clue\React\Docker\Client($loop);
+$client = new Clue\React\Docker\Client();
 
 $promise = $client->imageInspect('busybox');
 
 try {
-    $results = Block\await($promise, $loop);
+    $results = Block\await($promise, Loop::get());
     // resporesults successfully received
 } catch (Exception $e) {
     // an error occured while performing the request
@@ -175,7 +174,7 @@ $promises = array(
     $client->imageInspect('ubuntu'),
 );
 
-$inspections = Block\awaitAll($promises, $loop);
+$inspections = Block\awaitAll($promises, Loop::get());
 ```
 
 Please refer to [clue/reactphp-block](https://github.com/clue/reactphp-block#readme) for more details.

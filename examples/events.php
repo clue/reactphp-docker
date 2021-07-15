@@ -7,8 +7,7 @@ use Clue\React\Docker\Client;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 // get a list of all events that happened up until this point
 // expect this list to be limited to the last 64 (or so) events
@@ -25,5 +24,3 @@ $stream->on('data', function ($event) {
 });
 
 $stream->on('error', 'printf');
-
-$loop->run();

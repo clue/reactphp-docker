@@ -29,8 +29,7 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     $stream = $client->execStartStream($info['Id'], true);
@@ -50,5 +49,3 @@ $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
         echo 'Received ' . $bytes . ' bytes in ' . round($time, 1) . 's => ' . round($bytes / $time / 1000000, 1) . ' MB/s' . PHP_EOL;
     });
 }, 'printf');
-
-$loop->run();

@@ -9,8 +9,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $client->containerInspect($container)->then(function ($info) use ($client, $container) {
     $size = $info['HostConfig']['ConsoleSize'];
@@ -21,6 +20,3 @@ $client->containerInspect($container)->then(function ($info) use ($client, $cont
 })->then(function () use ($client) {
     echo 'Successfully set' . PHP_EOL;
 }, 'printf');
-
-
-$loop->run();

@@ -15,8 +15,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $container = isset($argv[1]) ? $argv[1] : 'foo';
 echo 'Dumping logs (last 100 lines) of container "' . $container . '" (pass as argument to this example)' . PHP_EOL;
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $client->containerLogs($container, false, true, true, 0, false, 100)->then(
     function ($logs) {
@@ -40,5 +39,3 @@ $error
 EOT;
     }
 );
-
-$loop->run();

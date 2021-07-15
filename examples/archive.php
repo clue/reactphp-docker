@@ -15,8 +15,7 @@ $container = isset($argv[1]) ? $argv[1] : 'asd';
 $path = isset($argv[2]) ? $argv[2] : '/etc/passwd';
 echo 'Container "' . $container . '" dumping "' . $path . '" (pass as arguments to this example)' . PHP_EOL;
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $stream = $client->containerArchiveStream($container, $path);
 
@@ -43,5 +42,3 @@ $stream->on('error', function ($e = null) {
 });
 
 $stream->pipe($tar);
-
-$loop->run();

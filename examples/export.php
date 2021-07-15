@@ -16,8 +16,7 @@ $container = isset($argv[1]) ? $argv[1] : 'asd';
 $target = isset($argv[2]) ? $argv[2] : ($container . '.tar');
 echo 'Exporting whole container "' . $container . '" to "' . $target .'" (pass as arguments to this example)' . PHP_EOL;
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $stream = $client->containerExportStream($container);
 
@@ -26,7 +25,5 @@ $stream->on('error', function ($e = null) {
     echo 'ERROR requesting stream' . PHP_EOL . $e;
 });
 
-$out = new WritableResourceStream(fopen($target, 'w'), $loop);
+$out = new WritableResourceStream(fopen($target, 'w'));
 $stream->pipe($out);
-
-$loop->run();
