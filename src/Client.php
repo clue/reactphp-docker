@@ -7,6 +7,8 @@ use Clue\React\Docker\Io\StreamingParser;
 use React\EventLoop\LoopInterface;
 use React\Http\Browser;
 use React\Promise\PromiseInterface;
+use React\Socket\FixedUriConnector;
+use React\Socket\UnixConnector;
 use React\Stream\ReadableStreamInterface;
 use Rize\UriTemplate;
 
@@ -31,23 +33,44 @@ class Client
     private $streamingParser;
     private $uri;
 
-    public function __construct(LoopInterface $loop, $url = null)
+    /**
+     *
+     * This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+     * pass the event loop instance to use for this object. You can use a `null` value
+     * here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+     * This value SHOULD NOT be given unless you're sure you want to explicitly use a
+     * given event loop instance.
+     *
+     * If your Docker Engine API is not accessible using the default `unix:///var/run/docker.sock`
+     * Unix domain socket path, you may optionally pass an explicit URL like this:
+     *
+     * ```php
+     * // explicitly use given UNIX socket path
+     * $client = new Clue\React\Docker\Client(null, 'unix:///var/run/docker.sock');
+     *
+     * // or connect via TCP/IP to a remote Docker Engine API
+     * $client = new Clue\React\Docker\Client(null, 'http://10.0.0.2:8000/');
+     * ```
+     *
+     * @param ?LoopInterface $loop
+     * @param ?string        $url
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(LoopInterface $loop = null, $url = null)
     {
         if ($url === null) {
             $url = 'unix:///var/run/docker.sock';
         }
 
-        $browser = new Browser($loop);
-
+        $connector = null;
         if (substr($url, 0, 7) === 'unix://') {
             // send everything through a local unix domain socket
-            $connector = new \React\Socket\FixedUriConnector(
+            $connector = new FixedUriConnector(
                 $url,
-                new \React\Socket\UnixConnector($loop)
+                new UnixConnector($loop)
             );
 
             // pretend all HTTP URLs to be on localhost
-            $browser = new Browser($loop, $connector);
             $url = 'http://localhost/';
         }
 
@@ -56,6 +79,7 @@ class Client
             throw new \InvalidArgumentException('Invalid Docker Engine API URL given');
         }
 
+        $browser = new Browser($loop, $connector);
         $this->browser = $browser->withBase($url);
         $this->parser = new ResponseParser();
         $this->streamingParser = new StreamingParser();

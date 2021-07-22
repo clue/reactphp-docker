@@ -10,8 +10,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 echo 'Monitoring "' . $container . '" (pass as argument to this example)' . PHP_EOL;
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $stream = $client->containerStatsStream($container);
 
@@ -31,5 +30,3 @@ $stream->on('error', 'printf');
 $stream->on('close', function () {
     echo 'stream closed' . PHP_EOL;
 });
-
-$loop->run();

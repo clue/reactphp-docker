@@ -10,8 +10,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $image = isset($argv[1]) ? $argv[1] : 'clue/redis-benchmark';
 echo 'Pulling image "' . $image . '" (pass as argument to this example)' . PHP_EOL;
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $stream = $client->imageCreateStream($image);
 
@@ -22,5 +21,3 @@ $stream->on('data', function ($progress) {
 $stream->on('close', function () {
     echo 'stream closed' . PHP_EOL;
 });
-
-$loop->run();

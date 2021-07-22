@@ -11,8 +11,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 echo 'Dumping logs (last 100 lines) of container "' . $container . '" (pass as argument to this example)' . PHP_EOL;
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 // use caret notation for any control characters except \t, \r and \n
 $caret = new Encoder("\t\r\n");
@@ -30,5 +29,3 @@ $stream->on('error', function ($e = null) {
 $stream->on('close', function ($e = null) {
     echo 'CLOSED' . PHP_EOL . $e;
 });
-
-$loop->run();

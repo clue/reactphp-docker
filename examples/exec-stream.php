@@ -4,6 +4,7 @@
 // displays the streaming output as it happens.
 
 use Clue\React\Docker\Client;
+use React\EventLoop\Loop;
 use React\Stream\WritableResourceStream;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -23,11 +24,10 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
-$out = new WritableResourceStream(STDOUT, $loop);
-$stderr = new WritableResourceStream(STDERR, $loop);
+$out = new WritableResourceStream(STDOUT);
+$stderr = new WritableResourceStream(STDERR);
 
 // unkown exit code by default
 $exit = 1;
@@ -56,6 +56,6 @@ $client->execCreate($container, $cmd)->then(function ($info) use ($client, $out,
     });
 }, 'printf');
 
-$loop->run();
+Loop::run();
 
 exit($exit);

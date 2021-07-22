@@ -10,7 +10,6 @@ use RingCentral\Psr7\Response;
 
 class ClientTest extends TestCase
 {
-    private $loop;
     private $browser;
 
     private $parser;
@@ -22,13 +21,12 @@ class ClientTest extends TestCase
      */
     public function setUpClient()
     {
-        $this->loop = $this->getMockBuilder('React\EventLoop\LoopInterface')->getMock();
         $this->browser = $this->getMockBuilder('React\Http\Browser')->disableOriginalConstructor()->getMock();
 
         $this->parser = $this->getMockBuilder('Clue\React\Docker\Io\ResponseParser')->getMock();
         $this->streamingParser = $this->getMockBuilder('Clue\React\Docker\Io\StreamingParser')->getMock();
 
-        $this->client = new Client($this->loop);
+        $this->client = new Client();
 
         $ref = new \ReflectionProperty($this->client, 'browser');
         $ref->setAccessible(true);
@@ -46,15 +44,25 @@ class ClientTest extends TestCase
     /**
      * @doesNotPerformAssertions
      */
-    public function testCtor()
+    public function testCtorWithoutLoop()
     {
-        new Client($this->loop);
+        new Client();
+    }
+
+    /**
+     * @doesNotPerformAssertions
+     */
+    public function testCtorWithLoop()
+    {
+        $loop = $this->getMockBuilder('React\EventLoop\LoopInterface')->getMock();
+
+        new Client($loop);
     }
 
     public function testCtorWithInvalidUrlThrows()
     {
         $this->setExpectedException('InvalidArgumentException');
-        new Client($this->loop, 'ftp://invalid');
+        new Client(null, 'ftp://invalid');
     }
 
     public function testPing()

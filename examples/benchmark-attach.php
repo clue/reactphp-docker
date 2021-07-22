@@ -11,6 +11,7 @@
 // $ docker run -i --rm --log-driver=none busybox dd if=/dev/zero bs=1M count=1000 status=none | dd of=/dev/null
 
 use Clue\React\Docker\Client;
+use React\EventLoop\Loop;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -26,8 +27,7 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $client->containerCreate(array(
     'Image' => $image,
@@ -38,11 +38,11 @@ $client->containerCreate(array(
             'Type' => 'none'
         )
     )
-))->then(function ($container) use ($client, $loop) {
+))->then(function ($container) use ($client) {
     $stream = $client->containerAttachStream($container['Id'], false, true);
 
     // we're creating the container without a log, so first wait for attach stream before starting
-    $loop->addTimer(0.1, function () use ($client, $container) {
+    Loop::addTimer(0.1, function () use ($client, $container) {
         $client->containerStart($container['Id'])->then(null, 'printf');
     });
 
@@ -62,5 +62,3 @@ $client->containerCreate(array(
         echo 'Received ' . $bytes . ' bytes in ' . round($time, 1) . 's => ' . round($bytes / $time / 1000000, 1) . ' MB/s' . PHP_EOL;
     });
 }, 'printf');
-
-$loop->run();

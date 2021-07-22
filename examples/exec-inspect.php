@@ -18,8 +18,7 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$loop = React\EventLoop\Factory::create();
-$client = new Client($loop);
+$client = new Client();
 
 $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     echo 'Created with info: ' . json_encode($info) . PHP_EOL;
@@ -43,5 +42,3 @@ $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
         echo 'Response: ' . $e->getResponse()->getBody() . PHP_EOL;
     }
 });
-
-$loop->run();
