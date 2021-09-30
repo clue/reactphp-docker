@@ -4,27 +4,22 @@
 // how it can be passed to a TAR decoder and how we can then pipe each
 // individual file to the console output.
 
-use Clue\CaretNotation\Encoder;
-use Clue\React\Docker\Client;
-use Clue\React\Tar\Decoder;
-use React\Stream\ReadableStreamInterface;
-
 require __DIR__ . '/../vendor/autoload.php';
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 $path = isset($argv[2]) ? $argv[2] : '/etc/passwd';
 echo 'Container "' . $container . '" dumping "' . $path . '" (pass as arguments to this example)' . PHP_EOL;
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 $stream = $client->containerArchiveStream($container, $path);
 
-$tar = new Decoder();
+$tar = new Clue\React\Tar\Decoder();
 
 // use caret notation for any control characters except \t, \r and \n
-$caret = new Encoder("\t\r\n");
+$caret = new Clue\CaretNotation\Encoder("\t\r\n");
 
-$tar->on('entry', function ($header, ReadableStreamInterface $file) use ($caret) {
+$tar->on('entry', function ($header, React\Stream\ReadableStreamInterface $file) use ($caret) {
     // write each entry to the console output
     echo '########## ' . $caret->encode($header['filename']) . ' ##########' . PHP_EOL;
     $file->on('data', function ($chunk) use ($caret) {

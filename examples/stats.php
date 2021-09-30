@@ -3,14 +3,12 @@
 // this example shows how the `containerStatsStream()` method can be used show live container stats.
 // demonstrates the JSON streaming API, individual stats events will be printed as they happen.
 
-use Clue\React\Docker\Client;
-
 require __DIR__ . '/../vendor/autoload.php';
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 echo 'Monitoring "' . $container . '" (pass as argument to this example)' . PHP_EOL;
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 $stream = $client->containerStatsStream($container);
 

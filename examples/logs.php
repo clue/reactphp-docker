@@ -15,14 +15,14 @@ require __DIR__ . '/../vendor/autoload.php';
 $container = isset($argv[1]) ? $argv[1] : 'foo';
 echo 'Dumping logs (last 100 lines) of container "' . $container . '" (pass as argument to this example)' . PHP_EOL;
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 $client->containerLogs($container, false, true, true, 0, false, 100)->then(
     function ($logs) {
         echo 'Received the following logs:' . PHP_EOL;
 
         // escape control characters (dumping logs of vi/nano etc.)
-        $caret = new Encoder("\t\r\n");
+        $caret = new Clue\CaretNotation\Encoder("\t\r\n");
         echo $caret->encode($logs);
     },
     function ($error) use ($container) {

@@ -79,7 +79,7 @@ class Client
             throw new \InvalidArgumentException('Invalid Docker Engine API URL given');
         }
 
-        $browser = new Browser($loop, $connector);
+        $browser = new Browser($connector, $loop);
         $this->browser = $browser->withBase($url);
         $this->parser = new ResponseParser();
         $this->streamingParser = new StreamingParser();

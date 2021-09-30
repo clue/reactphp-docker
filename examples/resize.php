@@ -3,13 +3,11 @@
 // this example tries to adjust the TTY size of the given container to 10x10.
 // you can check this via "docker logs".
 
-use Clue\React\Docker\Client;
-
 require __DIR__ . '/../vendor/autoload.php';
 
 $container = isset($argv[1]) ? $argv[1] : 'asd';
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 $client->containerInspect($container)->then(function ($info) use ($client, $container) {
     $size = $info['HostConfig']['ConsoleSize'];

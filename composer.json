@@ -20,10 +20,10 @@
         "php": ">=5.3",
         "clue/json-stream": "^0.1",
         "react/event-loop": "^1.2",
-        "react/http": "^1.4",
+        "react/http": "^1.5",
         "react/promise": "^2.0 || ^1.1",
         "react/promise-stream": "^1.0",
-        "react/socket": "^1.8",
+        "react/socket": "^1.9",
         "react/stream": "^1.2",
         "rize/uri-template": "^0.3"
     },

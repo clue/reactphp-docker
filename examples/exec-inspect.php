@@ -2,9 +2,6 @@
 
 // this simple example executes a "sleep 2" within the given running container
 
-use Clue\React\Buzz\Message\ResponseException;
-use Clue\React\Docker\Client;
-
 require __DIR__ . '/../vendor/autoload.php';
 
 $container = 'asd';
@@ -18,7 +15,7 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     echo 'Created with info: ' . json_encode($info) . PHP_EOL;
@@ -38,7 +35,7 @@ $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
 }, function (Exception $e) {
     echo 'ERROR: ' . $e->getMessage() . PHP_EOL;
 
-    if ($e instanceof ResponseException) {
+    if ($e instanceof React\Http\Message\ResponseException) {
         echo 'Response: ' . $e->getResponse()->getBody() . PHP_EOL;
     }
 });

@@ -6,18 +6,15 @@
 // $ docker run -it --rm --name=foo busybox sh
 // $ php examples/attach-stream.php foo
 
-use Clue\CaretNotation\Encoder;
-use Clue\React\Docker\Client;
-
 require __DIR__ . '/../vendor/autoload.php';
 
 $container = isset($argv[1]) ? $argv[1] : 'foo';
 echo 'Dumping output of container "' . $container . '" (pass as argument to this example)' . PHP_EOL;
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 // use caret notation for any control characters except \t, \r and \n
-$caret = new Encoder("\t\r\n");
+$caret = new Clue\CaretNotation\Encoder("\t\r\n");
 
 $stream = $client->containerAttachStream($container, true, true);
 $stream->on('data', function ($data) use ($caret) {
