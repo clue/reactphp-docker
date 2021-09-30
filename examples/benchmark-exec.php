@@ -13,7 +13,6 @@
 //
 // $ docker exec foo dd if=/dev/zero bs=1M count=1000 | dd of=/dev/null
 
-use Clue\React\Docker\Client;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -29,7 +28,7 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     $stream = $client->execStartStream($info['Id'], true);

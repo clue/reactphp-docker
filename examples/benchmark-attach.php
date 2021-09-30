@@ -10,7 +10,6 @@
 //
 // $ docker run -i --rm --log-driver=none busybox dd if=/dev/zero bs=1M count=1000 status=none | dd of=/dev/null
 
-use Clue\React\Docker\Client;
 use React\EventLoop\Loop;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -27,7 +26,7 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 $client->containerCreate(array(
     'Image' => $image,

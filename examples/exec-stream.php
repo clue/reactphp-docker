@@ -3,9 +3,7 @@
 // this example executes some commands within the given running container and
 // displays the streaming output as it happens.
 
-use Clue\React\Docker\Client;
 use React\EventLoop\Loop;
-use React\Stream\WritableResourceStream;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -24,10 +22,10 @@ if (isset($argv[1])) {
     $cmd = array_slice($argv, 2);
 }
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
-$out = new WritableResourceStream(STDOUT);
-$stderr = new WritableResourceStream(STDERR);
+$out = new React\Stream\WritableResourceStream(STDOUT);
+$stderr = new React\Stream\WritableResourceStream(STDERR);
 
 // unkown exit code by default
 $exit = 1;

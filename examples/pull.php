@@ -3,14 +3,12 @@
 // this example shows how the imageCreateStream() call can be used to pull a given image.
 // demonstrates the JSON streaming API, individual progress events will be printed as they happen.
 
-use Clue\React\Docker\Client;
-
 require __DIR__ . '/../vendor/autoload.php';
 
 $image = isset($argv[1]) ? $argv[1] : 'clue/redis-benchmark';
 echo 'Pulling image "' . $image . '" (pass as argument to this example)' . PHP_EOL;
 
-$client = new Client();
+$client = new Clue\React\Docker\Client();
 
 $stream = $client->imageCreateStream($image);
 
