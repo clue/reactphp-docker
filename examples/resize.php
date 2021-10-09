@@ -17,4 +17,6 @@ $client->containerInspect($container)->then(function ($info) use ($client, $cont
     return $client->containerResize($container, $size[0] + 10, $size[1] + 10);
 })->then(function () use ($client) {
     echo 'Successfully set' . PHP_EOL;
-}, 'printf');
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});

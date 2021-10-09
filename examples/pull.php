@@ -16,6 +16,10 @@ $stream->on('data', function ($progress) {
     echo 'progress: '. json_encode($progress) . PHP_EOL;
 });
 
+$stream->on('error', function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});
+
 $stream->on('close', function () {
     echo 'stream closed' . PHP_EOL;
 });

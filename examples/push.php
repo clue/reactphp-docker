@@ -13,4 +13,6 @@ $client = new Clue\React\Docker\Client();
 
 $client->imagePush($image, null, null, $auth)->then(function ($result) {
     echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
-}, 'printf');
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});

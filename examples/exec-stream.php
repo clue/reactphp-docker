@@ -44,15 +44,21 @@ $client->execCreate($container, $cmd)->then(function ($info) use ($client, $out,
         }
     });
 
-    $stream->on('error', 'printf');
+    $stream->on('error', function (Exception $e) {
+        echo 'Error: ' . $e->getMessage() . PHP_EOL;
+    });
 
     // remember exit code of executed command once it closes
     $stream->on('close', function () use ($client, $info, &$exit) {
         $client->execInspect($info['Id'])->then(function ($info) use (&$exit) {
             $exit = $info['ExitCode'];
-        }, 'printf');
+        }, function (Exception $e) {
+            echo 'Error: ' . $e->getMessage() . PHP_EOL;
+        });
     });
-}, 'printf');
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});
 
 Loop::run();
 

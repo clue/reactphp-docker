@@ -66,6 +66,8 @@ $client = new Clue\React\Docker\Client();
 
 $client->imageSearch('clue')->then(function (array $images) {
     var_dump($images);
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
 });
 ```
 
@@ -131,15 +133,17 @@ Please see the following section about [promises](#promises) for more details.
 
 Sending requests is async (non-blocking), so you can actually send multiple requests in parallel.
 Docker will respond to each request with a response message, the order is not guaranteed.
-Sending requests uses a [Promise](https://github.com/reactphp/promise)-based interface that makes it easy to react to when a request is fulfilled (i.e. either successfully resolved or rejected with an error):
+Sending requests uses a [Promise](https://github.com/reactphp/promise)-based
+interface that makes it easy to react to when a command is completed
+(i.e. either successfully fulfilled or rejected with an error):
 
 ```php
 $client->version()->then(
     function ($result) {
         var_dump('Result received', $result);
     },
-    function (Exception $error) {
-        var_dump('There was an error', $error->getMessage());
+    function (Exception $e) {
+        echo 'Error: ' . $e->getMessage() . PHP_EOL;
     }
 });
 ```
@@ -214,10 +218,16 @@ the normal stream events:
 
 ```php
 $stream = $client->execStartStream($exec, $tty);
+
 $stream->on('data', function ($data) {
     // data will be emitted in multiple chunk
     echo $data;
 });
+
+$stream->on('error', function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});
+
 $stream->on('close', function () {
     // the stream just ended, this could(?) be a good thing
     echo 'Ended' . PHP_EOL;
@@ -233,9 +243,11 @@ Also note that this option has no effect if you execute with a TTY.
 
 ```php
 $stream = $client->execStartStream($exec, $tty, 'stderr');
+
 $stream->on('data', function ($data) {
     echo 'STDOUT data: ' . $data;
 });
+
 $stream->on('stderr', function ($data) {
     echo 'STDERR data: ' . $data;
 });
@@ -319,9 +331,9 @@ $client->imageCreate('clue/streamripper')->then(
         // $data is an array of *all* elements in the JSON stream
         var_dump($data);
     },
-    function (Exception $error) {
+    function (Exception $e) {
         // an error occurred (possibly after receiving *some* elements)
-        echo 'Error: ' . $error->getMessage() . PHP_EOL;
+        echo 'Error: ' . $e->getMessage() . PHP_EOL;
     }
 );
 ```
@@ -355,10 +367,16 @@ The resulting stream will emit the following events:
 
 ```php
 $stream = $client->imageCreateStream('clue/redis-benchmark');
+
 $stream->on('data', function (array $data) {
     // data will be emitted for *each* complete element in the JSON stream
     echo $data['status'] . PHP_EOL;
 });
+
+$stream->on('error', function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});
+
 $stream->on('close', function () {
     // the JSON stream just ended, this could(?) be a good thing
     echo 'Ended' . PHP_EOL;

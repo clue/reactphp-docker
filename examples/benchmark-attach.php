@@ -45,19 +45,23 @@ $client->containerCreate(array(
         $client->containerStart($container['Id'])->then(null, 'printf');
     });
 
-    $start = microtime(true);
     $bytes = 0;
     $stream->on('data', function ($chunk) use (&$bytes) {
         $bytes += strlen($chunk);
     });
 
-    $stream->on('error', 'printf');
+    $stream->on('error', function (Exception $e) {
+        echo 'Error: ' . $e->getMessage() . PHP_EOL;
+    });
 
     // show stats when stream ends
+    $start = microtime(true);
     $stream->on('close', function () use ($client, &$bytes, $start, $container) {
         $time = microtime(true) - $start;
         $client->containerRemove($container['Id'])->then(null, 'printf');
 
         echo 'Received ' . $bytes . ' bytes in ' . round($time, 1) . 's => ' . round($bytes / $time / 1000000, 1) . ' MB/s' . PHP_EOL;
     });
-}, 'printf');
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});
