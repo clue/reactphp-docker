@@ -33,9 +33,5 @@ $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
 })->then(function ($info) {
     echo 'Inspected after execution: ' . json_encode($info, JSON_PRETTY_PRINT) . PHP_EOL;
 }, function (Exception $e) {
-    echo 'ERROR: ' . $e->getMessage() . PHP_EOL;
-
-    if ($e instanceof React\Http\Message\ResponseException) {
-        echo 'Response: ' . $e->getResponse()->getBody() . PHP_EOL;
-    }
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
 });

@@ -17,10 +17,10 @@ $client = new Clue\React\Docker\Client();
 
 $stream = $client->containerExportStream($container);
 
-$stream->on('error', function ($e = null) {
+$stream->on('error', function (Exception $e) {
     // will be called if the container is invalid/does not exist
-    echo 'ERROR requesting stream' . PHP_EOL . $e;
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
 });
 
-    $out = new React\Stream\WritableResourceStream(fopen($target, 'w'));
+$out = new React\Stream\WritableResourceStream(fopen($target, 'w'));
 $stream->pipe($out);

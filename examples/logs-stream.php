@@ -14,13 +14,14 @@ $client = new Clue\React\Docker\Client();
 $caret = new Clue\CaretNotation\Encoder("\t\r\n");
 
 $stream = $client->containerLogsStream($container, true, true, true, 0, false, 100);
+
 $stream->on('data', function ($data) use ($caret) {
     echo $caret->encode($data);
 });
 
-$stream->on('error', function ($e = null) {
+$stream->on('error', function (Exception $e) {
     // will be called if either parameter is invalid
-    echo 'ERROR requesting stream' . PHP_EOL . $e;
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
 });
 
 $stream->on('close', function ($e = null) {

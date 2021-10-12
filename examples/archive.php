@@ -27,13 +27,14 @@ $tar->on('entry', function ($header, React\Stream\ReadableStreamInterface $file)
     });
 });
 
-$tar->on('error', function ($e = null) {
+$tar->on('error', function (Exception $e) {
     // should not be invoked, unless the stream is somehow interrupted
-    echo 'ERROR processing tar stream' . PHP_EOL . $e;
+    echo 'Error in TAR stream: ' . $e->getMessage() . PHP_EOL;
 });
-$stream->on('error', function ($e = null) {
+
+$stream->on('error', function (Exception $e) {
     // will be called if either parameter is invalid
-    echo 'ERROR requesting stream' . PHP_EOL . $e;
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
 });
 
 $stream->pipe($tar);

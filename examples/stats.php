@@ -24,7 +24,11 @@ $stream->on('data', function ($progress) {
 
     echo round($memory, 3) . '% memory and ' . $received . '/' . $sent . ' bytes network I/O' . PHP_EOL;
 });
-$stream->on('error', 'printf');
+
+$stream->on('error', function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});
+
 $stream->on('close', function () {
     echo 'stream closed' . PHP_EOL;
 });

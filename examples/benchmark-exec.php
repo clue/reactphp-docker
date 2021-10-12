@@ -13,7 +13,6 @@
 //
 // $ docker exec foo dd if=/dev/zero bs=1M count=1000 | dd of=/dev/null
 
-
 require __DIR__ . '/../vendor/autoload.php';
 
 if (extension_loaded('xdebug')) {
@@ -33,18 +32,22 @@ $client = new Clue\React\Docker\Client();
 $client->execCreate($container, $cmd)->then(function ($info) use ($client) {
     $stream = $client->execStartStream($info['Id'], true);
 
-    $start = microtime(true);
     $bytes = 0;
     $stream->on('data', function ($chunk) use (&$bytes) {
         $bytes += strlen($chunk);
     });
 
-    $stream->on('error', 'printf');
+    $stream->on('error', function (Exception $e) {
+        echo 'Error: ' . $e->getMessage() . PHP_EOL;
+    });
 
     // show stats when stream ends
+    $start = microtime(true);
     $stream->on('close', function () use ($client, &$bytes, $start) {
         $time = microtime(true) - $start;
 
         echo 'Received ' . $bytes . ' bytes in ' . round($time, 1) . 's => ' . round($bytes / $time / 1000000, 1) . ' MB/s' . PHP_EOL;
     });
-}, 'printf');
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});

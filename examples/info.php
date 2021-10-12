@@ -8,4 +8,6 @@ $client = new Clue\React\Docker\Client();
 
 $client->info()->then(function ($info) {
     echo json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
-}, 'printf');
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});

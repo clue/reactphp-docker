@@ -3,7 +3,6 @@
 // this simple example displays all docker events that happen in the next 10s.
 // try starting / removing a container in the meantime to see some output.
 
-
 require __DIR__ . '/../vendor/autoload.php';
 
 $client = new Clue\React\Docker\Client();
@@ -22,4 +21,6 @@ $stream->on('data', function ($event) {
     echo json_encode($event) . PHP_EOL;
 });
 
-$stream->on('error', 'printf');
+$stream->on('error', function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
+});
