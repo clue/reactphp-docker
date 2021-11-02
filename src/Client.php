@@ -1187,6 +1187,39 @@ class Client
     }
 
     /**
+     * Create a new image from a container
+     *
+     * @param ?string $container The ID or name of the container to commit
+     * @param ?string $repo      Repository name for the created image
+     * @param ?string $tag       Tag name for the created image
+     * @param ?string $comment   Commit message
+     * @param ?string $author    Author of the image (e.g., John Hannibal Smith <hannibal@a-team.com>)
+     * @param bool    $pause      Whether to pause the container before committing, default: true
+     * @param ?string $changes   Dockerfile's instructions to apply while committing
+     * @param array   $config     The container configuration (body of the request)
+     * @return PromiseInterface
+     * @link https://docs.docker.com/engine/api/v1.41/#operation/ImageCommit
+     */
+    public function containerCommit($container, $repo = null, $tag = null, $comment = null, $author = null, $pause = true, $changes = null, array $config = array())
+    {
+        return $this->postJson(
+            $this->uri->expand(
+                'commit{?container,repo,tag,comment,author,pause,changes}',
+                array(
+                    'container' => $container,
+                    'repo' => $repo,
+                    'tag' => $tag,
+                    'comment' => $comment,
+                    'author' => $author,
+                    'pause' => $pause,
+                    'changes' => $changes,
+                )
+            ),
+            $config
+        )->then(array($this->parser, 'expectJson'));
+    }
+
+    /**
      * Sets up an exec instance in a running container id
      *
      * The $command should be given as an array of strings (the command plus

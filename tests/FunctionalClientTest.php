@@ -435,7 +435,7 @@ class FunctionalClientTest extends TestCase
             'Image' => 'busybox',
             'Cmd' => array('echo', 'test')
         );
-        $networkName = uniqid('reactphp-docker');
+        $networkName = uniqid('reactphp-docker', true);
 
         $promise = $this->client->containerCreate($containerConfig);
         $container = Block\await($promise, Loop::get());
@@ -473,9 +473,53 @@ class FunctionalClientTest extends TestCase
         $ret = Block\await($promise, Loop::get());
 
         // expects "create", "disconnect", "destroy" events ("connect" will be skipped because we don't start the container)
-        $this->assertEquals(3, count($ret));
+        $this->assertCount(3, $ret);
         $this->assertEquals('create', $ret[0]['Action']);
         $this->assertEquals('disconnect', $ret[1]['Action']);
         $this->assertEquals('destroy', $ret[2]['Action']);
+    }
+
+    /**
+     * @depends testImageInspectCheckIfBusyboxExists
+     */
+    public function testCreateAndCommitContainer()
+    {
+        $config = array(
+            'Image' => 'busybox',
+            'Cmd' => array('echo', 'test')
+        );
+
+        $promise = $this->client->containerCreate($config);
+        $container = Block\await($promise, Loop::get());
+
+        $this->assertNotNull($container['Id']);
+        $this->assertEmpty($container['Warnings']);
+
+        $promise = $this->client->containerCommit($container['Id']);
+        $image = Block\await($promise, Loop::get());
+
+        $this->assertNotNull($image['Id']);
+        $this->assertArrayNotHasKey('message', $image);
+
+        $promise = $this->client->containerRemove($container['Id'], false, true);
+        $ret = Block\await($promise, Loop::get());
+
+        $this->assertEquals('', $ret);
+
+        $config = array(
+            'Image' => $image['Id'],
+            'Cmd' => array('echo', 'test')
+        );
+
+        $promise = $this->client->containerCreate($config);
+        $container = Block\await($promise, Loop::get());
+
+        $this->assertNotNull($container['Id']);
+        $this->assertEmpty($container['Warnings']);
+
+        $promise = $this->client->containerRemove($container['Id'], false, true);
+        $ret = Block\await($promise, Loop::get());
+
+        $this->assertEquals('', $ret);
     }
 }

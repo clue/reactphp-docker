@@ -601,6 +601,24 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->imageSearch('clue'));
     }
 
+    public function testCommit()
+    {
+        $json = array();
+        $config = array();
+        $this->expectRequestFlow('post', 'commit?container=123&pause=1', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->containerCommit('123', $config));
+    }
+
+    public function testCommitWithAllParams()
+    {
+        $json = array();
+        $config = array();
+        $this->expectRequestFlow('post', 'commit?container=123&repo=docker.io&tag=latest&comment=hello&author=batman&pause=1&changes=EXPOSE%208080', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->containerCommit('123', 'docker.io', 'latest', 'hello', 'batman', true, 'EXPOSE 8080', $config));
+    }
+
     public function testExecCreate()
     {
         $json = array();
