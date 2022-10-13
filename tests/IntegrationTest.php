@@ -38,6 +38,8 @@ class IntegrationTest extends TestCase
         unlink($path);
 
         $this->assertEquals('/_ping', $value);
+
+        $socket->close();
     }
 
     public function testPingCtorWithExplicitHttpUrlSendsRequestToGivenHttpUrlWithBase()
@@ -58,5 +60,7 @@ class IntegrationTest extends TestCase
         $value = \Clue\React\Block\await($deferred->promise(), $loop, 1.0);
 
         $this->assertEquals('/base/_ping', $value);
+
+        $socket->close();
     }
 }
