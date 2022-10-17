@@ -4,7 +4,6 @@ namespace Clue\Tests\React\Docker;
 
 use Clue\React\Docker\Client;
 use Psr\Http\Message\ServerRequestInterface;
-use React\EventLoop\Loop;
 use React\Promise\Deferred;
 
 class IntegrationTest extends TestCase
@@ -34,7 +33,7 @@ class IntegrationTest extends TestCase
         $client = new Client(null, 'unix://' . $path);
         $client->ping();
 
-        $value = \Clue\React\Block\await($deferred->promise(), Loop::get(), 1.0);
+        $value = \React\Async\await($deferred->promise());
         unlink($path);
 
         $this->assertEquals('/_ping', $value);
@@ -44,8 +43,6 @@ class IntegrationTest extends TestCase
 
     public function testPingCtorWithExplicitHttpUrlSendsRequestToGivenHttpUrlWithBase()
     {
-        $loop = Loop::get();
-
         $deferred = new Deferred();
         $http = new \React\Http\HttpServer(function (ServerRequestInterface $request) use ($deferred) {
             $deferred->resolve($request->getRequestTarget());
@@ -57,7 +54,7 @@ class IntegrationTest extends TestCase
         $client = new Client(null, str_replace('tcp://', 'http://', $socket->getAddress()) . '/base/');
         $client->ping();
 
-        $value = \Clue\React\Block\await($deferred->promise(), $loop, 1.0);
+        $value = \React\Async\await($deferred->promise());
 
         $this->assertEquals('/base/_ping', $value);
 
