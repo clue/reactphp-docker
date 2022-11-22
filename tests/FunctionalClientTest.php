@@ -2,7 +2,6 @@
 
 namespace Clue\Tests\React\Docker;
 
-use Clue\React\Block;
 use Clue\React\Docker\Client;
 use React\EventLoop\Loop;
 use React\Promise\Stream;
@@ -21,7 +20,7 @@ class FunctionalClientTest extends TestCase
         $promise = $this->client->ping();
 
         try {
-            Block\await($promise, Loop::get());
+            \React\Async\await($promise);
         } catch (\Exception $e) {
             $this->markTestSkipped('Unable to connect to docker ' . $e->getMessage());
         }
@@ -42,7 +41,7 @@ class FunctionalClientTest extends TestCase
         $promise = $this->client->imageInspect('busybox:latest');
 
         try {
-            Block\await($promise, Loop::get());
+            \React\Async\await($promise);
         } catch (\RuntimeException $e) {
             $this->markTestSkipped('Image "busybox" not downloaded yet');
         }
@@ -59,7 +58,7 @@ class FunctionalClientTest extends TestCase
         );
 
         $promise = $this->client->containerCreate($config);
-        $container = Block\await($promise, Loop::get());
+        $container = \React\Async\await($promise);
 
         $this->assertNotNull($container['Id']);
         $this->assertEmpty($container['Warnings']);
@@ -67,22 +66,22 @@ class FunctionalClientTest extends TestCase
         $start = microtime(true);
 
         $promise = $this->client->containerStart($container['Id']);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
 
         $promise = $this->client->containerLogs($container['Id'], false, true, true);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals("test\n", $ret);
 
         $promise = $this->client->containerAttach($container['Id'], true, false);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals("test\n", $ret);
 
         $promise = $this->client->containerRemove($container['Id'], false, true);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
 
@@ -90,7 +89,7 @@ class FunctionalClientTest extends TestCase
 
         // get all events between starting and removing for this container
         $promise = $this->client->events($start, $end, array('container' => array($container['Id'])));
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         // expects "start", "attach", "kill", "die", "destroy" events
         $this->assertEquals(5, count($ret));
@@ -113,13 +112,13 @@ class FunctionalClientTest extends TestCase
         );
 
         $promise = $this->client->containerCreate($config);
-        $container = Block\await($promise, Loop::get());
+        $container = \React\Async\await($promise);
 
         $this->assertNotNull($container['Id']);
         $this->assertEmpty($container['Warnings']);
 
         $promise = $this->client->containerStart($container['Id']);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
 
@@ -134,7 +133,7 @@ class FunctionalClientTest extends TestCase
     public function testExecCreateWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, array('echo', '-n', 'hello', 'world'));
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
@@ -149,7 +148,7 @@ class FunctionalClientTest extends TestCase
     public function testExecInspectBeforeRunning($exec)
     {
         $promise = $this->client->execInspect($exec);
-        $info = Block\await($promise, Loop::get());
+        $info = \React\Async\await($promise);
 
         $this->assertTrue(is_array($info));
         $this->assertFalse($info['Running']);
@@ -163,7 +162,7 @@ class FunctionalClientTest extends TestCase
     public function testExecStartWhileRunning($exec)
     {
         $promise = $this->client->execStart($exec);
-        $output = Block\await($promise, Loop::get());
+        $output = \React\Async\await($promise);
 
         $this->assertEquals('hello world', $output);
     }
@@ -175,7 +174,7 @@ class FunctionalClientTest extends TestCase
     public function testExecInspectAfterRunning($exec)
     {
         $promise = $this->client->execInspect($exec);
-        $info = Block\await($promise, Loop::get());
+        $info = \React\Async\await($promise);
 
         $this->assertTrue(is_array($info));
         $this->assertFalse($info['Running']);
@@ -189,13 +188,13 @@ class FunctionalClientTest extends TestCase
     public function testExecStringCommandWithOutputWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, 'echo -n hello world');
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
         $promise = $this->client->execStart($exec['Id']);
-        $output = Block\await($promise, Loop::get());
+        $output = \React\Async\await($promise);
 
         $this->assertEquals('hello world', $output);
     }
@@ -207,7 +206,7 @@ class FunctionalClientTest extends TestCase
     public function testExecStreamOutputInMultipleChunksWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, 'echo -n hello && sleep 0.2 && echo -n world');
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
@@ -216,7 +215,7 @@ class FunctionalClientTest extends TestCase
         $stream->once('data', $this->expectCallableOnceWith('hello'));
         $stream->on('end', $this->expectCallableOnce());
 
-        $output = Block\await(Stream\buffer($stream), Loop::get());
+        $output = \React\Async\await(Stream\buffer($stream));
 
         $this->assertEquals('helloworld', $output);
     }
@@ -228,13 +227,13 @@ class FunctionalClientTest extends TestCase
     public function testExecUserSpecificCommandWithOutputWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, 'whoami', false, false, true, true, 'nobody');
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
         $promise = $this->client->execStart($exec['Id']);
-        $output = Block\await($promise, Loop::get());
+        $output = \React\Async\await($promise);
 
         $this->assertEquals('nobody', rtrim($output));
     }
@@ -246,13 +245,13 @@ class FunctionalClientTest extends TestCase
     public function testExecStringCommandWithStderrOutputWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, 'echo -n hello world >&2');
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
         $promise = $this->client->execStart($exec['Id']);
-        $output = Block\await($promise, Loop::get());
+        $output = \React\Async\await($promise);
 
         $this->assertEquals('hello world', $output);
     }
@@ -264,7 +263,7 @@ class FunctionalClientTest extends TestCase
     public function testExecStreamCommandWithTtyAndStderrOutputWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, 'echo -n hello world >&2', true);
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
@@ -273,7 +272,7 @@ class FunctionalClientTest extends TestCase
         $stream->once('data', $this->expectCallableOnce('hello world'));
         $stream->on('end', $this->expectCallableOnce());
 
-        $output = Block\await(Stream\buffer($stream), Loop::get());
+        $output = \React\Async\await(Stream\buffer($stream));
 
         $this->assertEquals('hello world', $output);
     }
@@ -285,7 +284,7 @@ class FunctionalClientTest extends TestCase
     public function testExecStreamStderrCustomEventWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, 'echo -n hello world >&2');
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
@@ -296,7 +295,7 @@ class FunctionalClientTest extends TestCase
         $stream->on('error', $this->expectCallableNever());
         $stream->on('end', $this->expectCallableOnce());
 
-        $output = Block\await(Stream\buffer($stream), Loop::get());
+        $output = \React\Async\await(Stream\buffer($stream));
 
         $this->assertEquals('', $output);
     }
@@ -308,7 +307,7 @@ class FunctionalClientTest extends TestCase
     public function testExecStreamEmptyOutputWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, array('true'));
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
@@ -316,7 +315,7 @@ class FunctionalClientTest extends TestCase
         $stream = $this->client->execStartStream($exec['Id'], true);
         $stream->on('end', $this->expectCallableOnce());
 
-        $output = Block\await(Stream\buffer($stream), Loop::get());
+        $output = \React\Async\await(Stream\buffer($stream));
 
         $this->assertEquals('', $output);
     }
@@ -328,13 +327,13 @@ class FunctionalClientTest extends TestCase
     public function testExecDetachedWhileRunning($container)
     {
         $promise = $this->client->execCreate($container, array('sleep', '10'));
-        $exec = Block\await($promise, Loop::get());
+        $exec = \React\Async\await($promise);
 
         $this->assertTrue(is_array($exec));
         $this->assertTrue(is_string($exec['Id']));
 
         $promise = $this->client->execStartDetached($exec['Id'], true);
-        $output = Block\await($promise, Loop::get());
+        $output = \React\Async\await($promise);
 
         $this->assertEquals('', $output);
     }
@@ -346,7 +345,7 @@ class FunctionalClientTest extends TestCase
     public function testRemoveRunning($container)
     {
         $promise = $this->client->containerRemove($container, true, true);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
     }
@@ -355,13 +354,13 @@ class FunctionalClientTest extends TestCase
     {
         $promise = $this->client->containerRemove('invalid123');
         $this->setExpectedException('RuntimeException');
-        Block\await($promise, Loop::get());
+        \React\Async\await($promise);
     }
 
     public function testImageSearch()
     {
         $promise = $this->client->imageSearch('clue');
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertGreaterThan(9, count($ret));
     }
@@ -374,17 +373,17 @@ class FunctionalClientTest extends TestCase
     {
         // create new tag "bb:now" on "busybox:latest"
         $promise = $this->client->imageTag('busybox', 'bb', 'now');
-        Block\await($promise, Loop::get());
+        \React\Async\await($promise);
 
         // delete tag "bb:now" again
         $promise = $this->client->imageRemove('bb:now');
-        Block\await($promise, Loop::get());
+        \React\Async\await($promise);
     }
 
     public function testImageCreateStreamMissingWillEmitJsonError()
     {
         $promise = $this->client->version();
-        $version = Block\await($promise, Loop::get());
+        $version = \React\Async\await($promise);
 
         // old API reports a progress with error message, newer API just returns 404 right away
         // https://docs.docker.com/engine/api/version-history/
@@ -438,39 +437,39 @@ class FunctionalClientTest extends TestCase
         $networkName = uniqid('reactphp-docker', true);
 
         $promise = $this->client->containerCreate($containerConfig);
-        $container = Block\await($promise, Loop::get());
+        $container = \React\Async\await($promise);
 
         $start = microtime(true);
 
         $promise = $this->client->networkCreate($networkName);
-        $network = Block\await($promise, Loop::get());
+        $network = \React\Async\await($promise);
 
         $this->assertNotNull($network['Id']);
         $this->assertEquals('', $network['Warning']);
 
         $promise = $this->client->networkConnect($network['Id'], $container['Id']);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
 
         $promise = $this->client->networkDisconnect($network['Id'], $container['Id'], false);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
 
         $promise = $this->client->networkRemove($network['Id']);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
 
         $end = microtime(true);
 
         $promise = $this->client->containerRemove($container['Id']);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         // get all events between starting and removing for this container
         $promise = $this->client->events($start, $end, array('network' => array($network['Id'])));
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         // expects "create", "disconnect", "destroy" events ("connect" will be skipped because we don't start the container)
         $this->assertCount(3, $ret);
@@ -490,19 +489,19 @@ class FunctionalClientTest extends TestCase
         );
 
         $promise = $this->client->containerCreate($config);
-        $container = Block\await($promise, Loop::get());
+        $container = \React\Async\await($promise);
 
         $this->assertNotNull($container['Id']);
         $this->assertEmpty($container['Warnings']);
 
         $promise = $this->client->containerCommit($container['Id']);
-        $image = Block\await($promise, Loop::get());
+        $image = \React\Async\await($promise);
 
         $this->assertNotNull($image['Id']);
         $this->assertArrayNotHasKey('message', $image);
 
         $promise = $this->client->containerRemove($container['Id'], false, true);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
 
@@ -512,13 +511,13 @@ class FunctionalClientTest extends TestCase
         );
 
         $promise = $this->client->containerCreate($config);
-        $container = Block\await($promise, Loop::get());
+        $container = \React\Async\await($promise);
 
         $this->assertNotNull($container['Id']);
         $this->assertEmpty($container['Warnings']);
 
         $promise = $this->client->containerRemove($container['Id'], false, true);
-        $ret = Block\await($promise, Loop::get());
+        $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
     }

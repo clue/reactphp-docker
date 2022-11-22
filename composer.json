@@ -28,7 +28,7 @@
         "rize/uri-template": "^0.3"
     },
     "require-dev": {
-        "clue/block-react": "^1.5",
+        "react/async": "^4 || ^3 || ^2",
         "clue/caret-notation": "^0.2",
         "clue/tar-react": "^0.2",
         "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
