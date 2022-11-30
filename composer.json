@@ -10,12 +10,6 @@
             "email": "christian@clue.engineering"
         }
     ],
-    "autoload": {
-        "psr-4": { "Clue\\React\\Docker\\": "src/" }
-    },
-    "autoload-dev": {
-        "psr-4": { "Clue\\Tests\\React\\Docker\\": "tests/" }
-    },
     "require": {
         "php": ">=5.3",
         "clue/json-stream": "^0.1",
@@ -28,9 +22,19 @@
         "rize/uri-template": "^0.3"
     },
     "require-dev": {
-        "react/async": "^4 || ^3 || ^2",
         "clue/caret-notation": "^0.2",
         "clue/tar-react": "^0.2",
-        "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
+        "phpunit/phpunit": "^9.5 || ^5.7 || ^4.8.35",
+        "react/async": "^4 || ^3 || ^2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Clue\\React\\Docker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Clue\\Tests\\React\\Docker\\": "tests/"
+        }
     }
 }
