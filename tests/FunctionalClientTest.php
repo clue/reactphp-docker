@@ -91,13 +91,21 @@ class FunctionalClientTest extends TestCase
         $promise = $this->client->events($start, $end, array('container' => array($container['Id'])));
         $ret = \React\Async\await($promise);
 
-        // expects "start", "attach", "kill", "die", "destroy" events
-        $this->assertEquals(5, count($ret));
-        $this->assertEquals('start', $ret[0]['status']);
-        $this->assertEquals('attach', $ret[1]['status']);
-        $this->assertEquals('kill', $ret[2]['status']);
-        $this->assertEquals('die', $ret[3]['status']);
-        $this->assertEquals('destroy', $ret[4]['status']);
+        $this->assertIsArray($ret);
+
+        $status = array(); // array_column($ret, 'status'); // PHP 5.5+
+        foreach ($ret as $one) {
+            $status[] = $one['status'];
+        }
+
+        // expect 4 events as of ~2021, 5 in earlier versions
+        if (count($status) === 4) {
+            // start, die, attach, destroy
+            $this->assertEquals(array('start', 'die', 'attach', 'destroy'), $status);
+        } else {
+            // expects "start", "attach", "kill", "die", "destroy" events
+            $this->assertEquals(array('start', 'attach', 'kill', 'die', 'destroy'), $status);
+        }
     }
 
     /**
