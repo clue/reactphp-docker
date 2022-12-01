@@ -1,6 +1,42 @@
 # Changelog
 
-# 1.3.0 (2020-12-17)
+## 1.4.0 (2022-12-01)
+
+*   Feature: Add support for PHP 8.1 and PHP 8.2.
+    (#78 by @dinooo13)
+
+*   Feature: Forward compatibility with upcoming Promise v3.
+    (#76 by @clue)
+
+*   Feature: Simplify usage by supporting new default loop.
+    (#71 by @clue)
+
+    ```php
+    // old (still supported)
+    $client = new Clue\React\Docker\Client($loop);
+
+    // new (using default loop)
+    $client = new Clue\React\Docker\Client();
+    ```
+
+*   Feature: Add commit API endpoint.
+    (#74 by @dinooo13)
+
+    ```php
+    $client->containerCommit($container)->then(function (array $image) {
+        var_dump($image);
+    }, function (Exception $e) {
+        echo 'Error: ' . $e->getMessage() . PHP_EOL;
+    });
+    ```
+
+*   Improve documentation and examples, update to use new reactphp/async package and new HTTP and Socket API.
+    (#70 by @PaulRotmann, #72 by @SimonFrings, #73 by @clue and #77 by @dinooo13)
+
+*   Improve test suite and ensure 100% code coverage.
+    (#80, #81 by @clue and #79 by @dinooo13)
+
+## 1.3.0 (2020-12-17)
 
 *   Feature: Update to reactphp/http v1.0.0.
     (#64 by @clue)
@@ -139,4 +175,3 @@
 ## 0.0.0 (2014-11-26)
 
 * Initial concept
-# Changelog
