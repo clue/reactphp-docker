@@ -90,8 +90,7 @@ class FunctionalClientTest extends TestCase
         // get all events between starting and removing for this container
         $promise = $this->client->events($start, $end, array('container' => array($container['Id'])));
         $ret = \React\Async\await($promise);
-
-        $this->assertIsArray($ret);
+        assert(is_array($ret));
 
         $status = array(); // array_column($ret, 'status'); // PHP 5.5+
         foreach ($ret as $one) {
