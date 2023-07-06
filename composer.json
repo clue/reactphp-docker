@@ -16,7 +16,7 @@
         "react/event-loop": "^1.2",
         "react/http": "^1.8",
         "react/promise": "^3 || ^2.0 || ^1.1",
-        "react/promise-stream": "^1.4",
+        "react/promise-stream": "^1.6",
         "react/socket": "^1.12",
         "react/stream": "^1.2",
         "rize/uri-template": "^0.3"
