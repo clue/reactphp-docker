@@ -4,6 +4,7 @@ namespace Clue\Tests\React\Docker;
 
 use Clue\React\Docker\Client;
 use Psr\Http\Message\ServerRequestInterface;
+use React\Http\Message\Response;
 use React\Promise\Deferred;
 
 class IntegrationTest extends TestCase
@@ -26,6 +27,7 @@ class IntegrationTest extends TestCase
         $deferred = new Deferred();
         $http = new \React\Http\HttpServer(function (ServerRequestInterface $request) use ($deferred) {
             $deferred->resolve($request->getRequestTarget());
+            return Response::plaintext('OK');
         });
 
         $http->listen($socket);
@@ -46,6 +48,7 @@ class IntegrationTest extends TestCase
         $deferred = new Deferred();
         $http = new \React\Http\HttpServer(function (ServerRequestInterface $request) use ($deferred) {
             $deferred->resolve($request->getRequestTarget());
+            return Response::plaintext('OK');
         });
 
         $socket = new \React\Socket\SocketServer('127.0.0.1:0');
