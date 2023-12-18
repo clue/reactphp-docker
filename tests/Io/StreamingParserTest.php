@@ -5,7 +5,6 @@ namespace Clue\Tests\React\Docker\Io;
 use Clue\React\Docker\Io\StreamingParser;
 use Clue\Tests\React\Docker\TestCase;
 use React\Promise;
-use React\Promise\CancellablePromiseInterface;
 use React\Promise\Deferred;
 use React\Stream\ThroughStream;
 
@@ -119,11 +118,10 @@ class StreamingParserTest extends TestCase
         $stream->expects($this->once())->method('isReadable')->willReturn(true);
 
         $promise = $this->parser->deferredStream($stream);
-        if (!($promise instanceof CancellablePromiseInterface)) {
-            $this->markTestSkipped('Requires Promise v2 API and has no effect on v1 API');
-        }
 
         $stream->expects($this->once())->method('close');
+
+        assert(method_exists($promise, 'cancel'));
         $promise->cancel();
     }
 
