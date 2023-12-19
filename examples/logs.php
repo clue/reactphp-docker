@@ -27,7 +27,7 @@ $client->containerLogs($container, false, true, true, 0, false, 100)->then(
     },
     function (Exception $e) use ($container) {
         echo <<<EOT
-An error occured while trying to access the logs.
+An error occurred while trying to access the logs.
 
 Have you tried running the following command?
 

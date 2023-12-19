@@ -27,7 +27,7 @@ $client = new Clue\React\Docker\Client();
 $out = new React\Stream\WritableResourceStream(STDOUT);
 $stderr = new React\Stream\WritableResourceStream(STDERR);
 
-// unkown exit code by default
+// unknown exit code by default
 $exit = 1;
 
 $client->execCreate($container, $cmd)->then(function ($info) use ($client, $out, $stderr, &$exit) {

@@ -169,7 +169,7 @@ try {
     $results = await($promise);
     // results successfully received
 } catch (Exception $e) {
-    // an error occured while performing the request
+    // an error occurred while performing the request
 }
 ```
 
