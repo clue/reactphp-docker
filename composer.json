@@ -24,7 +24,7 @@
     "require-dev": {
         "clue/caret-notation": "^0.2",
         "clue/tar-react": "^0.2",
-        "phpunit/phpunit": "^9.5 || ^5.7 || ^4.8.35",
+        "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36",
         "react/async": "^4 || ^3 || ^2"
     },
     "autoload": {
