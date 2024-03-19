@@ -1,6 +1,6 @@
 # clue/reactphp-docker
 
-[![CI status](https://github.com/clue/reactphp-docker/workflows/CI/badge.svg)](https://github.com/clue/reactphp-docker/actions)
+[![CI status](https://github.com/clue/reactphp-docker/actions/workflows/ci.yml/badge.svg)](https://github.com/clue/reactphp-docker/actions)
 [![installs on Packagist](https://img.shields.io/packagist/dt/clue/docker-react?color=blue&label=installs%20on%20Packagist)](https://packagist.org/packages/clue/docker-react)
 
 Async, event-driven access to the [Docker Engine API](https://docs.docker.com/develop/sdk/), built on top of [ReactPHP](https://reactphp.org/).
@@ -71,7 +71,7 @@ $client->imageSearch('clue')->then(function (array $images) {
 });
 ```
 
-See also the [examples](examples).
+See also the [examples](examples/).
 
 ## Usage
 
