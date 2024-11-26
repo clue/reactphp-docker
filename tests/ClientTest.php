@@ -523,6 +523,18 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->imageCreate('busybox'));
     }
 
+    public function testImageCreateFromSrcUrl()
+    {
+        $json = array();
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
+
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'images/create?fromSrc=https%3A%2F%2Fexample.com%2F~clue%2Fimage.tar')->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->willReturn($stream);
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($stream)->willReturn(\React\Promise\resolve($json));
+
+        $this->expectPromiseResolveWith($json, $this->client->imageCreate(null, 'https://example.com/~clue/image.tar'));
+    }
+
     public function testImageCreateStream()
     {
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
@@ -539,6 +551,14 @@ class ClientTest extends TestCase
         $this->expectRequestFlow('get', 'images/123/json', $this->createResponseJson($json), 'expectJson');
 
         $this->expectPromiseResolveWith($json, $this->client->imageInspect('123'));
+    }
+
+    public function testImageInspectCustomRegistry()
+    {
+        $json = array();
+        $this->expectRequestFlow('get', 'images/example.com%3A5000%2Fclue%2Fimage%3Alatest/json', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->imageInspect('example.com:5000/clue/image:latest'));
     }
 
     public function testImageHistory()
@@ -636,10 +656,9 @@ class ClientTest extends TestCase
     public function testCommit()
     {
         $json = array();
-        $config = array();
         $this->expectRequestFlow('post', 'commit?container=123&pause=1', $this->createResponseJson($json), 'expectJson');
 
-        $this->expectPromiseResolveWith($json, $this->client->containerCommit('123', $config));
+        $this->expectPromiseResolveWith($json, $this->client->containerCommit('123'));
     }
 
     public function testCommitWithoutPause()
