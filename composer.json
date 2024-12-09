@@ -1,40 +1,44 @@
 {
-    "name": "clue/docker-react",
-    "description": "Async, event-driven access to the Docker Engine API, built on top of ReactPHP.",
-    "keywords": ["Docker", "container", "ReactPHP", "async"],
-    "homepage": "https://github.com/clue/reactphp-docker",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Christian Lück",
-            "email": "christian@clue.engineering"
-        }
-    ],
-    "require": {
-        "php": ">=5.3",
-        "clue/json-stream": "^0.1",
-        "react/event-loop": "^1.2",
-        "react/http": "^1.11",
-        "react/promise": "^3.2 || ^2.11 || ^1.3",
-        "react/promise-stream": "^1.6",
-        "react/socket": "^1.16",
-        "react/stream": "^1.4",
-        "rize/uri-template": "^0.3"
-    },
-    "require-dev": {
-        "clue/caret-notation": "^0.2",
-        "clue/tar-react": "^0.2",
-        "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36",
-        "react/async": "^4.2 || ^3 || ^2"
-    },
-    "autoload": {
-        "psr-4": {
-            "Clue\\React\\Docker\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Clue\\Tests\\React\\Docker\\": "tests/"
-        }
-    }
+	"name" : "clue/docker-react",
+	"description" : "Async, event-driven access to the Docker Engine API, built on top of ReactPHP.",
+	"keywords" : [
+		"Docker",
+		"container",
+		"ReactPHP",
+		"async"
+	],
+	"homepage" : "https://github.com/clue/reactphp-docker",
+	"license" : "MIT",
+	"authors" : [{
+			"name" : "Christian Lück",
+			"email" : "christian@clue.engineering"
+		}
+	],
+	"require" : {
+		"php" : ">=5.3",
+		"clue/json-stream" : "^0.1",
+		"react/event-loop" : "^1.2",
+		"react/http" : "^1.11",
+		"react/promise" : "^3.2 || ^2.11 || ^1.3",
+		"react/promise-stream" : "^1.6",
+		"react/socket" : "^1.16",
+		"react/stream" : "^1.4",
+		"rize/uri-template" : "^0.4"
+	},
+	"require-dev" : {
+		"clue/caret-notation" : "^0.2",
+		"clue/tar-react" : "^0.2",
+		"phpunit/phpunit" : "^9.6 || ^5.7 || ^4.8.36",
+		"react/async" : "^4.2 || ^3 || ^2"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"Clue\\React\\Docker\\" : "src/"
+		}
+	},
+	"autoload-dev" : {
+		"psr-4" : {
+			"Clue\\Tests\\React\\Docker\\" : "tests/"
+		}
+	}
 }
