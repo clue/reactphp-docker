@@ -29,15 +29,21 @@ class ClientTest extends TestCase
         $this->client = new Client();
 
         $ref = new \ReflectionProperty($this->client, 'browser');
-        $ref->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $ref->setAccessible(true);
+        }
         $ref->setValue($this->client, $this->browser);
 
         $ref = new \ReflectionProperty($this->client, 'parser');
-        $ref->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $ref->setAccessible(true);
+        }
         $ref->setValue($this->client, $this->parser);
 
         $ref = new \ReflectionProperty($this->client, 'streamingParser');
-        $ref->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $ref->setAccessible(true);
+        }
         $ref->setValue($this->client, $this->streamingParser);
     }
 

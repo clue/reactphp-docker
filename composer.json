@@ -13,13 +13,13 @@
     "require": {
         "php": ">=5.3",
         "clue/json-stream": "^0.1",
-        "react/event-loop": "^1.2",
+        "react/event-loop": "^1.6",
         "react/http": "^1.11",
-        "react/promise": "^3.2 || ^2.11 || ^1.3",
+        "react/promise": "^3.3 || ^2.11 || ^1.3",
         "react/promise-stream": "^1.6",
-        "react/socket": "^1.16",
+        "react/socket": "^1.17",
         "react/stream": "^1.4",
-        "rize/uri-template": "^0.4 || ^0.3"
+        "rize/uri-template": "^0.4.1 || ^0.3"
     },
     "require-dev": {
         "clue/caret-notation": "^0.2",
