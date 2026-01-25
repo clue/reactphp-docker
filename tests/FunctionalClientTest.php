@@ -477,12 +477,21 @@ class FunctionalClientTest extends TestCase
         // get all events between starting and removing for this container
         $promise = $this->client->events($start, $end, array('network' => array($network['Id'])));
         $ret = \React\Async\await($promise);
+        assert(is_array($ret));
 
-        // expects "create", "disconnect", "destroy" events ("connect" will be skipped because we don't start the container)
-        $this->assertCount(3, $ret);
-        $this->assertEquals('create', $ret[0]['Action']);
-        $this->assertEquals('disconnect', $ret[1]['Action']);
-        $this->assertEquals('destroy', $ret[2]['Action']);
+        $actions = array(); // array_column($ret, 'Action'); // PHP 5.5+
+        foreach ($ret as $one) {
+            $actions[] = $one['Action'];
+        }
+
+        // expect 2 events as of ~2025, 3 in earlier versions
+        if (count($actions) === 2) {
+            // expects only "create" and "destroy" events (no "connect" / "disconnect" because we don't start the container)
+            $this->assertEquals(array('create', 'destroy'), $actions);
+        } else {
+            // expects "create", "disconnect", "destroy" events ("connect" will be skipped because we don't start the container)
+            $this->assertEquals(array('create', 'disconnect', 'destroy'), $actions);
+        }
     }
 
     /**
