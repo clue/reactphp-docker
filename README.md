@@ -1,6 +1,7 @@
 # clue/reactphp-docker
 
 [![CI status](https://github.com/clue/reactphp-docker/actions/workflows/ci.yml/badge.svg)](https://github.com/clue/reactphp-docker/actions)
+[![code coverage](https://img.shields.io/badge/code%20coverage-100%25-success)](#tests)
 [![installs on Packagist](https://img.shields.io/packagist/dt/clue/docker-react?color=blue&label=installs%20on%20Packagist)](https://packagist.org/packages/clue/docker-react)
 
 Async, event-driven access to the [Docker Engine API](https://docs.docker.com/develop/sdk/), built on top of [ReactPHP](https://reactphp.org/).
@@ -44,13 +45,11 @@ its event-driven model to react to changes and events happening.
 
 ## Support us
 
-We invest a lot of time developing, maintaining and updating our awesome
-open-source projects. You can help us sustain this high-quality of our work by
-[becoming a sponsor on GitHub](https://github.com/sponsors/clue). Sponsors get
-numerous benefits in return, see our [sponsoring page](https://github.com/sponsors/clue)
-for details.
-
-Let's take these projects to the next level together! 🚀
+I maintain an ecosystem of open-source projects that have been downloaded
+hundreds of millions of times and are actively maintained and continuously
+improved. If you find any of these projects useful, please consider
+[becoming a sponsor on GitHub](https://github.com/sponsors/clue). Your support
+helps ensure long-term maintenance and continued development. Thank you! 🚀
 
 ## Quickstart example
 
@@ -398,7 +397,7 @@ This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-composer require clue/docker-react:^1.5
+composer require clue/docker-react:^1.6
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.
@@ -422,9 +421,17 @@ To run the test suite, go to the project root and run:
 vendor/bin/phpunit
 ```
 
+The test suite is set up to always ensure 100% code coverage across all
+supported environments. If you have the Xdebug extension installed, you can also
+generate a code coverage report locally like this:
+
+```bash
+XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text
+```
+
 ## License
 
 This project is released under the permissive [MIT license](LICENSE).
 
-> Did you know that I offer custom development services and issuing invoices for
-  sponsorships of releases and for contributions? Contact me (@clue) for details.
+> Do you use this project in a commercial setting? Sponsoring with invoicing is
+  available, contact me ([@clue](https://github.com/clue)) for details.

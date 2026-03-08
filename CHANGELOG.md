@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0 (2026-03-08)
+
+*   Feature: Improve PHP 8.4+ and PHP 8.5+ support and update test environment.
+    (#88, #93 and #94 by @clue)
+
+*   Improve test suite to support latest Docker version and legacy PHP 7.2 with PHPUnit 8.5.
+    (#92 and #95 by @clue)
+
 ## 1.5.0 (2024-05-03)
 
 *   Feature: Full PHP 8.3 compatibility.
