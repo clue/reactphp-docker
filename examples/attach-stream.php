@@ -13,13 +13,11 @@ echo 'Dumping output of container "' . $container . '" (pass as argument to this
 
 $client = new Clue\React\Docker\Client();
 
-// use caret notation for any control characters except \t, \r and \n
-$caret = new Clue\CaretNotation\Encoder("\t\r\n");
-
 $stream = $client->containerAttachStream($container, true, true);
 
-$stream->on('data', function ($data) use ($caret) {
-    echo $caret->encode($data);
+$stream->on('data', function ($data) {
+    // escape control characters except \t, \r and \n
+    echo addcslashes($data, "\x00..\x08\x0b\x0c\x0e..\x1f\x7f");
 });
 
 $stream->on('error', function (Exception $e) {

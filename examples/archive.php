@@ -16,14 +16,12 @@ $stream = $client->containerArchiveStream($container, $path);
 
 $tar = new Clue\React\Tar\Decoder();
 
-// use caret notation for any control characters except \t, \r and \n
-$caret = new Clue\CaretNotation\Encoder("\t\r\n");
-
-$tar->on('entry', function ($header, React\Stream\ReadableStreamInterface $file) use ($caret) {
+$tar->on('entry', function ($header, React\Stream\ReadableStreamInterface $file) {
     // write each entry to the console output
-    echo '########## ' . $caret->encode($header['filename']) . ' ##########' . PHP_EOL;
-    $file->on('data', function ($chunk) use ($caret) {
-        echo $caret->encode($chunk);
+    echo '########## ' . $header['filename'] . ' ##########' . PHP_EOL;
+    $file->on('data', function ($chunk) {
+        // escape control characters except \t, \r and \n
+        echo addcslashes($chunk, "\x00..\x08\x0b\x0c\x0e..\x1f\x7f");
     });
 });
 

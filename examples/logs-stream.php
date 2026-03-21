@@ -10,13 +10,11 @@ echo 'Dumping logs (last 100 lines) of container "' . $container . '" (pass as a
 
 $client = new Clue\React\Docker\Client();
 
-// use caret notation for any control characters except \t, \r and \n
-$caret = new Clue\CaretNotation\Encoder("\t\r\n");
-
 $stream = $client->containerLogsStream($container, true, true, true, 0, false, 100);
 
-$stream->on('data', function ($data) use ($caret) {
-    echo $caret->encode($data);
+$stream->on('data', function ($data) {
+    // escape control characters except \t, \r and \n
+    echo addcslashes($data, "\x00..\x08\x0b\x0c\x0e..\x1f\x7f");
 });
 
 $stream->on('error', function (Exception $e) {
