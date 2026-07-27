@@ -268,6 +268,14 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->containerWait(123));
     }
 
+    public function testContainerWaitConditionalNextExit()
+    {
+        $json = array();
+        $this->expectRequestFlow('post', 'containers/123/wait?condition=next-exit', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->containerWait(123, 'next-exit'));
+    }
+
     public function testContainerKill()
     {
         $this->expectRequestFlow('post', 'containers/123/kill', $this->createResponse(), 'expectEmpty');
