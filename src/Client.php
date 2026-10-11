@@ -1280,7 +1280,7 @@ class Client
                 'AttachStdin' => !!$stdin,
                 'AttachStdout' => !!$stdout,
                 'AttachStderr' => !!$stderr,
-                'User' => $user,
+                'User' => (string) $user,
                 'Privileged' => !!$privileged,
             )
         )->then(array($this->parser, 'expectJson'));
