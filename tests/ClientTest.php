@@ -772,10 +772,18 @@ class ClientTest extends TestCase
 
     public function testNetworkDisconnect()
     {
-        $json = array();
-        $this->expectRequestFlow('post', 'networks/123/disconnect', $this->createResponse(), 'expectEmpty');
+        $this->browser->expects($this->once())->method('post')->with('networks/123/disconnect', $this->anything(), '{"Container":"abc","Force":false}')->willReturn(\React\Promise\resolve($this->createResponse()));
+        $this->parser->expects($this->once())->method('expectEmpty')->willReturn('');
 
         $this->expectPromiseResolveWith('', $this->client->networkDisconnect(123, 'abc'));
+    }
+
+    public function testNetworkDisconnectForce()
+    {
+        $this->browser->expects($this->once())->method('post')->with('networks/123/disconnect', $this->anything(), '{"Container":"abc","Force":true}')->willReturn(\React\Promise\resolve($this->createResponse()));
+        $this->parser->expects($this->once())->method('expectEmpty')->willReturn('');
+
+        $this->expectPromiseResolveWith('', $this->client->networkDisconnect(123, 'abc', true));
     }
 
     public function testNetworkPrune()

@@ -458,7 +458,7 @@ class FunctionalClientTest extends TestCase
 
         $this->assertEquals('', $ret);
 
-        $promise = $this->client->networkDisconnect($network['Id'], $container['Id'], false);
+        $promise = $this->client->networkDisconnect($network['Id'], $container['Id'], true);
         $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);

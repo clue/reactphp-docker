@@ -1567,7 +1567,7 @@ class Client
             ),
             array(
                 'Container' => $container,
-                'Force' => $this->boolArg($force)
+                'Force' => (bool) $force
             )
         )->then(array($this->parser, 'expectEmpty'));
     }
