@@ -7,7 +7,6 @@
 // $ php examples/logs.php foo
 // $ docker rm foo
 
-use Clue\CaretNotation\Encoder;
 use Clue\React\Docker\Client;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -22,8 +21,7 @@ $client->containerLogs($container, false, true, true, 0, false, 100)->then(
         echo 'Received the following logs:' . PHP_EOL;
 
         // escape control characters (dumping logs of vi/nano etc.)
-        $caret = new Clue\CaretNotation\Encoder("\t\r\n");
-        echo $caret->encode($logs);
+        echo addcslashes($logs, "\x00..\x08\x0b\x0c\x0e..\x1f\x7f");
     },
     function (Exception $e) use ($container) {
         echo <<<EOT
