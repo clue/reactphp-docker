@@ -214,8 +214,8 @@ class Client
         // GET /containers/json{?all,size}
         return $this->browser->get(
             'containers/json' . $this->queryString(array(
-                'all' => $this->boolArg($all),
-                'size' => $this->boolArg($size)
+                'all' => $all ? 1 : null,
+                'size' => $size ? 1 : null
             ))
         )->then(array($this->parser, 'expectJson'));
     }
@@ -356,11 +356,11 @@ class Client
 
         // GET /containers/{container}/logs{?follow,stdout,stderr,since,timestamps,tail}
         $url = 'containers/' . rawurlencode($container) . '/logs' . $this->queryString(array(
-            'follow' => $this->boolArg($follow),
-            'stdout' => $this->boolArg($stdout),
-            'stderr' => $this->boolArg($stderr),
+            'follow' => $follow ? 1 : null,
+            'stdout' => $stdout ? 1 : null,
+            'stderr' => $stderr ? 1 : null,
             'since' => ($since === 0) ? null : $since,
-            'timestamps' => $this->boolArg($timestamps),
+            'timestamps' => $timestamps ? 1 : null,
             'tail' => $tail
         ));
 
@@ -722,10 +722,10 @@ class Client
 
         // POST /containers/{container}/attach{?logs,stream,stdout,stderr}
         $url = 'containers/' . rawurlencode($container) . '/attach' . $this->queryString(array(
-            'logs' => $this->boolArg($logs),
-            'stream' => $this->boolArg($stream),
-            'stdout' => $this->boolArg($stdout),
-            'stderr' => $this->boolArg($stderr)
+            'logs' => $logs ? 1 : null,
+            'stream' => $stream ? 1 : null,
+            'stdout' => $stdout ? 1 : null,
+            'stderr' => $stderr ? 1 : null
         ));
 
         // first inspect container to check TTY setting, then attach with appropriate log parser
@@ -772,8 +772,8 @@ class Client
         // DELETE /containers/{container}{?v,force}
         return $this->browser->delete(
             'containers/' . rawurlencode($container) . $this->queryString(array(
-                'v' => $this->boolArg($v),
-                'force' => $this->boolArg($force)
+                'v' => $v ? 1 : null,
+                'force' => $force ? 1 : null
             ))
         )->then(array($this->parser, 'expectEmpty'));
     }
@@ -862,7 +862,7 @@ class Client
         // GET /images/json{?all}
         return $this->browser->get(
             'images/json' . $this->queryString(array(
-                'all' => $this->boolArg($all)
+                'all' => $all ? 1 : null
             ))
         )->then(array($this->parser, 'expectJson'));
     }
@@ -1051,7 +1051,7 @@ class Client
             'images/' . rawurlencode($image) . '/tag' . $this->queryString(array(
                 'repo' => $repo,
                 'tag' => $tag,
-                'force' => $this->boolArg($force)
+                'force' => $force ? 1 : null
             ))
         )->then(array($this->parser, 'expectEmpty'));
     }
@@ -1070,8 +1070,8 @@ class Client
         // DELETE /images/{image}{?force,noprune}
         return $this->browser->delete(
             'images/' . rawurlencode($image) . $this->queryString(array(
-                'force' => $this->boolArg($force),
-                'noprune' => $this->boolArg($noprune)
+                'force' => $force ? 1 : null,
+                'noprune' => $noprune ? 1 : null
             ))
         )->then(array($this->parser, 'expectEmpty'));
     }
@@ -1495,18 +1495,6 @@ class Client
         }
 
         return $headers;
-    }
-
-    /**
-     * Internal helper function used to pass boolean true values to endpoints and omit boolean false values
-     *
-     * @param boolean $value
-     * @return int|null returns the integer `1` for boolean true values and a `null` for boolean false values
-     * @see Browser::resolve()
-     */
-    private function boolArg($value)
-    {
-        return ($value ? 1 : null);
     }
 
     /**
