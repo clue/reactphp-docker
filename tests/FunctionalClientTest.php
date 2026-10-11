@@ -92,18 +92,18 @@ class FunctionalClientTest extends TestCase
         $ret = \React\Async\await($promise);
         assert(is_array($ret));
 
-        $status = array(); // array_column($ret, 'status'); // PHP 5.5+
+        $actions = array(); // array_column($ret, 'Action'); // PHP 5.5+
         foreach ($ret as $one) {
-            $status[] = $one['status'];
+            $actions[] = $one['Action'];
         }
 
-        // expect 4 events as of ~2021, 5 in earlier versions
-        if (count($status) === 4) {
+        // expect 4 events as of Docker 20.10 (2020), 5 in earlier versions
+        if (count($actions) === 4) {
             // start, die, attach, destroy
-            $this->assertEquals(array('start', 'die', 'attach', 'destroy'), $status);
+            $this->assertEquals(array('start', 'die', 'attach', 'destroy'), $actions);
         } else {
             // expects "start", "attach", "kill", "die", "destroy" events
-            $this->assertEquals(array('start', 'attach', 'kill', 'die', 'destroy'), $status);
+            $this->assertEquals(array('start', 'attach', 'kill', 'die', 'destroy'), $actions);
         }
     }
 
@@ -484,7 +484,7 @@ class FunctionalClientTest extends TestCase
             $actions[] = $one['Action'];
         }
 
-        // expect 2 events as of ~2025, 3 in earlier versions
+        // expect 2 events as of Docker 28 (2025), 3 in earlier versions
         if (count($actions) === 2) {
             // expects only "create" and "destroy" events (no "connect" / "disconnect" because we don't start the container)
             $this->assertEquals(array('create', 'destroy'), $actions);
