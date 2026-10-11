@@ -770,6 +770,15 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->networkConnect(123, $config));
     }
 
+    public function testNetworkConnectWithEndpointConfig()
+    {
+        $json = array();
+        $this->browser->expects($this->once())->method('post')->with('networks/123/connect', $this->anything(), '{"Container":"abc","EndpointConfig":{"Aliases":["foo"]}}')->willReturn(\React\Promise\resolve($this->createResponseJson($json)));
+        $this->parser->expects($this->once())->method('expectJson')->willReturn($json);
+
+        $this->expectPromiseResolveWith($json, $this->client->networkConnect(123, 'abc', array('Aliases' => array('foo'))));
+    }
+
     public function testNetworkDisconnect()
     {
         $this->browser->expects($this->once())->method('post')->with('networks/123/disconnect', $this->anything(), '{"Container":"abc","Force":false}')->willReturn(\React\Promise\resolve($this->createResponse()));

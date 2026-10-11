@@ -453,7 +453,7 @@ class FunctionalClientTest extends TestCase
         $this->assertNotNull($network['Id']);
         $this->assertEquals('', $network['Warning']);
 
-        $promise = $this->client->networkConnect($network['Id'], $container['Id']);
+        $promise = $this->client->networkConnect($network['Id'], $container['Id'], array('Aliases' => array('foo')));
         $ret = \React\Async\await($promise);
 
         $this->assertEquals('', $ret);
