@@ -1217,7 +1217,7 @@ class Client
                     'tag' => $tag,
                     'comment' => $comment,
                     'author' => $author,
-                    'pause' => $pause,
+                    'pause' => $pause ? 1 : 0,
                     'changes' => $changes,
                 )
             ),
