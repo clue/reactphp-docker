@@ -1614,7 +1614,7 @@ class Client
      *
      * Description from Docker's docs (see links):
      *
-     * AuthConfig, set as the X-Registry-Auth header, is currently a Base64
+     * AuthConfig, set as the X-Registry-Auth header, is currently a base64url
      * encoded (JSON) string with the following structure:
      * ```
      * {"username": "string", "password": "string", "email": "string", "serveraddress" : "string", "auth": ""}
@@ -1632,7 +1632,7 @@ class Client
     {
         $headers = array();
         if ($registryAuth !== null) {
-            $headers['X-Registry-Auth'] = base64_encode($this->json($registryAuth));
+            $headers['X-Registry-Auth'] = strtr(base64_encode($this->json($registryAuth)), '+/', '-_');
         }
 
         return $headers;

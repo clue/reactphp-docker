@@ -573,7 +573,6 @@ class ClientTest extends TestCase
 
     public function testImagePushCustomRegistry()
     {
-        // TODO: verify headers
         $auth = array();
         $json = array();
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
@@ -583,6 +582,19 @@ class ClientTest extends TestCase
         $this->streamingParser->expects($this->once())->method('deferredStream')->with($this->equalTo($stream))->will($this->returnPromise($json));
 
         $this->expectPromiseResolveWith($json, $this->client->imagePush('123', 'test', 'demo.acme.com:5000', $auth));
+    }
+
+    public function testImagePushWithRegistryAuth()
+    {
+        $auth = array('username' => 'user', 'password' => 'p>ss?word!');
+        $json = array();
+        $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();
+
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'images/123/push', array('X-Registry-Auth' => 'eyJ1c2VybmFtZSI6InVzZXIiLCJwYXNzd29yZCI6InA-c3M_d29yZCEifQ=='))->willReturn(\React\Promise\resolve($this->createResponseJsonStream($json)));
+        $this->streamingParser->expects($this->once())->method('parseJsonStream')->willReturn($stream);
+        $this->streamingParser->expects($this->once())->method('deferredStream')->with($stream)->willReturn(\React\Promise\resolve($json));
+
+        $this->expectPromiseResolveWith($json, $this->client->imagePush('123', null, null, $auth));
     }
 
     public function testImageTag()
