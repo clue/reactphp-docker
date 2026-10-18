@@ -70,6 +70,75 @@ class StreamingParserTest extends TestCase
         $this->assertFalse($stream->isReadable());
     }
 
+    public function testBufferedClosedStreamWillResolveWithEmptyString()
+    {
+        $stream = new ThroughStream();
+        $stream->close();
+
+        $promise = $this->parser->bufferedStream($stream);
+
+        $this->expectPromiseResolveWith('', $promise);
+    }
+
+    public function testBufferedStreamDataEventsWillBeBufferedAndResolvedOnClose()
+    {
+        $stream = new ThroughStream();
+
+        $promise = $this->parser->bufferedStream($stream);
+
+        $stream->write('hello');
+        $stream->end('world');
+
+        $this->expectPromiseResolveWith('helloworld', $promise);
+    }
+
+    public function testBufferedStreamErrorEventWillRejectPromise()
+    {
+        $stream = new ThroughStream();
+
+        $promise = $this->parser->bufferedStream($stream);
+
+        $stream->write('hello');
+        $stream->emit('error', array(new \RuntimeException('Boom', 42)));
+
+        $promise->then(null, $this->expectCallableOnceWith(new \RuntimeException(
+            'An error occured on the underlying stream while buffering: Boom',
+            42,
+            new \RuntimeException('Boom', 42)
+        )));
+    }
+
+    public function testBufferedCancelingPromiseWillRejectPromiseAndStopBuffering()
+    {
+        $stream = new ThroughStream();
+
+        $promise = $this->parser->bufferedStream($stream);
+
+        assert(method_exists($promise, 'cancel'));
+        $promise->cancel();
+
+        $promise->then(null, $this->expectCallableOnceWith(new \RuntimeException('Cancelled buffering')));
+        $this->assertCount(0, $stream->listeners('data'));
+    }
+
+    public function testBufferedCancelingPromiseWillClearBufferToAvoidGarbageReferences()
+    {
+        $stream = new ThroughStream();
+
+        $promise = $this->parser->bufferedStream($stream);
+
+        $stream->write('hello');
+
+        assert(method_exists($promise, 'cancel'));
+        $promise->cancel();
+
+        $promise->then(null, $this->expectCallableOnce());
+        $listeners = $stream->listeners('close');
+        $ref = new \ReflectionFunction(end($listeners));
+        $variables = $ref->getStaticVariables();
+        $this->assertSame('', $variables['buffer']);
+    }
+
     public function testDeferredClosedStreamWillReject()
     {
         $stream = $this->getMockBuilder('React\Stream\ReadableStreamInterface')->getMock();

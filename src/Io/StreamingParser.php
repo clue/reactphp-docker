@@ -5,7 +5,6 @@ namespace Clue\React\Docker\Io;
 use Psr\Http\Message\ResponseInterface;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
-use React\Promise\Stream;
 use React\Stream\ReadableStreamInterface;
 use RuntimeException;
 
@@ -41,7 +40,7 @@ class StreamingParser
     {
         // text/plain
 
-        return Stream\unwrapReadable($promise->then(function (ResponseInterface $response) {
+        return new ReadableUnwrapStream($promise->then(function (ResponseInterface $response) {
             return $response->getBody();
         }));
     }
@@ -62,11 +61,44 @@ class StreamingParser
      * Returns a promise which resolves with the buffered stream contents of the given stream
      *
      * @param ReadableStreamInterface $stream
-     * @return PromiseInterface Promise<string, Exception>
+     * @return PromiseInterface<string>
      */
     public function bufferedStream(ReadableStreamInterface $stream)
     {
-        return Stream\buffer($stream);
+        // stream already closed => resolve with empty buffer
+        if (!$stream->isReadable()) {
+            return \React\Promise\resolve('');
+        }
+
+        $buffer = '';
+        $bufferer = function ($data) use (&$buffer) {
+            $buffer .= $data;
+        };
+        $stream->on('data', $bufferer);
+
+        // cancelling the deferred will stop buffering and clear buffered data
+        $deferred = new Deferred(function () use ($stream, $bufferer, &$buffer) {
+            $stream->removeListener('data', $bufferer);
+            $buffer = '';
+
+            throw new RuntimeException('Cancelled buffering');
+        });
+
+        // error event rejects (stream closes afterwards)
+        $stream->on('error', function ($e) use ($deferred) {
+            $deferred->reject(new RuntimeException(
+                'An error occured on the underlying stream while buffering: ' . $e->getMessage(),
+                $e->getCode(),
+                $e
+            ));
+        });
+
+        // close event resolves with buffered data (unless already rejected)
+        $stream->on('close', function () use ($deferred, &$buffer) {
+            $deferred->resolve($buffer);
+        });
+
+        return $deferred->promise();
     }
 
     /**
