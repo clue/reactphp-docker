@@ -18,8 +18,7 @@
         "react/promise": "^3.3 || ^2.11 || ^1.3",
         "react/promise-stream": "^1.6",
         "react/socket": "^1.17",
-        "react/stream": "^1.4",
-        "rize/uri-template": "^0.4.1 || ^0.3"
+        "react/stream": "^1.4"
     },
     "require-dev": {
         "clue/tar-react": "^0.2",
