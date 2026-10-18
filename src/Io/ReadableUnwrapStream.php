@@ -27,8 +27,9 @@ class ReadableUnwrapStream extends EventEmitter implements ReadableStreamInterfa
 
     /**
      * @param PromiseInterface<ReadableStreamInterface> $promise
+     * @param ?string $stderrEvent custom event to forward for STDERR data (otherwise only forwards "data")
      */
-    public function __construct(PromiseInterface $promise)
+    public function __construct(PromiseInterface $promise, $stderrEvent = null)
     {
         $this->promise = $promise;
 
@@ -37,7 +38,7 @@ class ReadableUnwrapStream extends EventEmitter implements ReadableStreamInterfa
         $paused =& $this->paused;
 
         $promise->then(
-            function (ReadableStreamInterface $stream) use ($out, &$input, &$paused) {
+            function (ReadableStreamInterface $stream) use ($out, &$input, &$paused, $stderrEvent) {
                 // output already closed while waiting or input already closed => close other side
                 if (!$out->isReadable() || !$stream->isReadable()) {
                     $stream->close();
@@ -54,6 +55,13 @@ class ReadableUnwrapStream extends EventEmitter implements ReadableStreamInterfa
                 $stream->on('data', function ($data) use ($out) {
                     $out->emit('data', array($data));
                 });
+
+                // forward custom STDERR event if given
+                if ($stderrEvent !== null && !in_array($stderrEvent, array('data', 'end', 'error', 'close'), true)) {
+                    $stream->on($stderrEvent, function ($data) use ($out, $stderrEvent) {
+                        $out->emit($stderrEvent, array($data));
+                    });
+                }
 
                 // forward end event to output and close
                 $stream->on('end', function () use ($out) {
