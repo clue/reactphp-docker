@@ -663,6 +663,15 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->execCreate(123, 'env'));
     }
 
+    public function testExecCreateWithNumericUser()
+    {
+        $json = array();
+        $this->browser->expects($this->once())->method('post')->with('containers/123/exec', $this->anything(), '{"Cmd":["env"],"Tty":false,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"User":"1000","Privileged":false}')->willReturn(\React\Promise\resolve($this->createResponseJson($json)));
+        $this->parser->expects($this->once())->method('expectJson')->willReturn($json);
+
+        $this->expectPromiseResolveWith($json, $this->client->execCreate(123, array('env'), false, false, true, true, 1000));
+    }
+
     public function testExecDetached()
     {
         $body = '';
