@@ -242,6 +242,25 @@ class ClientTest extends TestCase
         $response->write('output');
     }
 
+    public function testContainerLogsStreamWithCustomStderrEventReturnStreamThatEmitsCustomStderrEventWhenInspectingContainerResolvesWithoutTtyAndContainerLogsRequestResolves()
+    {
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('GET', 'containers/123/logs?stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
+
+        $response = new ThroughStream();
+        $demultiplexed = new ThroughStream();
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => false)));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($response);
+        $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($response, 'stderr')->willReturn($demultiplexed);
+
+        $stream = $this->client->containerLogsStream('123', false, true, true, 0, false, null, 'stderr');
+
+        $stream->on('data', $this->expectCallableOnceWith('output'));
+        $stream->on('stderr', $this->expectCallableOnceWith('error'));
+        $demultiplexed->write('output');
+        $demultiplexed->emit('stderr', array('error'));
+    }
+
     public function testContainerExport()
     {
         $data = 'tar stream';
@@ -435,6 +454,25 @@ class ClientTest extends TestCase
 
         $stream->on('data', $this->expectCallableOnceWith('output'));
         $response->write('output');
+    }
+
+    public function testContainerAttachStreamWithCustomStderrEventReturnStreamThatEmitsCustomStderrEventWhenInspectingContainerResolvesWithoutTtyAndContainerAttachRequestResolves()
+    {
+        $this->browser->expects($this->once())->method('get')->with('containers/123/json')->willReturn(\React\Promise\resolve(new Response(200, array(), '{"Config":{"Tty":false}}')));
+        $this->browser->expects($this->once())->method('requestStreaming')->with('POST', 'containers/123/attach?logs=1&stream=1&stdout=1&stderr=1')->willReturn(\React\Promise\resolve(new Response(200, array(), '')));
+
+        $response = new ThroughStream();
+        $demultiplexed = new ThroughStream();
+        $this->parser->expects($this->once())->method('expectJson')->willReturn(array('Config' => array('Tty' => false)));
+        $this->streamingParser->expects($this->once())->method('parsePlainStream')->willReturn($response);
+        $this->streamingParser->expects($this->once())->method('demultiplexStream')->with($response, 'stderr')->willReturn($demultiplexed);
+
+        $stream = $this->client->containerAttachStream('123', true, true, true, true, 'stderr');
+
+        $stream->on('data', $this->expectCallableOnceWith('output'));
+        $stream->on('stderr', $this->expectCallableOnceWith('error'));
+        $demultiplexed->write('output');
+        $demultiplexed->emit('stderr', array('error'));
     }
 
     public function testContainerRemove()

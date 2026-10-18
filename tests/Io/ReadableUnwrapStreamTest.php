@@ -123,6 +123,52 @@ class ReadableUnwrapStreamTest extends TestCase
         $input->emit('data', array('hello world'));
     }
 
+    public function testEmitsCustomEventWhenInputEmitsCustomEvent()
+    {
+        $input = new ThroughStream();
+        $stream = new ReadableUnwrapStream(Promise\resolve($input), 'stderr');
+
+        $stream->on('data', $this->expectCallableNever());
+        $stream->on('stderr', $this->expectCallableOnceWith('hello world'));
+        $input->emit('stderr', array('hello world'));
+    }
+
+    public function testEmitsDataOnlyOnceWhenCustomEventIsData()
+    {
+        $input = new ThroughStream();
+        $stream = new ReadableUnwrapStream(Promise\resolve($input), 'data');
+
+        $stream->on('data', $this->expectCallableOnceWith('hello world'));
+        $input->emit('data', array('hello world'));
+    }
+
+    public function testEmitsEndOnlyOnceWhenCustomEventIsEnd()
+    {
+        $input = new ThroughStream();
+        $stream = new ReadableUnwrapStream(Promise\resolve($input), 'end');
+
+        $stream->on('end', $this->expectCallableOnce());
+        $input->end();
+    }
+
+    public function testEmitsErrorOnlyOnceWhenCustomEventIsError()
+    {
+        $input = new ThroughStream();
+        $stream = new ReadableUnwrapStream(Promise\resolve($input), 'error');
+
+        $stream->on('error', $this->expectCallableOnceWith(new \RuntimeException()));
+        $input->emit('error', array(new \RuntimeException()));
+    }
+
+    public function testEmitsCloseOnlyOnceWhenCustomEventIsClose()
+    {
+        $input = new ThroughStream();
+        $stream = new ReadableUnwrapStream(Promise\resolve($input), 'close');
+
+        $stream->on('close', $this->expectCallableOnce());
+        $input->close();
+    }
+
     public function testEmitsErrorAndClosesWhenInputEmitsError()
     {
         $input = new ThroughStream();

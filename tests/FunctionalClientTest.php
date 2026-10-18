@@ -111,6 +111,45 @@ class FunctionalClientTest extends TestCase
     /**
      * @depends testImageInspectCheckIfBusyboxExists
      */
+    public function testCreateStartAndRemoveContainerWithStderrOutputEmitsCustomEventForLogsAndAttachStreams()
+    {
+        $config = array(
+            'Image' => 'busybox',
+            'Cmd' => array('sh', '-c', 'echo out; echo err >&2')
+        );
+
+        $promise = $this->client->containerCreate($config);
+        $container = \React\Async\await($promise);
+
+        $promise = $this->client->containerStart($container['Id']);
+        \React\Async\await($promise);
+
+        $promise = $this->client->containerWait($container['Id']);
+        \React\Async\await($promise);
+
+        $stream = $this->client->containerLogsStream($container['Id'], false, true, true, 0, false, null, 'err');
+        $stream->on('err', $this->expectCallableOnceWith("err\n"));
+        $stream->on('end', $this->expectCallableOnce());
+
+        $output = \React\Async\await($this->parser->bufferedStream($stream));
+
+        $this->assertEquals("out\n", $output);
+
+        $stream = $this->client->containerAttachStream($container['Id'], true, false, true, true, 'err');
+        $stream->on('err', $this->expectCallableOnceWith("err\n"));
+        $stream->on('end', $this->expectCallableOnce());
+
+        $output = \React\Async\await($this->parser->bufferedStream($stream));
+
+        $this->assertEquals("out\n", $output);
+
+        $promise = $this->client->containerRemove($container['Id'], false, true);
+        \React\Async\await($promise);
+    }
+
+    /**
+     * @depends testImageInspectCheckIfBusyboxExists
+     */
     public function testStartRunning()
     {
         $config = array(

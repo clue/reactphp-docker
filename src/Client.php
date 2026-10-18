@@ -374,7 +374,7 @@ class Client
             }
 
             return $stream;
-        }));
+        }), $stderrEvent);
     }
 
     /**
@@ -738,7 +738,7 @@ class Client
             }
 
             return $stream;
-        }));
+        }), $stderrEvent);
     }
 
     /**
