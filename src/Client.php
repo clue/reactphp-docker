@@ -1541,7 +1541,7 @@ class Client
             ),
             array(
                 'Container' => $container,
-                'EndpointConfig' => $endpointConfig ? json_encode($endpointConfig) : null
+                'EndpointConfig' => $endpointConfig ? $endpointConfig : null
             )
         )->then(array($this->parser, 'expectJson'));
     }
@@ -1567,7 +1567,7 @@ class Client
             ),
             array(
                 'Container' => $container,
-                'Force' => $this->boolArg($force)
+                'Force' => (bool) $force
             )
         )->then(array($this->parser, 'expectEmpty'));
     }
