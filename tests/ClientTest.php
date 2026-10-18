@@ -630,6 +630,14 @@ class ClientTest extends TestCase
         $this->expectPromiseResolveWith($json, $this->client->containerCommit('123', $config));
     }
 
+    public function testCommitWithoutPause()
+    {
+        $json = array();
+        $this->expectRequestFlow('post', 'commit?container=123&pause=0', $this->createResponseJson($json), 'expectJson');
+
+        $this->expectPromiseResolveWith($json, $this->client->containerCommit('123', null, null, null, null, false));
+    }
+
     public function testCommitWithAllParams()
     {
         $json = array();
