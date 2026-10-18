@@ -75,6 +75,11 @@ class FunctionalClientTest extends TestCase
 
         $this->assertEquals("test\n", $ret);
 
+        $promise = $this->client->containerWait($container['Id']);
+        $ret = \React\Async\await($promise);
+
+        $this->assertEquals(0, $ret['StatusCode']);
+
         $promise = $this->client->containerAttach($container['Id'], true, false);
         $ret = \React\Async\await($promise);
 
@@ -97,14 +102,8 @@ class FunctionalClientTest extends TestCase
             $actions[] = $one['Action'];
         }
 
-        // expect 4 events as of Docker 20.10 (2020), 5 in earlier versions
-        if (count($actions) === 4) {
-            // start, die, attach, destroy
-            $this->assertEquals(array('start', 'die', 'attach', 'destroy'), $actions);
-        } else {
-            // expects "start", "attach", "kill", "die", "destroy" events
-            $this->assertEquals(array('start', 'attach', 'kill', 'die', 'destroy'), $actions);
-        }
+        // expects "start", "die", "attach", "destroy" events (container already exited before attaching)
+        $this->assertEquals(array('start', 'die', 'attach', 'destroy'), $actions);
     }
 
     /**
