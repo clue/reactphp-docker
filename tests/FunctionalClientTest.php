@@ -3,12 +3,13 @@
 namespace Clue\Tests\React\Docker;
 
 use Clue\React\Docker\Client;
+use Clue\React\Docker\Io\StreamingParser;
 use React\EventLoop\Loop;
-use React\Promise\Stream;
 
 class FunctionalClientTest extends TestCase
 {
     private $client;
+    private $parser;
 
     /**
      * @before
@@ -16,6 +17,7 @@ class FunctionalClientTest extends TestCase
     public function setUpClient()
     {
         $this->client = new Client();
+        $this->parser = new StreamingParser();
 
         $promise = $this->client->ping();
 
@@ -221,7 +223,7 @@ class FunctionalClientTest extends TestCase
         $stream->once('data', $this->expectCallableOnceWith('hello'));
         $stream->on('end', $this->expectCallableOnce());
 
-        $output = \React\Async\await(Stream\buffer($stream));
+        $output = \React\Async\await($this->parser->bufferedStream($stream));
 
         $this->assertEquals('helloworld', $output);
     }
@@ -278,7 +280,7 @@ class FunctionalClientTest extends TestCase
         $stream->once('data', $this->expectCallableOnce('hello world'));
         $stream->on('end', $this->expectCallableOnce());
 
-        $output = \React\Async\await(Stream\buffer($stream));
+        $output = \React\Async\await($this->parser->bufferedStream($stream));
 
         $this->assertEquals('hello world', $output);
     }
@@ -301,7 +303,7 @@ class FunctionalClientTest extends TestCase
         $stream->on('error', $this->expectCallableNever());
         $stream->on('end', $this->expectCallableOnce());
 
-        $output = \React\Async\await(Stream\buffer($stream));
+        $output = \React\Async\await($this->parser->bufferedStream($stream));
 
         $this->assertEquals('', $output);
     }
@@ -321,7 +323,7 @@ class FunctionalClientTest extends TestCase
         $stream = $this->client->execStartStream($exec['Id'], true);
         $stream->on('end', $this->expectCallableOnce());
 
-        $output = \React\Async\await(Stream\buffer($stream));
+        $output = \React\Async\await($this->parser->bufferedStream($stream));
 
         $this->assertEquals('', $output);
     }

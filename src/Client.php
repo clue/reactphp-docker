@@ -2,6 +2,7 @@
 
 namespace Clue\React\Docker;
 
+use Clue\React\Docker\Io\ReadableUnwrapStream;
 use Clue\React\Docker\Io\ResponseParser;
 use Clue\React\Docker\Io\StreamingParser;
 use React\EventLoop\LoopInterface;
@@ -365,7 +366,7 @@ class Client
         ));
 
         // first inspect container to check TTY setting, then request logs with appropriate log parser
-        return \React\Promise\Stream\unwrapReadable($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
+        return new ReadableUnwrapStream($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
             $stream = $parser->parsePlainStream($browser->requestStreaming('GET', $url));
 
             if (!$info['Config']['Tty']) {
@@ -729,7 +730,7 @@ class Client
         ));
 
         // first inspect container to check TTY setting, then attach with appropriate log parser
-        return \React\Promise\Stream\unwrapReadable($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
+        return new ReadableUnwrapStream($this->containerInspect($container)->then(function ($info) use ($url, $browser, $parser, $stderrEvent) {
             $stream = $parser->parsePlainStream($browser->requestStreaming('POST', $url));
 
             if (!$info['Config']['Tty']) {
